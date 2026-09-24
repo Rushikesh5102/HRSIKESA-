@@ -1,0 +1,12 @@
+[
+  {
+    "id": "e1",
+    "researchId": "study-synth-1",
+    "sourceId": "s1",
+    "claimText": "Repository is licensed under Apache-2.0 and consumes 450 MB RAM.",
+    "claim": "Repository is licensed under Apache-2.0 and consumes 450 MB RAM.",
+    "claimType": "FACT",
+    "confidence": 0.95,
+    "createdAt": "2026-09-24T18:25:46.094Z"
+  }
+]

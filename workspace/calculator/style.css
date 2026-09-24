@@ -1,0 +1,190 @@
+:root {
+  --bg-dark: #0f131a;
+  --bg-card: #181d27;
+  --bg-screen: #0a0d14;
+  --gold: #d4af37;
+  --gold-glow: rgba(212, 175, 55, 0.3);
+  --saffron: #f59e0b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --btn-num: #222938;
+  --btn-num-hover: #2d3748;
+  --btn-func: #2a3447;
+  --btn-func-hover: #37445c;
+  --border-gold: rgba(212, 175, 55, 0.35);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-primary);
+}
+
+.calc-container {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px var(--gold-glow);
+  backdrop-filter: blur(10px);
+}
+
+.calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  padding-bottom: 12px;
+}
+
+.calc-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calc-title h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+
+.gold-icon {
+  color: var(--gold);
+  font-size: 18px;
+}
+
+.agent-tag {
+  font-size: 10px;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calc-screen {
+  background: var(--bg-screen);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  text-align: right;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.history-display {
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-height: 18px;
+  word-break: break-all;
+}
+
+.main-display {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Cinzel', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calc-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.btn {
+  height: 54px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-num {
+  background: var(--btn-num);
+  color: var(--text-primary);
+}
+
+.btn-num:hover {
+  background: var(--btn-num-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-func {
+  background: var(--btn-func);
+  color: #38bdf8;
+}
+
+.btn-func:hover {
+  background: var(--btn-func-hover);
+}
+
+.btn-op {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--saffron);
+  font-size: 20px;
+}
+
+.btn-op:hover {
+  background: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.btn-equals {
+  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%);
+  color: #0b0f17;
+  font-weight: 700;
+  font-size: 22px;
+  border: none;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.btn-equals:hover {
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+  transform: translateY(-1px);
+}
+
+.calc-footer {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vedic Sovereign Calculator • Gāṇḍīva Edition</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="calc-container">
+    <div class="calc-header">
+      <div class="calc-title">
+        <span class="gold-icon">☸</span>
+        <h2>HṚṢĪKEŚA CALC</h2>
+      </div>
+      <div class="agent-tag">Engineered by Gāṇḍīva</div>
+    </div>
+
+    <!-- Display Screen -->
+    <div class="calc-screen">
+      <div class="history-display" id="historyDisplay"></div>
+      <div class="main-display" id="mainDisplay">0</div>
+    </div>
+
+    <!-- Keypad Grid -->
+    <div class="calc-keypad">
+      <button class="btn btn-func" onclick="clearAll()">AC</button>
+      <button class="btn btn-func" onclick="deleteLast()">DEL</button>
+      <button class="btn btn-func" onclick="applyPercentage()">%</button>
+      <button class="btn btn-op" onclick="appendOperator('/')">÷</button>
+
+      <button class="btn btn-num" onclick="appendNumber('7')">7</button>
+      <button class="btn btn-num" onclick="appendNumber('8')">8</button>
+      <button class="btn btn-num" onclick="appendNumber('9')">9</button>
+      <button class="btn btn-op" onclick="appendOperator('*')">×</button>
+
+      <button class="btn btn-num" onclick="appendNumber('4')">4</button>
+      <button class="btn btn-num" onclick="appendNumber('5')">5</button>
+      <button class="btn btn-num" onclick="appendNumber('6')">6</button>
+      <button class="btn btn-op" onclick="appendOperator('-')">−</button>
+
+      <button class="btn btn-num" onclick="appendNumber('1')">1</button>
+      <button class="btn btn-num" onclick="appendNumber('2')">2</button>
+      <button class="btn btn-num" onclick="appendNumber('3')">3</button>
+      <button class="btn btn-op" onclick="appendOperator('+')">+</button>
+
+      <button class="btn btn-num" onclick="appendNumber('0')">0</button>
+      <button class="btn btn-num" onclick="appendNumber('.')">.</button>
+      <button class="btn btn-func" onclick="calculateSquareRoot()">√</button>
+      <button class="btn btn-equals" onclick="computeResult()">=</button>
+    </div>
+
+    <div class="calc-footer">
+      <span>Quality Verified • 100% Precision</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

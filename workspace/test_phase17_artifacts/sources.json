@@ -1,0 +1,17 @@
+[
+  {
+    "id": "s1",
+    "researchId": "study-synth-1",
+    "url": "https://github.com/agent-framework/core",
+    "title": "Core Framework Repository",
+    "domain": "github.com",
+    "sourceType": "OFFICIAL_REPOSITORY",
+    "credibilityTier": "AUTHORITATIVE",
+    "freshness": "CURRENT",
+    "contentHash": "s1hash",
+    "isDuplicate": false,
+    "status": "ACQUIRED",
+    "retrievedAt": "2026-09-24T18:25:46.094Z",
+    "createdAt": "2026-09-24T18:25:46.094Z"
+  }
+]

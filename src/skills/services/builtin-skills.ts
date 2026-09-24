@@ -1,0 +1,543 @@
+/**
+ * HṚṢĪKEŚA (हृषीकेश) — Built-in Core Skills
+ *
+ * Phase 20: 8 Initial Safe Built-in Procedural Skills
+ */
+
+import { SkillDefinition } from '../interfaces/skill.types.js';
+
+export const BUILTIN_SKILLS: SkillDefinition[] = [
+  // 1. inspect-project
+  {
+    id: 'builtin-inspect-project',
+    name: 'inspect-project',
+    displayName: 'Inspect Project Structure',
+    description: 'Inspects directory structure, configuration files, and project health indicators.',
+    category: 'SOFTWARE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['inspect project', 'check repository', 'project structure', 'inspect repo'],
+    requiredCapabilities: ['filesystem', 'code-analysis'],
+    requiredTools: ['file_list', 'file_read'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        directory: { type: 'string', default: '.' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+        fileCount: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'list_files',
+        name: 'List Workspace Files',
+        stepType: 'TOOL',
+        tool: 'file_list',
+        dependencies: [],
+        inputs: { path: '.' },
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'read_manifest',
+        name: 'Read Project Manifest',
+        stepType: 'TOOL',
+        tool: 'file_read',
+        dependencies: ['list_files'],
+        inputs: { path: 'package.json' },
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 2,
+        stepId: 'verify_structure',
+        name: 'Verify Project Validity',
+        stepType: 'VERIFY',
+        dependencies: ['read_manifest'],
+        verification: {
+          type: 'file_exists',
+          target: 'package.json',
+        },
+        timeoutMs: 10000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['filesystem', 'code-analysis'],
+      requiredTools: ['file_list', 'file_read'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 2. analyze-code
+  {
+    id: 'builtin-analyze-code',
+    name: 'analyze-code',
+    displayName: 'Analyze Code Quality',
+    description: 'Inspects source code for quality, TypeScript type safety, and formatting standards.',
+    category: 'SOFTWARE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['analyze code', 'check code quality', 'code analysis', 'review code'],
+    requiredCapabilities: ['code-analysis', 'filesystem'],
+    requiredTools: ['file_read'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        targetFile: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        passed: { type: 'boolean' },
+        findings: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'read_source',
+        name: 'Read Target Source Code',
+        stepType: 'TOOL',
+        tool: 'file_read',
+        dependencies: [],
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'analyze_ast',
+        name: 'Analyze AST and Structure',
+        stepType: 'MODEL',
+        dependencies: ['read_source'],
+        timeoutMs: 60000,
+      },
+      {
+        stepIndex: 2,
+        stepId: 'verify_analysis',
+        name: 'Verify Analysis Findings',
+        stepType: 'VERIFY',
+        dependencies: ['analyze_ast'],
+        verification: {
+          type: 'custom',
+          target: 'analysis_complete',
+        },
+        timeoutMs: 10000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['code-analysis', 'filesystem'],
+      requiredTools: ['file_read'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 3. run-tests
+  {
+    id: 'builtin-run-tests',
+    name: 'run-tests',
+    displayName: 'Run Test Suite',
+    description: 'Executes automated tests and verifies assertion outcomes.',
+    category: 'DEVOPS',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['run tests', 'execute test suite', 'run unit tests', 'run checks'],
+    requiredCapabilities: ['terminal', 'testing'],
+    requiredTools: ['terminal_execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        testFilter: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        passed: { type: 'boolean' },
+        exitCode: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'execute_test_cmd',
+        name: 'Execute Test Command',
+        stepType: 'TOOL',
+        tool: 'terminal_execute',
+        dependencies: [],
+        inputs: { command: 'npm test' },
+        timeoutMs: 120000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'verify_test_success',
+        name: 'Verify Zero Exit Code',
+        stepType: 'VERIFY',
+        dependencies: ['execute_test_cmd'],
+        verification: {
+          type: 'command_exit_code',
+          target: 'npm test',
+          expectedValue: 0,
+        },
+        timeoutMs: 10000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['terminal', 'testing'],
+      requiredTools: ['terminal_execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 4. research-topic
+  {
+    id: 'builtin-research-topic',
+    name: 'research-topic',
+    displayName: 'Research Topic Intelligence',
+    description: 'Conducts evidence-backed research, verifies sources, and extracts structured facts.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['research topic', 'research company', 'market research', 'investigate topic'],
+    requiredCapabilities: ['web', 'research', 'knowledge-write'],
+    requiredTools: ['web_search', 'web_scrape'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string' },
+        depth: { type: 'string', default: 'standard' },
+      },
+      required: ['topic'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        report: { type: 'string' },
+        sources: { type: 'array' },
+        evidence: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'search_sources',
+        name: 'Search Web Sources',
+        stepType: 'RESEARCH',
+        capability: 'research',
+        dependencies: [],
+        timeoutMs: 45000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'extract_evidence',
+        name: 'Extract Evidence & Quotes',
+        stepType: 'RESEARCH',
+        capability: 'research',
+        dependencies: ['search_sources'],
+        timeoutMs: 45000,
+      },
+      {
+        stepIndex: 2,
+        stepId: 'synthesize_findings',
+        name: 'Synthesize Findings',
+        stepType: 'MODEL',
+        dependencies: ['extract_evidence'],
+        timeoutMs: 60000,
+      },
+      {
+        stepIndex: 3,
+        stepId: 'verify_citations',
+        name: 'Verify Primary Citations',
+        stepType: 'VERIFY',
+        dependencies: ['synthesize_findings'],
+        verification: {
+          type: 'custom',
+          target: 'citations_verified',
+        },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web', 'research', 'knowledge-write'],
+      requiredTools: ['web_search', 'web_scrape'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'COMPANY', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 5. create-local-file
+  {
+    id: 'builtin-create-local-file',
+    name: 'create-local-file',
+    displayName: 'Create Local File',
+    description: 'Writes safe, deterministic content to an authorized local workspace file.',
+    category: 'COMPUTER',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['create file', 'write file', 'create local file', 'save file'],
+    requiredCapabilities: ['filesystem'],
+    requiredTools: ['file_write'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string' },
+        content: { type: 'string' },
+      },
+      required: ['path', 'content'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        filePath: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'write_file',
+        name: 'Write File to Disk',
+        stepType: 'TOOL',
+        tool: 'file_write',
+        dependencies: [],
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'verify_written_file',
+        name: 'Verify File Exists on Disk',
+        stepType: 'VERIFY',
+        dependencies: ['write_file'],
+        verification: {
+          type: 'file_exists',
+          target: 'path',
+        },
+        timeoutMs: 10000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['filesystem'],
+      requiredTools: ['file_write'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 6. verify-file
+  {
+    id: 'builtin-verify-file',
+    name: 'verify-file',
+    displayName: 'Verify File Invariant',
+    description: 'Verifies existence and contents of a workspace file without side-effects.',
+    category: 'OPERATIONS',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['verify file', 'check file exists', 'validate file'],
+    requiredCapabilities: ['filesystem'],
+    requiredTools: ['file_read'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string' },
+      },
+      required: ['path'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean' },
+        sizeBytes: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'verify_existence',
+        name: 'Verify File Existence',
+        stepType: 'VERIFY',
+        dependencies: [],
+        verification: {
+          type: 'file_exists',
+          target: 'path',
+        },
+        timeoutMs: 10000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['filesystem'],
+      requiredTools: ['file_read'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 7. summarize-document
+  {
+    id: 'builtin-summarize-document',
+    name: 'summarize-document',
+    displayName: 'Summarize Document',
+    description: 'Reads an authorized local text or markdown document and produces a structured summary.',
+    category: 'DOCUMENT',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['summarize document', 'summarize file', 'create summary'],
+    requiredCapabilities: ['filesystem', 'document'],
+    requiredTools: ['file_read'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        documentPath: { type: 'string' },
+      },
+      required: ['documentPath'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+        wordCount: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'read_doc',
+        name: 'Read Document Content',
+        stepType: 'TOOL',
+        tool: 'file_read',
+        dependencies: [],
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'summarize_content',
+        name: 'Extract Key Summary',
+        stepType: 'MODEL',
+        dependencies: ['read_doc'],
+        timeoutMs: 60000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['filesystem', 'document'],
+      requiredTools: ['file_read'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 8. investigate-error
+  {
+    id: 'builtin-investigate-error',
+    name: 'investigate-error',
+    displayName: 'Investigate Runtime Error',
+    description: 'Analyzes error messages, traces stack traces to source files, and identifies remediation steps.',
+    category: 'SOFTWARE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['investigate error', 'debug error', 'fix failure', 'analyze crash'],
+    requiredCapabilities: ['code-analysis', 'filesystem'],
+    requiredTools: ['file_read'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        errorMessage: { type: 'string' },
+        stackTrace: { type: 'string' },
+      },
+      required: ['errorMessage'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        rootCause: { type: 'string' },
+        suggestedFix: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'parse_error',
+        name: 'Parse Error Stack Trace',
+        stepType: 'DETERMINISTIC',
+        dependencies: [],
+        timeoutMs: 15000,
+      },
+      {
+        stepIndex: 1,
+        stepId: 'inspect_culprit_file',
+        name: 'Read Culprit Source File',
+        stepType: 'TOOL',
+        tool: 'file_read',
+        dependencies: ['parse_error'],
+        timeoutMs: 30000,
+      },
+      {
+        stepIndex: 2,
+        stepId: 'remediation_analysis',
+        name: 'Synthesize Remediation Steps',
+        stepType: 'MODEL',
+        dependencies: ['inspect_culprit_file'],
+        timeoutMs: 60000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['code-analysis', 'filesystem'],
+      requiredTools: ['file_read'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
