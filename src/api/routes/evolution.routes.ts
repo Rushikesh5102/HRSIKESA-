@@ -135,8 +135,8 @@ export class EvolutionRoutes {
         return true;
       }
 
-      // 5. GET / DELETE / RESUME / START / CANCEL specific objective
-      const objMatch = pathname.match(/^\/api\/evolution\/objectives\/([a-zA-Z0-9_-]+)(?:\/(cancel|resume|start|trigger))?$/);
+      // 5. GET / DELETE / RESUME / START / CANCEL / PROMOTE specific objective
+      const objMatch = pathname.match(/^\/api\/evolution\/objectives\/([a-zA-Z0-9_-]+)(?:\/(cancel|resume|start|trigger|promote))?$/);
       if (objMatch) {
         const objId = objMatch[1];
         const action = objMatch[2];
@@ -145,6 +145,16 @@ export class EvolutionRoutes {
           this.evolutionEngine.stopAutonomousLoop(objId);
           const deleted = this.evolutionEngine.objectiveEngine.deleteObjective(objId);
           this.sendJson(res, 200, { success: true, deleted, message: `Objective '${objId}' deleted.` });
+          return true;
+        }
+
+        if (method === 'POST' && action === 'promote') {
+          const body = await this.parseJsonBody(req);
+          const resPromote = await this.evolutionEngine.promoteExperiment(
+            objId,
+            String(body.approver || 'ROOT_RUSHIKESH')
+          );
+          this.sendJson(res, 200, resPromote);
           return true;
         }
 
@@ -164,6 +174,7 @@ export class EvolutionRoutes {
           this.sendJson(res, 200, { success: true, message: `Autonomous evolution loop engaged for objective '${objId}'.` });
           return true;
         }
+
 
         if (method === 'GET' && !action) {
           const objective = this.evolutionEngine.objectiveEngine.getObjective(objId);

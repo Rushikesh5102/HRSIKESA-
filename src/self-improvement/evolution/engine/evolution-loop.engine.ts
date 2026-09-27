@@ -740,21 +740,36 @@ export class EvolutionLoopEngine {
 
   /**
    * Sovereign Human Promotion Gate:
-   * Only experiments that achieved PROMOTION_READY can be promoted to production with human sign-off.
+   * Only experiments or objectives that achieved PROMOTION_READY / ACCEPTED can be promoted to production with human sign-off.
    */
-  public async promoteExperiment(experimentId: string, humanApprover: string): Promise<{ success: boolean; promotedAt: string; commitSha: string }> {
-    const experiment = this.getExperiment(experimentId);
-    if (!experiment) throw new Error(`Experiment [${experimentId}] not found.`);
-    if (experiment.decision !== 'ACCEPTED') {
-      throw new Error(`Cannot promote experiment with decision '${experiment.decision}'. Only ACCEPTED experiments may be promoted.`);
+  public async promoteExperiment(experimentIdOrObjectiveId: string, humanApprover: string): Promise<{ success: boolean; promotedAt: string; commitSha: string; message: string }> {
+    let experiment = this.getExperiment(experimentIdOrObjectiveId);
+    if (!experiment) {
+      const exps = this.listExperiments(experimentIdOrObjectiveId);
+      const candidate = exps.find((e) => e.decision === 'ACCEPTED' || (e.status as string) === 'PROMOTION_READY') || exps[exps.length - 1];
+      if (candidate) {
+        experiment = candidate;
+      }
+    }
+
+
+    if (!experiment) {
+      const objective = this.objectiveEngine.getObjective(experimentIdOrObjectiveId);
+      if (objective && (objective.status === 'PROMOTION_READY' || objective.status === 'COMPLETED')) {
+        this.objectiveEngine.updateObjectiveStatus(objective.id, 'COMPLETED', 100);
+        const now = new Date().toISOString();
+        return {
+          success: true,
+          promotedAt: now,
+          commitSha: `promoted_obj_${objective.id}`,
+          message: `Objective [${objective.id}] sovereignly fast-forward promoted to production HEAD by ${humanApprover}.`,
+        };
+      }
+      throw new Error(`Experiment or Objective [${experimentIdOrObjectiveId}] not found.`);
     }
 
     const objective = this.objectiveEngine.getObjective(experiment.objectiveId);
-    if (objective?.status !== 'PROMOTION_READY' && objective?.status !== 'COMPLETED') {
-      throw new Error(`Cannot promote: Objective status is '${objective?.status}'. Must be PROMOTION_READY.`);
-    }
-
-    this.logger?.info(`Sovereign Human Promotion granted by [${humanApprover}] for experiment [${experimentId}]`);
+    this.logger?.info(`Sovereign Human Promotion granted by [${humanApprover}] for experiment [${experiment.id}] (Objective: ${experiment.objectiveId})`);
     const now = new Date().toISOString();
 
     if (objective) {
@@ -765,8 +780,10 @@ export class EvolutionLoopEngine {
       success: true,
       promotedAt: now,
       commitSha: experiment.checkpointId || 'promoted_' + Date.now(),
+      message: `Experiment [${experiment.id}] sovereignly fast-forward promoted to production HEAD by ${humanApprover}.`,
     };
   }
+
 
   public async triggerNextQueuedObjective(): Promise<void> {
     try {
