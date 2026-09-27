@@ -1277,6 +1277,8 @@ export const api = {
     fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}/cancel`, { method: 'POST' }),
   resumeEvolutionObjective: (id: string) =>
     fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}/resume`, { method: 'POST' }),
+  triggerEvolutionObjective: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}/trigger`, { method: 'POST' }),
   getEvolutionExperiments: (objectiveId?: string) =>
     fetchJson<any>(`${API_BASE}/api/evolution/experiments${objectiveId ? `?objectiveId=${encodeURIComponent(objectiveId)}` : ''}`),
   getEvolutionExperiment: (id: string) =>
@@ -1300,14 +1302,41 @@ export const api = {
     fetchJson<any>(`${API_BASE}/api/evolution/experiments/${id}/promote`, { method: 'POST' }),
   subscribeEvolutionEvents: (onMessage: (event: any) => void, onError?: (err: any) => void) => {
     const eventSource = new EventSource(`${API_BASE}/api/evolution/events`);
+    
     eventSource.onmessage = (e) => {
       try {
-        const data = JSON.parse(e.data);
-        onMessage(data);
+        const payload = JSON.parse(e.data);
+        onMessage(payload);
       } catch (err) {
-        console.error('Failed to parse evolution SSE payload', err);
+        console.error('Failed to parse evolution SSE message payload', err);
       }
     };
+
+    const eventNames = [
+      'connected',
+      'evolution.objective.created',
+      'evolution.objective.progress',
+      'evolution.experiment.started',
+      'evolution.experiment.phase',
+      'evolution.experiment.completed',
+      'evolution.supervisor.evaluated',
+      'evolution.log',
+      'evolution.safety.paused',
+      'evolution.safety.resumed',
+      'evolution.safety.emergency_stopped',
+    ];
+
+    eventNames.forEach((name) => {
+      eventSource.addEventListener(name, (e: any) => {
+        try {
+          const parsed = JSON.parse(e.data);
+          onMessage({ type: name, data: parsed, timestamp: new Date().toISOString() });
+        } catch (err) {
+          console.error(`Failed to parse SSE event [${name}]`, err);
+        }
+      });
+    });
+
     eventSource.onerror = (err) => {
       if (onError) onError(err);
     };

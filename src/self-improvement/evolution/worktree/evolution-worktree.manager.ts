@@ -117,6 +117,17 @@ export class EvolutionWorktreeManager {
       isolationMode = 'ISOLATED_WORKSPACE';
     }
 
+    // Ensure node_modules is accessible in isolated worktree for compiler and test runners
+    const srcNodeModules = path.join(this.repoRoot, 'node_modules');
+    const destNodeModules = path.join(worktreePath, 'node_modules');
+    if (fs.existsSync(srcNodeModules) && !fs.existsSync(destNodeModules)) {
+      try {
+        fs.symlinkSync(srcNodeModules, destNodeModules, 'junction');
+      } catch (linkErr: any) {
+        this.logger?.warn(`Could not junction node_modules into worktree: ${linkErr.message}`);
+      }
+    }
+
     this.activeWorktrees.set(experimentId, worktreePath);
     this.boundaryGuard.registerWorktreeRoot(worktreePath);
 

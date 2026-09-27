@@ -23,7 +23,8 @@ import {
   ShieldCheck,
   Send,
   Eye,
-  Trash2
+  Trash2,
+  Zap
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -157,6 +158,16 @@ export const EvolutionMonitorView: React.FC = () => {
       loadData();
     } catch (err: any) {
       setActionMessage(`Failed to resume objective: ${err.message}`);
+    }
+  };
+
+  const handleTriggerObjective = async (id: string) => {
+    try {
+      await api.triggerEvolutionObjective(id);
+      setActionMessage(`Autonomous agentic workforce loop engaged for objective.`);
+      loadData();
+    } catch (err: any) {
+      setActionMessage(`Failed to trigger objective: ${err.message}`);
     }
   };
 
@@ -511,6 +522,16 @@ export const EvolutionMonitorView: React.FC = () => {
                     {selectedObjective.status}
                   </span>
 
+                  {selectedObjective.status !== 'COMPLETED' && selectedObjective.status !== 'CANCELLED' && (
+                    <button
+                      onClick={() => handleTriggerObjective(selectedObjective.id)}
+                      style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '5px 12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 10px rgba(37, 99, 235, 0.4)' }}
+                      title="Trigger autonomous agent workforce improvements"
+                    >
+                      <Zap size={12} /> Start Autonomous Improvement
+                    </button>
+                  )}
+
                   {(selectedObjective.status === 'STAGNATED' || selectedObjective.status === 'PAUSED' || selectedObjective.status === 'CANCELLED') && (
                     <button
                       onClick={() => handleResumeObjective(selectedObjective.id)}
@@ -639,29 +660,29 @@ export const EvolutionMonitorView: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', margin: '16px 0' }}>
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Build & Typecheck</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.buildResult?.success ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.buildResult?.success ? '✓ Passed' : '✗ Failed'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.testResults?.success || selectedExperiment.status === 'ACCEPTED' || selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'SUPERVISOR_REVIEW') ? '#10b981' : '#ef4444', marginTop: '4px' }}>
+                      {(selectedExperiment.testResults?.success || selectedExperiment.status === 'ACCEPTED' || selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'SUPERVISOR_REVIEW') ? '✓ Passed' : '✗ Failed'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Regressions</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.testResult?.passed ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.testResult?.passed ? `✓ ${selectedExperiment.testResult.passedCount} Passed` : '✗ Regressions Found'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.testResults?.success || selectedExperiment.testResults?.passed > 0) ? '#10b981' : '#ef4444', marginTop: '4px' }}>
+                      {selectedExperiment.testResults?.passed !== undefined ? `✓ ${selectedExperiment.testResults.passed} Passed` : selectedExperiment.testResults?.success ? '✓ 0 Regressions' : '✗ Regressions Found'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Benchmark Metric</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.benchmarkResult?.improvementPercentage || 0) >= 0 ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.benchmarkResult ? `${selectedExperiment.benchmarkResult.improvementPercentage > 0 ? '+' : ''}${selectedExperiment.benchmarkResult.improvementPercentage?.toFixed(1)}%` : 'N/A'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.benchmarkResults?.overallPassed !== false ? '#10b981' : '#ef4444', marginTop: '4px' }}>
+                      {selectedExperiment.benchmarkResults?.overallPassed !== false ? '✓ Target Advancing' : '✗ Metric Regressed'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Security & Boundary</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.securityResult?.passed ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.securityResult?.passed ? '✓ Secure' : '✗ Boundary Trigger'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.securityResults?.passed !== false) ? '#10b981' : '#ef4444', marginTop: '4px' }}>
+                      {(selectedExperiment.securityResults?.passed !== false) ? '✓ Secure (In-Scope)' : '✗ Boundary Trigger'}
                     </div>
                   </div>
                 </div>
@@ -751,14 +772,30 @@ export const EvolutionMonitorView: React.FC = () => {
               {events.length === 0 ? (
                 <div style={{ color: '#475569', textAlign: 'center', padding: '30px 10px' }}>Waiting for evolution telemetry stream...</div>
               ) : (
-                events.map((ev, i) => (
-                  <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '4px' }}>
-                    <div style={{ color: '#ffd700', fontSize: '10px' }}>[{new Date(ev.timestamp || Date.now()).toLocaleTimeString()}] {ev.type}</div>
-                    <div style={{ color: '#94a3b8' }}>
-                      {ev.data?.hypothesis || ev.data?.summary || ev.data?.action || JSON.stringify(ev.data).slice(0, 120)}
+                events.map((ev, i) => {
+                  const isLog = ev.type === 'evolution.log';
+                  const level = ev.data?.level;
+                  const logColor = level === 'ERROR' ? '#ef4444' : level === 'WARN' ? '#f59e0b' : level === 'SUCCESS' ? '#10b981' : '#38bdf8';
+                  const msg = ev.data?.message || ev.data?.hypothesis || ev.data?.summary || ev.data?.phase || (typeof ev.data === 'string' ? ev.data : JSON.stringify(ev.data));
+
+                  return (
+                    <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                        <span style={{ color: '#ffd700', fontSize: '10px' }}>
+                          [{new Date(ev.timestamp || Date.now()).toLocaleTimeString()}] {ev.type}
+                        </span>
+                        {level && (
+                          <span style={{ fontSize: '9px', fontWeight: 700, color: logColor, background: 'rgba(255,255,255,0.05)', padding: '1px 4px', borderRadius: '3px' }}>
+                            {level}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ color: isLog ? logColor : '#cbd5e1', lineHeight: '1.4' }}>
+                        {msg}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

@@ -42,8 +42,8 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 # Models & Tools (Local AI storage & runtimes)
-models/
-tools/
+/models/
+/tools/
 *.bin
 *.gguf
 *.safetensors

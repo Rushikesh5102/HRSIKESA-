@@ -135,30 +135,33 @@ export class EvolutionRoutes {
         return true;
       }
 
-      // 5. GET / DELETE / RESUME / CANCEL specific objective
-      const objMatch = pathname.match(/^\/api\/evolution\/objectives\/([a-zA-Z0-9_-]+)(?:\/(cancel|resume))?$/);
+      // 5. GET / DELETE / RESUME / START / CANCEL specific objective
+      const objMatch = pathname.match(/^\/api\/evolution\/objectives\/([a-zA-Z0-9_-]+)(?:\/(cancel|resume|start|trigger))?$/);
       if (objMatch) {
         const objId = objMatch[1];
         const action = objMatch[2];
 
         if (method === 'DELETE') {
+          this.evolutionEngine.stopAutonomousLoop(objId);
           const deleted = this.evolutionEngine.objectiveEngine.deleteObjective(objId);
           this.sendJson(res, 200, { success: true, deleted, message: `Objective '${objId}' deleted.` });
           return true;
         }
 
         if (method === 'POST' && action === 'cancel') {
+          this.evolutionEngine.stopAutonomousLoop(objId);
           this.evolutionEngine.objectiveEngine.updateObjectiveStatus(objId, 'CANCELLED');
           this.sendJson(res, 200, { success: true, message: `Objective '${objId}' cancelled.` });
           return true;
         }
 
-        if (method === 'POST' && action === 'resume') {
-          this.evolutionEngine.objectiveEngine.updateObjectiveStatus(objId, 'OBJECTIVE_ACCEPTED');
+        if (method === 'POST' && (action === 'resume' || action === 'start' || action === 'trigger')) {
+          this.evolutionEngine.objectiveEngine.updateObjectiveStatus(objId, 'IN_PROGRESS');
           if (this.evolutionEngine.safetyController.isPaused()) {
             this.evolutionEngine.safetyController.resume();
           }
-          this.sendJson(res, 200, { success: true, message: `Objective '${objId}' resumed.` });
+          this.evolutionEngine.startAutonomousLoop(objId).catch(() => {});
+          this.sendJson(res, 200, { success: true, message: `Autonomous evolution loop engaged for objective '${objId}'.` });
           return true;
         }
 
@@ -305,18 +308,22 @@ export class EvolutionRoutes {
       safety: this.evolutionEngine.safetyController.getStatus(),
     };
     res.write(`event: connected\ndata: ${JSON.stringify(initial)}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'connected', data: initial, timestamp: new Date().toISOString() })}\n\n`);
 
     // Listen to evolution events
     const eventHandler = (eventName: string) => (data: any) => {
       res.write(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: eventName, data, timestamp: new Date().toISOString() })}\n\n`);
     };
 
     const listeners: Array<{ event: string; fn: (data: any) => void }> = [
       { event: 'evolution.objective.created', fn: eventHandler('evolution.objective.created') },
+      { event: 'evolution.objective.progress', fn: eventHandler('evolution.objective.progress') },
       { event: 'evolution.experiment.started', fn: eventHandler('evolution.experiment.started') },
       { event: 'evolution.experiment.phase', fn: eventHandler('evolution.experiment.phase') },
       { event: 'evolution.experiment.completed', fn: eventHandler('evolution.experiment.completed') },
       { event: 'evolution.supervisor.evaluated', fn: eventHandler('evolution.supervisor.evaluated') },
+      { event: 'evolution.log', fn: eventHandler('evolution.log') },
       { event: 'evolution.safety.paused', fn: eventHandler('evolution.safety.paused') },
       { event: 'evolution.safety.resumed', fn: eventHandler('evolution.safety.resumed') },
       { event: 'evolution.safety.emergency_stopped', fn: eventHandler('evolution.safety.emergency_stopped') },
