@@ -24,6 +24,7 @@ import { SafetyController } from '../safety/safety-controller.js';
 import { TrustTierManager } from '../safety/trust-tiers.js';
 import { BoundaryGuard } from '../safety/boundary-guard.js';
 import { EvolutionConvergenceEngine } from './evolution-convergence.js';
+import { EvolutionCodeSynthesizer } from './evolution-code.synthesizer.js';
 import { EvolutionReportGenerator } from '../reporting/evolution-report.generator.js';
 import { SupervisorEvidence } from '../supervisors/supervisor.types.js';
 import {
@@ -54,6 +55,7 @@ export class EvolutionLoopEngine {
   public readonly boundaryGuard: BoundaryGuard;
   public readonly convergenceEngine: EvolutionConvergenceEngine;
   public readonly reportGenerator: EvolutionReportGenerator;
+  public readonly codeSynthesizer: EvolutionCodeSynthesizer;
   private readonly resourceGovernor?: ResourceGovernor;
   private readonly eventBus?: EventBus;
   private readonly logger?: ILogger;
@@ -69,6 +71,7 @@ export class EvolutionLoopEngine {
     boundaryGuard: BoundaryGuard;
     convergenceEngine?: EvolutionConvergenceEngine;
     reportGenerator?: EvolutionReportGenerator;
+    codeSynthesizer?: EvolutionCodeSynthesizer;
     resourceGovernor?: ResourceGovernor;
     eventBus?: EventBus;
     logger?: ILogger;
@@ -83,6 +86,12 @@ export class EvolutionLoopEngine {
     this.boundaryGuard = options.boundaryGuard;
     this.convergenceEngine = options.convergenceEngine || new EvolutionConvergenceEngine();
     this.reportGenerator = options.reportGenerator || new EvolutionReportGenerator();
+    this.codeSynthesizer = options.codeSynthesizer || new EvolutionCodeSynthesizer({
+      repoRoot: options.gateway.repoRoot,
+      trustTiers: options.trustTiers,
+      boundaryGuard: options.boundaryGuard,
+      logger: options.logger,
+    });
     this.resourceGovernor = options.resourceGovernor;
     this.eventBus = options.eventBus;
     this.logger = typeof options.logger?.child === 'function' ? options.logger.child('EvolutionLoopEngine') : options.logger;
@@ -236,8 +245,6 @@ export class EvolutionLoopEngine {
             message: `⚡ [Iteration #${iteration}] Formulating hypothesis: "${hypothesis}"`,
           });
 
-          const cleanObjId = objectiveId.replace(/[^a-zA-Z0-9_]/g, '_');
-          const targetRelPath = `${scopeFolder}/benchmark_${cleanObjId}_v${iteration}.ts`;
           const targetMetric = currentObj.acceptanceCriteria?.[0];
           const metricKey = targetMetric?.metric || 'performance';
           const targetVal = targetMetric ? Number(targetMetric.targetValue) || 100 : 100;
@@ -247,13 +254,20 @@ export class EvolutionLoopEngine {
           const progressFraction = Math.min(1.0, iteration / Math.min(maxExperiments, 3));
           const candidateVal = baseVal + (targetVal - baseVal) * progressFraction;
 
-          const modifications: CodeModificationInstruction[] = [
-            {
-              action: 'CREATE',
-              relativePath: targetRelPath,
-              content: `/**\n * Autonomous Improvement Benchmark Artifact #${iteration}\n * Objective: ${currentObj.title}\n * Metric: ${metricKey}\n */\nexport const benchmarkResult_${iteration} = {\n  objectiveId: '${objectiveId}',\n  iteration: ${iteration},\n  measuredValue: ${candidateVal},\n  timestamp: '${new Date().toISOString()}',\n};\n`,
-            },
-          ];
+          // Synthesize real modifications safely across the allowed scope
+          const synthesis = await this.codeSynthesizer.synthesizeModifications(
+            currentObj,
+            iteration,
+            this.gateway.repoRoot
+          );
+
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'INFO',
+            message: `🧠 [Code Synthesis] Strategy: ${synthesis.strategySummary} (${synthesis.modifications.length} verified operations)`,
+          });
+
+          const modifications = synthesis.modifications;
 
           try {
             const exp = await this.runExperiment({
@@ -702,8 +716,8 @@ export class EvolutionLoopEngine {
         });
         this.startAutonomousLoop(nextQueued.id).catch(() => {});
       }
-    } catch (err) {
-      this.logger?.warn('Failed to trigger next queued objective:', err);
+    } catch (err: any) {
+      this.logger?.warn('Failed to trigger next queued objective:', { error: err?.message || String(err) });
     }
   }
 

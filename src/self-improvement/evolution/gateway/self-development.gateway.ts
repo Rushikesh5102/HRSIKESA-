@@ -30,7 +30,7 @@ import {
 const execAsync = promisify(exec);
 
 export class SelfDevelopmentGateway {
-  private readonly repoRoot: string;
+  public readonly repoRoot: string;
   private readonly boundaryGuard: BoundaryGuard;
   private readonly trustTiers: TrustTierManager;
   private readonly safetyController: SafetyController;
