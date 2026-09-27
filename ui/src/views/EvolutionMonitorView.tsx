@@ -743,13 +743,77 @@ export const EvolutionMonitorView: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Comprehensive Explainability Matrix: What, Why, How */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '14px 0' }}>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle size={13} /> 1. What Was Achieved
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: '1.5' }}>
+                      {selectedExperiment.whatWasAchieved || `Successfully executed in isolated sandbox with status ${selectedExperiment.status}. Tests passed: ${selectedExperiment.testResults?.passed || 0}/${selectedExperiment.testResults?.total || 0}.`}
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Zap size={13} /> 2. Why It Was Changed
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: '1.5' }}>
+                      {selectedExperiment.whyItWasChanged || selectedExperiment.hypothesis || 'Targeted optimization to satisfy objective acceptance criteria without breaking tests.'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.25)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Cpu size={13} /> 3. How It Works
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: '1.5' }}>
+                      {selectedExperiment.howItWorks || 'Applies bounded TypeScript refactors in disposable Git worktree branch, typechecks with tsc, and requests supervisor verification.'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* What Code Was Changed: From ➔ To Detailed Breakdown */}
+                {selectedExperiment.whatWasChangedFromWhat && selectedExperiment.whatWasChangedFromWhat.length > 0 && (
+                  <div style={{ margin: '14px 0' }}>
+                    <div style={{ fontSize: '12px', color: '#ffd700', fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FileCode size={14} /> 4. What Code Was Changed (From ➔ To)
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedExperiment.whatWasChangedFromWhat.map((change: any, cIdx: number) => (
+                        <div key={cIdx} style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '12px' }}>
+                            <span style={{ fontFamily: 'monospace', color: '#38bdf8', fontWeight: 600 }}>{change.file}</span>
+                            <span style={{ fontSize: '11px', background: change.action === 'CREATE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: change.action === 'CREATE' ? '#10b981' : '#60a5fa', padding: '2px 6px', borderRadius: '4px' }}>
+                              {change.action} (Lines: {change.lineRange || '1-N'})
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '6px' }}>{change.explanation}</div>
+                          {change.fromSnippet && change.fromSnippet !== '(None - New File)' && (
+                            <div style={{ marginBottom: '4px' }}>
+                              <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: 600 }}>- FROM:</div>
+                              <pre style={{ margin: 0, padding: '4px 8px', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', borderRadius: '4px', fontSize: '11px', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{change.fromSnippet}</pre>
+                            </div>
+                          )}
+                          {change.toSnippet && (
+                            <div>
+                              <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 600 }}>+ TO:</div>
+                              <pre style={{ margin: 0, padding: '4px 8px', background: 'rgba(16, 185, 129, 0.1)', color: '#86efac', borderRadius: '4px', fontSize: '11px', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{change.toSnippet}</pre>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Diff Drill-down */}
                 <div style={{ marginTop: '14px' }}>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Changed Files ({selectedExperiment.changedFiles?.length || 0})</span>
-                    <span>Isolated Worktree: evo/{selectedExperiment.id?.slice(0, 8)}</span>
+                    <span>Git Worktree Diff ({selectedExperiment.changedFiles?.length || 0} files)</span>
+                    <span>Sandbox: evo/{selectedExperiment.id?.slice(0, 8)}</span>
                   </div>
-                  <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid #334155', borderRadius: '8px', padding: '12px', maxHeight: '160px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '11px', color: '#cbd5e1' }}>
+                  <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid #334155', borderRadius: '8px', padding: '12px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '11px', color: '#cbd5e1' }}>
                     {selectedExperiment.diff ? (
                       <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{selectedExperiment.diff}</pre>
                     ) : (

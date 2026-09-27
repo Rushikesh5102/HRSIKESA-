@@ -267,6 +267,26 @@ export class EvolutionLoopEngine {
             message: `🧠 [Code Synthesis] Strategy: ${synthesis.strategySummary} (${synthesis.modifications.length} verified operations)`,
           });
 
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'INFO',
+            message: `💡 [Why It Was Changed] ${synthesis.whyItWasChanged}`,
+          });
+
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'INFO',
+            message: `⚙️ [How It Works] ${synthesis.howItWorks}`,
+          });
+
+          for (const change of synthesis.whatWasChangedFromWhat) {
+            this.emitEvent('evolution.log', {
+              objectiveId,
+              level: 'INFO',
+              message: `📝 [Code Change: ${change.action}] ${change.file} (Lines: ${change.lineRange || '1-N'}) ➔ ${change.explanation}`,
+            });
+          }
+
           const modifications = synthesis.modifications;
 
           try {
@@ -274,6 +294,10 @@ export class EvolutionLoopEngine {
               objectiveId,
               hypothesis,
               modifications,
+              whyItWasChanged: synthesis.whyItWasChanged,
+              howItWorks: synthesis.howItWorks,
+              whatWasAchieved: synthesis.whatWasAchieved,
+              whatWasChangedFromWhat: synthesis.whatWasChangedFromWhat,
               benchmarkMetric: targetMetric
                 ? {
                     name: metricKey,
@@ -282,6 +306,12 @@ export class EvolutionLoopEngine {
                     lowerIsBetter: targetMetric.operator === '<' || targetMetric.operator === '<=',
                   }
                 : undefined,
+            });
+
+            this.emitEvent('evolution.log', {
+              objectiveId,
+              level: 'INFO',
+              message: `🎯 [What Was Achieved] ${synthesis.whatWasAchieved}`,
             });
 
             this.emitEvent('evolution.log', {
@@ -349,10 +379,14 @@ export class EvolutionLoopEngine {
     objectiveId: string;
     hypothesis: string;
     modifications: CodeModificationInstruction[];
+    whyItWasChanged?: string;
+    howItWorks?: string;
+    whatWasAchieved?: string;
+    whatWasChangedFromWhat?: any[];
     benchmarkMetric?: { name: string; candidateValue: number; baselineValue: number; lowerIsBetter?: boolean };
     testPattern?: string;
   }): Promise<EvolutionExperiment> {
-    const { objectiveId, hypothesis, modifications, benchmarkMetric, testPattern } = params;
+    const { objectiveId, hypothesis, modifications, whyItWasChanged, howItWorks, whatWasAchieved, whatWasChangedFromWhat, benchmarkMetric, testPattern } = params;
 
     // 1. Validate Safety & Objective State
     if (this.safetyController.isEmergencyStopped()) {
@@ -388,6 +422,10 @@ export class EvolutionLoopEngine {
       status: 'WORKTREE_CREATED',
       changedFiles: [],
       diff: '',
+      whyItWasChanged,
+      howItWorks,
+      whatWasAchieved,
+      whatWasChangedFromWhat,
       testResults: { total: 0, passed: 0, failed: 0, skipped: 0, durationMs: 0, failedTestNames: [], success: false },
       benchmarkResults: { metrics: {}, overallPassed: true },
       securityResults: { passed: true, tierViolations: [], boundaryViolations: [], credentialLeaksDetected: [], prohibitedImports: [], networkAnomalies: [] },

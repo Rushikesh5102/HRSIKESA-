@@ -70,21 +70,44 @@ ${objective.acceptanceCriteria.map((c, i) => `${i + 1}. **${c.metric}**: ${c.ope
 **Started At:** ${experiment.startedAt}  
 **Ended At:** ${experiment.endedAt || 'Active'}  
 
-## Changed Files
-${experiment.changedFiles.length > 0 ? experiment.changedFiles.map((f) => `- \`${f}\``).join('\n') : '*None*'}
+## 1. 🎯 What Was Achieved
+${experiment.whatWasAchieved || `Successfully executed experiment #${experiment.experimentNumber} within isolated sandbox with decision \`${experiment.decision}\`.`}
 
-## Code Diff Summary
+## 2. 💡 Why It Was Changed (Rationale)
+${experiment.whyItWasChanged || experiment.hypothesis}
+
+## 3. ⚙️ How It Works (Strategy & Architecture)
+${experiment.howItWorks || 'Applied targeted TypeScript modifications within isolated Git worktree, verified compilation and test suites, and obtained independent supervisor approval.'}
+
+## 4. 📝 What Code Was Changed (From ➔ To)
+${experiment.whatWasChangedFromWhat && experiment.whatWasChangedFromWhat.length > 0
+  ? experiment.whatWasChangedFromWhat.map((c) => `### File: \`${c.file}\` (${c.action})
+- **Lines:** ${c.lineRange || 'Full file'}
+- **Explanation:** ${c.explanation || 'Refactored code structure.'}
+- **From:**
+\`\`\`ts
+${c.fromSnippet || '(None / New File)'}
+\`\`\`
+- **To:**
+\`\`\`ts
+${c.toSnippet || '(Deleted / Empty)'}
+\`\`\`
+`).join('\n')
+  : `### Changed Files:
+${experiment.changedFiles.length > 0 ? experiment.changedFiles.map((f) => `- \`${f}\``).join('\n') : '*None*'}`}
+
+## 5. Code Diff Summary
 \`\`\`diff
-${experiment.diff ? experiment.diff.slice(0, 2000) : '// No diff generated'}
+${experiment.diff ? experiment.diff.slice(0, 2500) : '// No diff generated'}
 \`\`\`
 
-## Test Execution Results
+## 6. Test Execution Results
 - **Success:** ${experiment.testResults.success ? '✅ PASSED' : '❌ FAILED'}
 - **Passed:** ${experiment.testResults.passed} / ${experiment.testResults.total}
 - **Duration:** ${experiment.testResults.durationMs}ms
 ${experiment.testResults.failedTestNames.length > 0 ? `- **Failures:** ${experiment.testResults.failedTestNames.join(', ')}` : ''}
 
-## Benchmark Results
+## 7. Benchmark Results
 ${Object.entries(experiment.benchmarkResults.metrics || {})
   .map(([k, v]) => `- **${k}**: Baseline ${v.baseline}${v.unit} -> Candidate ${v.candidate}${v.unit} (Delta: ${v.deltaPercent.toFixed(1)}% | ${v.improved ? 'IMPROVED' : 'REGRESSED'})`)
   .join('\n') || '*No custom benchmark metrics recorded*'}
@@ -229,9 +252,14 @@ ${allChangedFiles.length > 0 ? allChangedFiles.map((f) => `  - \`${f}\``).join('
 ## 3. Experiment Lifecycle Breakdown
 ${experiments.map((e) => `### Experiment ${e.experimentNumber || 1} (\`${e.id}\`)
 - **Hypothesis:** ${e.hypothesis}
+- **🎯 What Was Achieved:** ${e.whatWasAchieved || 'Executed in isolated worktree.'}
+- **💡 Why Changed (Rationale):** ${e.whyItWasChanged || e.hypothesis}
+- **⚙️ How It Works (Strategy):** ${e.howItWorks || 'Direct code optimization with regression verification.'}
 - **Decision:** \`${e.decision}\` (${e.decisionReason || 'N/A'})
 - **Changed Files:** ${(e.changedFiles || []).join(', ') || 'None'}
 - **Tests Passed:** ${e.testResults?.passed || 0}/${e.testResults?.total || 0}
+${e.whatWasChangedFromWhat && e.whatWasChangedFromWhat.length > 0 ? `#### Code Modifications (From ➔ To):
+${e.whatWasChangedFromWhat.map((c) => `- **${c.file}** (${c.action}, lines ${c.lineRange || '1-N'}): ${c.explanation || ''}`).join('\n')}` : ''}
 `).join('\n')}
 
 ## 4. Measurable Improvements & Benchmarks

@@ -133,6 +133,15 @@ export interface EvolutionRollbackInfo {
   restoredFiles: string[];
 }
 
+export interface CodeChangeAudit {
+  file: string;
+  action: 'CREATE' | 'MODIFY' | 'DELETE';
+  fromSnippet?: string;
+  toSnippet?: string;
+  lineRange?: string;
+  explanation?: string;
+}
+
 export interface EvolutionExperiment {
   id: string;
   objectiveId: string;
@@ -143,6 +152,10 @@ export interface EvolutionExperiment {
   status: ExperimentLifecycleState;
   changedFiles: string[];
   diff: string;
+  whatWasAchieved?: string;
+  whatWasChangedFromWhat?: CodeChangeAudit[];
+  whyItWasChanged?: string;
+  howItWorks?: string;
   testResults: EvolutionTestResults;
   benchmarkResults: EvolutionBenchmarkResults;
   securityResults: EvolutionSecurityResults;
