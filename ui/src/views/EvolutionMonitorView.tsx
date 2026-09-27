@@ -24,7 +24,9 @@ import {
   Send,
   Eye,
   Trash2,
-  Zap
+  Zap,
+  Copy,
+  Check
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -52,8 +54,32 @@ export const EvolutionMonitorView: React.FC = () => {
 
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
+  const [latestPhaseUpdate, setLatestPhaseUpdate] = useState<{
+    actionText?: string;
+    etaFormatted?: string;
+    phase?: string;
+    iteration?: number;
+  } | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const handleCopyLogs = () => {
+    const logText = events
+      .map((ev) => {
+        const ts = new Date(ev.timestamp || Date.now()).toLocaleTimeString();
+        const level = ev.data?.level ? `[${ev.data.level}] ` : '';
+        const msg = ev.data?.message || ev.data?.hypothesis || ev.data?.summary || ev.data?.actionText || JSON.stringify(ev.data);
+        return `[${ts}] ${ev.type} ${level}${msg}`;
+      })
+      .join('\n');
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(logText);
+      setCopiedLogs(true);
+      setTimeout(() => setCopiedLogs(false), 2000);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -108,6 +134,9 @@ export const EvolutionMonitorView: React.FC = () => {
       (ev) => {
         setIsLiveConnected(true);
         setEvents((prev) => [ev, ...prev.slice(0, 99)]);
+        if (ev.type === 'evolution.experiment.phase' && ev.data) {
+          setLatestPhaseUpdate(ev.data);
+        }
         // Auto-refresh status on state change events
         if (ev.type?.startsWith('evolution.')) {
           loadData();
@@ -560,6 +589,33 @@ export const EvolutionMonitorView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Real-time Current Action & Estimated Time Remaining (ETA) Banner */}
+              {selectedObjective.status === 'IN_PROGRESS' && (
+                <div style={{
+                  background: 'linear-gradient(90deg, rgba(37, 99, 235, 0.15), rgba(16, 185, 129, 0.1))',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Activity size={14} color="#60a5fa" className="animate-spin" style={{ animation: 'spin 2s linear infinite' }} />
+                    <span style={{ fontSize: '12px', color: '#f1f5f9', fontWeight: 500 }}>
+                      <strong style={{ color: '#60a5fa' }}>Currently Doing:</strong> {latestPhaseUpdate?.actionText || 'Executing autonomous optimization in isolated sandbox...'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                    <Clock size={12} />
+                    <span><strong>Est. Remaining:</strong> {latestPhaseUpdate?.etaFormatted || '~15s remaining'}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Progress Bar */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
@@ -764,11 +820,34 @@ export const EvolutionMonitorView: React.FC = () => {
         {/* Right Column: Live Event Stream & Structured Audit Logs */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: 'rgba(15, 23, 42, 0.65)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Terminal size={14} /> Live SSE Event Stream
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h2 style={{ fontSize: '14px', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Terminal size={14} /> Live SSE Event Stream
+              </h2>
+              <button
+                onClick={handleCopyLogs}
+                style={{
+                  background: copiedLogs ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                  color: copiedLogs ? '#10b981' : '#cbd5e1',
+                  border: `1px solid ${copiedLogs ? '#10b981' : 'rgba(255, 255, 255, 0.15)'}`,
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Copy entire event stream to clipboard"
+              >
+                {copiedLogs ? <Check size={12} /> : <Copy size={12} />}
+                {copiedLogs ? 'Copied!' : 'Copy Stream'}
+              </button>
+            </div>
 
-            <div style={{ flex: 1, background: 'rgba(10, 15, 29, 0.9)', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px', overflowY: 'auto', maxHeight: '520px', fontFamily: 'monospace', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ flex: 1, background: 'rgba(10, 15, 29, 0.9)', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px', overflowY: 'auto', maxHeight: '520px', fontFamily: 'monospace', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px', userSelect: 'text' }}>
               {events.length === 0 ? (
                 <div style={{ color: '#475569', textAlign: 'center', padding: '30px 10px' }}>Waiting for evolution telemetry stream...</div>
               ) : (

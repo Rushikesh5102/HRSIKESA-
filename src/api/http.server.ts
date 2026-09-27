@@ -470,7 +470,9 @@ export class HttpServer {
       this.server = http.createServer((req, res) => {
         this.handleRequest(req, res).catch((err) => {
           this.logger?.error('Unhandled request exception', err);
-          this.sendJson(res, 500, { error: 'Internal server error', details: String(err) });
+          if (!res.headersSent) {
+            this.sendJson(res, 500, { error: 'Internal server error', details: String(err) });
+          }
         });
       });
 
