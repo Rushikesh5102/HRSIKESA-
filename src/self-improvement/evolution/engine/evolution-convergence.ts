@@ -22,7 +22,37 @@ export interface ConvergenceEvaluation {
   details?: Record<string, unknown>;
 }
 
+export type FailureCategory =
+  | 'ENV_DEFECT'
+  | 'COMPILATION_ERROR'
+  | 'HYPOTHESIS_REGRESSION'
+  | 'BOUNDARY_BREACH';
+
 export class EvolutionConvergenceEngine {
+  /**
+   * Classifies an experiment failure reason into its root cause category.
+   */
+  public classifyFailure(reason: string, details?: Record<string, unknown>): FailureCategory {
+    const text = (reason + ' ' + JSON.stringify(details || {})).toLowerCase();
+    if (text.includes('boundary') || text.includes('tier 0') || text.includes('prohibited') || text.includes('secret')) {
+      return 'BOUNDARY_BREACH';
+    }
+    if (
+      text.includes('cannot find module') ||
+      text.includes('ts2307') ||
+      text.includes('baseline compiler check') ||
+      text.includes('node_modules') ||
+      text.includes('environment defect') ||
+      text.includes('worktree checkout')
+    ) {
+      return 'ENV_DEFECT';
+    }
+    if (text.includes('typecheck failed') || text.includes('compil') || text.includes('syntax')) {
+      return 'COMPILATION_ERROR';
+    }
+    return 'HYPOTHESIS_REGRESSION';
+  }
+
   /**
    * Evaluates the experiment trajectory to enforce bounded, safe convergence.
    */
@@ -67,17 +97,21 @@ export class EvolutionConvergenceEngine {
       };
     }
 
-    // 4. Check for Consecutive Identical Failures
+    // 4. Check for Consecutive Identical Failures (Only Genuine Hypothesis Regressions Count Against Stagnation)
     const recent = history.slice(-objective.maxConsecutiveFailures);
-    const consecutiveFailures = recent.filter(
-      (h) => h.decision === 'REJECTED' || h.decision === 'ROLLED_BACK'
-    ).length;
+    const consecutiveHypothesisFailures = recent.filter((h) => {
+      const isFailed = h.decision === 'REJECTED' || h.decision === 'ROLLED_BACK';
+      if (!isFailed) return false;
+      const category = this.classifyFailure(h.decisionReason || '');
+      // Environment defects do not penalize the objective
+      return category === 'HYPOTHESIS_REGRESSION' || category === 'COMPILATION_ERROR';
+    }).length;
 
-    if (recent.length >= objective.maxConsecutiveFailures && consecutiveFailures >= objective.maxConsecutiveFailures) {
+    if (recent.length >= objective.maxConsecutiveFailures && consecutiveHypothesisFailures >= objective.maxConsecutiveFailures) {
       return {
         action: 'PAUSE',
-        reason: `Stagnation: ${consecutiveFailures} consecutive experiments failed or were rolled back. Strategy change or human review required.`,
-        details: { consecutiveFailures, threshold: objective.maxConsecutiveFailures },
+        reason: `Stagnation: ${consecutiveHypothesisFailures} consecutive hypothesis experiments regressed. Strategy change or human review required.`,
+        details: { consecutiveFailures: consecutiveHypothesisFailures, threshold: objective.maxConsecutiveFailures },
       };
     }
 

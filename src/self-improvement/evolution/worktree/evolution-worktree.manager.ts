@@ -30,6 +30,16 @@ export interface WorktreeCreationResult {
   worktreePath: string;
   baselineCommit: string;
   isolationMode: 'GIT_WORKTREE' | 'ISOLATED_WORKSPACE';
+  baselineIntegrity?: BaselineIntegrityResult;
+}
+
+export interface BaselineIntegrityResult {
+  healthy: boolean;
+  autoHealed: boolean;
+  issues: string[];
+  remediationSteps: string[];
+  typecheckPassed: boolean;
+  typecheckOutput?: string;
 }
 
 export class EvolutionWorktreeManager {
@@ -117,25 +127,85 @@ export class EvolutionWorktreeManager {
       isolationMode = 'ISOLATED_WORKSPACE';
     }
 
-    // Ensure node_modules is accessible in isolated worktree for compiler and test runners
-    const srcNodeModules = path.join(this.repoRoot, 'node_modules');
-    const destNodeModules = path.join(worktreePath, 'node_modules');
-    if (fs.existsSync(srcNodeModules) && !fs.existsSync(destNodeModules)) {
-      try {
-        fs.symlinkSync(srcNodeModules, destNodeModules, 'junction');
-      } catch (linkErr: any) {
-        this.logger?.warn(`Could not junction node_modules into worktree: ${linkErr.message}`);
-      }
+    // Run Pre-Flight Sandbox Baseline Integrity Probe & Self-Healing
+    const baselineIntegrity = await this.verifyBaselineIntegrity(worktreePath);
+    if (!baselineIntegrity.healthy) {
+      this.logger?.warn(`[${experimentId}] Baseline integrity probe found issues: ${baselineIntegrity.issues.join('; ')}`);
     }
 
     this.activeWorktrees.set(experimentId, worktreePath);
     this.boundaryGuard.registerWorktreeRoot(worktreePath);
 
-    this.logger?.info(`Experiment [${experimentId}] isolated at: [${worktreePath}] (Mode: ${isolationMode})`);
+    this.logger?.info(`Experiment [${experimentId}] isolated at: [${worktreePath}] (Mode: ${isolationMode}, Baseline Healthy: ${baselineIntegrity.healthy})`);
     return {
       worktreePath,
       baselineCommit: baseline,
       isolationMode,
+      baselineIntegrity,
+    };
+  }
+
+  /**
+   * Proactively verifies baseline sandbox integrity before any mutations are made.
+   * Performs automated self-healing if missing directories or junction links are detected.
+   */
+  public async verifyBaselineIntegrity(worktreePath: string): Promise<BaselineIntegrityResult> {
+    const issues: string[] = [];
+    const remediationSteps: string[] = [];
+    let autoHealed = false;
+
+    // 1. Verify node_modules junction / availability
+    const srcNodeModules = path.join(this.repoRoot, 'node_modules');
+    const destNodeModules = path.join(worktreePath, 'node_modules');
+    if (!fs.existsSync(destNodeModules) && fs.existsSync(srcNodeModules)) {
+      try {
+        fs.symlinkSync(srcNodeModules, destNodeModules, 'junction');
+        autoHealed = true;
+        remediationSteps.push('Restored node_modules directory junction into sandbox.');
+      } catch (err: any) {
+        issues.push(`Failed to link node_modules: ${err.message}`);
+      }
+    }
+
+    // 2. Verify critical source trees are not missing due to unanchored gitignore rules
+    const criticalDirs = ['src/tools', 'src/core', 'src/models', 'src/api', 'src/execution'];
+    for (const relDir of criticalDirs) {
+      const srcFull = path.join(this.repoRoot, relDir);
+      const destFull = path.join(worktreePath, relDir);
+      if (fs.existsSync(srcFull) && !fs.existsSync(destFull)) {
+        issues.push(`Critical directory missing in worktree checkout: ${relDir}`);
+        try {
+          this.createIsolatedWorkspaceCopy(srcFull, destFull);
+          autoHealed = true;
+          remediationSteps.push(`Auto-healed missing directory '${relDir}' into sandbox.`);
+        } catch (repairErr: any) {
+          issues.push(`Could not auto-heal '${relDir}': ${repairErr.message}`);
+        }
+      }
+    }
+
+    // 3. Verify baseline compilation (tsc --noEmit)
+    let typecheckPassed = true;
+    let typecheckOutput = '';
+    try {
+      const { stdout, stderr } = await execAsync('npx tsc --noEmit', { cwd: worktreePath, timeout: 45000 });
+      typecheckOutput = (stdout + stderr).trim();
+      typecheckPassed = true;
+    } catch (err: any) {
+      typecheckPassed = false;
+      typecheckOutput = (err.stdout || err.message || '').slice(0, 500);
+      issues.push(`Baseline compiler check failed: ${typecheckOutput.slice(0, 150)}`);
+    }
+
+    const healthy = issues.filter((i) => !i.includes('Auto-healed')).length === 0 && typecheckPassed;
+
+    return {
+      healthy,
+      autoHealed,
+      issues,
+      remediationSteps,
+      typecheckPassed,
+      typecheckOutput,
     };
   }
 

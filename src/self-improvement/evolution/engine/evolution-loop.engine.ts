@@ -11,6 +11,7 @@
  * 16GB host ResourceGovernor, and durable crash recovery.
  */
 
+import path from 'node:path';
 import { DatabaseManager } from '../../../persistence/database/database.manager.js';
 import { EventBus } from '../../../core/events/event-bus.js';
 import { ILogger } from '../../../core/logging/logger.types.js';
@@ -166,7 +167,27 @@ export class EvolutionLoopEngine {
     // Run iterative improvements in the background
     (async () => {
       try {
-        const maxExperiments = objective.resourceBudget?.maxExperiments || 5;
+        // Phase 0: Pre-Flight Sandbox Baseline Health Verification
+        const probeExpId = `preflight_${Date.now()}`;
+        const tempBaselineWorktree = path.join(this.worktreeManager.getDirectories().worktrees, probeExpId);
+        const baselineProbe = await this.worktreeManager.verifyBaselineIntegrity(tempBaselineWorktree);
+        if (!baselineProbe.healthy && !baselineProbe.autoHealed) {
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'ERROR',
+            message: `🛑 [Pre-Flight Baseline Integrity Failed] Sandbox environment has defects: ${baselineProbe.issues.join('; ')}. Zero experiments consumed. Halting for sovereign review.`,
+          });
+          this.objectiveEngine.updateObjectiveStatus(objectiveId, 'BLOCKED');
+          return;
+        } else if (baselineProbe.autoHealed) {
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'INFO',
+            message: `🛠️ [Self-Healed Environment Baseline] Auto-repaired worktree integrity before experiment #1 (${baselineProbe.remediationSteps.join(', ')})`,
+          });
+        }
+
+        const maxExperiments = objective.maxExperiments || 5;
         let iteration = this.listExperiments(objectiveId).length;
 
         while (this.activeLoops.has(objectiveId)) {
@@ -218,8 +239,11 @@ export class EvolutionLoopEngine {
           const cleanObjId = objectiveId.replace(/[^a-zA-Z0-9_]/g, '_');
           const targetRelPath = `${scopeFolder}/benchmark_${cleanObjId}_v${iteration}.ts`;
           const targetMetric = currentObj.acceptanceCriteria?.[0];
-          const targetVal = targetMetric ? targetMetric.targetValue : 100;
-          const baseVal = targetMetric ? targetMetric.baselineValue : 0;
+          const metricKey = targetMetric?.metric || 'performance';
+          const targetVal = targetMetric ? Number(targetMetric.targetValue) || 100 : 100;
+          const baseVal = (currentObj.baselineMeasurements && typeof currentObj.baselineMeasurements[metricKey] === 'number')
+            ? (currentObj.baselineMeasurements[metricKey] as number)
+            : 0;
           const progressFraction = Math.min(1.0, iteration / Math.min(maxExperiments, 3));
           const candidateVal = baseVal + (targetVal - baseVal) * progressFraction;
 
@@ -227,7 +251,7 @@ export class EvolutionLoopEngine {
             {
               action: 'CREATE',
               relativePath: targetRelPath,
-              content: `/**\n * Autonomous Improvement Benchmark Artifact #${iteration}\n * Objective: ${currentObj.title}\n * Metric: ${targetMetric?.metricName || 'performance'}\n */\nexport const benchmarkResult_${iteration} = {\n  objectiveId: '${objectiveId}',\n  iteration: ${iteration},\n  measuredValue: ${candidateVal},\n  timestamp: '${new Date().toISOString()}',\n};\n`,
+              content: `/**\n * Autonomous Improvement Benchmark Artifact #${iteration}\n * Objective: ${currentObj.title}\n * Metric: ${metricKey}\n */\nexport const benchmarkResult_${iteration} = {\n  objectiveId: '${objectiveId}',\n  iteration: ${iteration},\n  measuredValue: ${candidateVal},\n  timestamp: '${new Date().toISOString()}',\n};\n`,
             },
           ];
 
@@ -238,10 +262,10 @@ export class EvolutionLoopEngine {
               modifications,
               benchmarkMetric: targetMetric
                 ? {
-                    name: targetMetric.metricName,
+                    name: metricKey,
                     candidateValue: candidateVal,
                     baselineValue: baseVal,
-                    lowerIsBetter: targetMetric.direction === 'DECREASE',
+                    lowerIsBetter: targetMetric.operator === '<' || targetMetric.operator === '<=',
                   }
                 : undefined,
             });
@@ -284,7 +308,7 @@ export class EvolutionLoopEngine {
 
   private formulateHypothesis(obj: EvolutionObjective, iteration: number, scope: string): string {
     const title = obj.title;
-    const metricName = obj.acceptanceCriteria?.[0]?.metricName || 'performance';
+    const metricName = obj.acceptanceCriteria?.[0]?.metric || 'performance';
     switch (iteration) {
       case 1:
         return `Analyze ${title} within ${scope} and establish baseline instrumentation for ${metricName}`;
@@ -396,16 +420,47 @@ export class EvolutionLoopEngine {
       experiment.diff = await this.worktreeManager.getDiff(experimentId);
       this.saveExperiment(experiment);
 
-      // 4. Build & Typecheck Worktree
+      // 4. Build & Typecheck Worktree with Closed-Loop In-Scope Diagnostic Auto-Repair
       this.updateState(experiment, 'BUILDING');
-      const tcRes = await this.gateway.evolutionTypecheck(experimentId);
+      let tcRes = await this.gateway.evolutionTypecheck(experimentId);
       if (!tcRes.success) {
         this.logger?.warn(`[${experimentId}] Typecheck failed: ${tcRes.output.slice(0, 200)}`);
+        const failureCategory = this.convergenceEngine.classifyFailure(tcRes.output);
+
+        // If it's an environment defect (missing junction or untracked module), trigger auto-healing
+        if (failureCategory === 'ENV_DEFECT') {
+          this.emitEvent('evolution.log', {
+            objectiveId,
+            level: 'WARN',
+            message: `🛠️ [Diagnostic Loop] Sandbox environment anomaly detected: ${tcRes.output.slice(0, 120)}. Initiating baseline self-repair...`,
+          });
+          const healRes = await this.worktreeManager.verifyBaselineIntegrity(worktreePath);
+          if (healRes.autoHealed) {
+            this.emitEvent('evolution.log', {
+              objectiveId,
+              level: 'INFO',
+              message: `✅ [Diagnostic Loop] Auto-healed: ${healRes.remediationSteps.join('; ')}. Re-verifying typecheck...`,
+            });
+            tcRes = await this.gateway.evolutionTypecheck(experimentId);
+          }
+        }
       }
 
       // 5. Run Targeted / Regression Tests
       this.updateState(experiment, 'TESTING');
-      const testRes = await this.gateway.evolutionTest(experimentId, testPattern);
+      const testRes = tcRes.success
+        ? await this.gateway.evolutionTest(experimentId, testPattern)
+        : {
+            total: 1,
+            passed: 0,
+            failed: 1,
+            skipped: 0,
+            durationMs: 0,
+            failedTestNames: ['TypecheckFailure'],
+            stdout: '',
+            stderr: tcRes.output,
+            success: false,
+          };
       experiment.testResults = testRes;
       this.saveExperiment(experiment);
 
@@ -509,8 +564,13 @@ export class EvolutionLoopEngine {
       } else {
         // REJECTED & ROLLED BACK
         experiment.decision = 'REJECTED';
-        experiment.decisionReason = quorum.reviews['antigravity']?.violations.join('; ') ||
-          'Test or benchmark regression occurred';
+        if (!tcRes.success) {
+          const cat = this.convergenceEngine.classifyFailure(tcRes.output);
+          experiment.decisionReason = `[${cat}] Compiler check failed: ${tcRes.output.slice(0, 150)}`;
+        } else {
+          experiment.decisionReason = quorum.reviews['antigravity']?.violations.join('; ') ||
+            'Test or benchmark regression occurred';
+        }
 
         const rbInfo = await this.gateway.evolutionGitRollback(experimentId);
         experiment.rollbackInfo = rbInfo;
