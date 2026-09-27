@@ -37,6 +37,7 @@ import { migration030 } from './030_demonstration_learning_schema.js';
 import { migration031 } from './031_creation_media_schema.js';
 import { migration032 } from './032_decision_intelligence_schema.js';
 import { migration033 } from './033_persistent_execution_schema.js';
+import { migration034 } from './034_self_evolution_engine_schema.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export class MigrationManager {
@@ -81,6 +82,7 @@ export class MigrationManager {
       migration031,
       migration032,
       migration033,
+      migration034,
     ];
   }
 

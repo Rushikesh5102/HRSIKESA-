@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      '/api': 'http://127.0.0.1:4200',
+      '/evolution': 'http://127.0.0.1:4200',
       '/health': 'http://127.0.0.1:4200',
       '/status': 'http://127.0.0.1:4200',
       '/identity': 'http://127.0.0.1:4200',

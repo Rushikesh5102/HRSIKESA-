@@ -41,6 +41,7 @@ import { DigitalWorkspaceView } from './views/DigitalWorkspaceView';
 import { EcosystemView } from './views/EcosystemView';
 import { CreationStudioView } from './views/CreationStudioView';
 import { PersistentOperationsView } from './views/PersistentOperationsView';
+import { EvolutionMonitorView } from './views/EvolutionMonitorView';
 
 import {
   HealthResponse,
@@ -63,7 +64,7 @@ import { api } from './services/api';
 const VALID_TABS: NavTab[] = [
   'home', 'command-center', 'chat', 'council-chat', 'work', 'goals', 'missions', 'research', 'knowledge',
   'agent-town', 'agents', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
-  'environment', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'ecosystem', 'creation', 'persistent-ops'
+  'environment', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'ecosystem', 'creation', 'persistent-ops', 'evolution'
 ];
 
 export const App: React.FC = () => {
@@ -403,6 +404,7 @@ export const App: React.FC = () => {
           {currentTab === 'ecosystem' && <EcosystemView />}
           {currentTab === 'creation' && <CreationStudioView />}
           {currentTab === 'persistent-ops' && <PersistentOperationsView />}
+          {currentTab === 'evolution' && <EvolutionMonitorView />}
 
           {currentTab === 'settings' && (
             <SettingsView

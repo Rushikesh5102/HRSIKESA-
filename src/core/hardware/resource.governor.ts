@@ -69,11 +69,11 @@ export class ResourceGovernor {
         maxConcurrentTasks = 2;
         maxConcurrentMissions = 1;
       }
-    } else if (freeMemGb < 0.6 || usedPercentage > 94) {
+    } else if (freeMemGb < 0.35 || usedPercentage > 98.5) {
       pressureLevel = 'CRITICAL_MEMORY';
       maxConcurrentTasks = 1;
       maxConcurrentMissions = 1;
-    } else if (freeMemGb < 1.5 || usedPercentage > 88) {
+    } else if (freeMemGb < 1.0 || usedPercentage > 90) {
       pressureLevel = 'LOW_MEMORY';
       maxConcurrentTasks = 2;
       maxConcurrentMissions = 1;

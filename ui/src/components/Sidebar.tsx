@@ -71,7 +71,8 @@ export type NavTab =
   | 'workspaces'
   | 'ecosystem'
   | 'creation'
-  | 'persistent-ops';
+  | 'persistent-ops'
+  | 'evolution';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -99,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   knowledgeCount = 0,
 }) => {
   const [advancedOpen, setAdvancedOpen] = useState(
-    ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'capabilities', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement', 'creation', 'persistent-ops'].includes(currentTab)
+    ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'capabilities', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement', 'creation', 'persistent-ops', 'evolution'].includes(currentTab)
   );
 
   const activeWorkTotal = activeGoalsCount + activeMissionsCount;
@@ -205,6 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ecosystem', label: 'Ecosystem (FP-15)', icon: <Globe size={15} /> },
     { id: 'creation', label: 'Creation Studio (FP-17)', icon: <Palette size={15} /> },
     { id: 'persistent-ops', label: 'Persistent Operations (FP-19)', icon: <Cpu size={15} /> },
+    { id: 'evolution', label: 'Self-Evolution Engine', icon: <RefreshCw size={15} /> },
     { id: 'audit', label: 'Audit Trail', icon: <Activity size={15} /> },
     { id: 'environment', label: 'System Monitoring', icon: <Layers size={15} /> },
   ];

@@ -74,6 +74,8 @@ import { CreationRoutes } from './routes/creation.routes.js';
 import type { CreationFabric } from '../creation/creation.fabric.js';
 import { DecisionRoutes } from './routes/decision.routes.js';
 import type { DecisionFabric } from '../decision/decision.fabric.js';
+import { EvolutionRoutes } from './routes/evolution.routes.js';
+import type { EvolutionLoopEngine } from '../self-improvement/evolution/engine/evolution-loop.engine.js';
 
 export interface PersistenceContext {
   readonly db: DatabaseManager;
@@ -291,6 +293,8 @@ export class HttpServer {
   private creationRoutes?: CreationRoutes;
   private decisionFabric?: DecisionFabric; // FP-18 Universal Real-World Research & Decision Intelligence Fabric
   private decisionRoutes?: DecisionRoutes;
+  private evolutionEngine?: EvolutionLoopEngine; // Self-Development & Autonomous Evolution Engine
+  private evolutionRoutes?: EvolutionRoutes;
 
   constructor(
     config: ServerConfig,
@@ -452,6 +456,15 @@ export class HttpServer {
     return this.decisionFabric;
   }
 
+  public setEvolutionEngine(engine: EvolutionLoopEngine, resourceGovernor?: any): void {
+    this.evolutionEngine = engine;
+    this.evolutionRoutes = new EvolutionRoutes(engine, this.eventBus, resourceGovernor);
+  }
+
+  public getEvolutionEngine(): EvolutionLoopEngine | undefined {
+    return this.evolutionEngine;
+  }
+
   public async start(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.server = http.createServer((req, res) => {
@@ -565,6 +578,11 @@ export class HttpServer {
 
     // FP-10 Autonomous Engineering Subsystem
     if (this.engineeringRoutes && (await this.engineeringRoutes.handleRequest(req, res))) {
+      return;
+    }
+
+    // Self-Evolution Subsystem
+    if (this.evolutionRoutes && (await this.evolutionRoutes.handleRequest(req, res))) {
       return;
     }
 
@@ -7377,6 +7395,12 @@ Maintain your authentic domain focus.`;
     // FP-10: Autonomous Software Engineering & Agentic Coding Endpoints
     if (this.engineeringRoutes && (pathname.startsWith('/api/engineering') || pathname.startsWith('/engineering'))) {
       const handled = await this.engineeringRoutes.handleRequest(req, res);
+      if (handled) return;
+    }
+
+    // Self-Evolution & Gateway Endpoints
+    if (this.evolutionRoutes && (pathname.startsWith('/api/evolution') || pathname.startsWith('/evolution'))) {
+      const handled = await this.evolutionRoutes.handleRequest(req, res);
       if (handled) return;
     }
 

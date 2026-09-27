@@ -279,6 +279,15 @@ import {
   SelfImprovementRepository,
   SelfImprovementCoordinator,
   createSelfImprovementTools,
+  TrustTierManager,
+  BoundaryGuard,
+  SafetyController,
+  EvolutionWorktreeManager,
+  EvolutionObjectiveEngine,
+  SelfDevelopmentGateway,
+  SupervisorGateway,
+  EvolutionLoopEngine,
+  createEvolutionTools,
 } from '../self-improvement/index.js';
 
 // Track A / INT-007: Cognitive Context Engine Subsystem
@@ -510,6 +519,14 @@ export class HrisekesaKernel {
   // Phase 26: Safe Self-Improvement & Self-Maintenance Subsystem
   public readonly selfImprovementRepo: SelfImprovementRepository;
   public readonly selfImprovementCoordinator: SelfImprovementCoordinator;
+
+  // Self-Evolution & Gateway Subsystem
+  public readonly evolutionSafetyController: SafetyController;
+  public readonly evolutionWorktreeManager: EvolutionWorktreeManager;
+  public readonly evolutionObjectiveEngine: EvolutionObjectiveEngine;
+  public readonly evolutionGateway: SelfDevelopmentGateway;
+  public readonly evolutionSupervisorGateway: SupervisorGateway;
+  public readonly evolutionEngine: EvolutionLoopEngine;
 
   // Track A / INT-007: Cognitive Context Engine
   public readonly cognitiveContextEngine: CognitiveContextEngine;
@@ -1251,6 +1268,47 @@ export class HrisekesaKernel {
       this.toolRegistry.register(tool);
     }
 
+    // Self-Evolution & Gateway Subsystem
+    const trustTiers = new TrustTierManager();
+    const boundaryGuard = new BoundaryGuard(process.cwd());
+    this.evolutionSafetyController = new SafetyController(this.eventBus, this.logger);
+    this.evolutionWorktreeManager = new EvolutionWorktreeManager(process.cwd(), boundaryGuard, this.logger);
+    this.evolutionObjectiveEngine = new EvolutionObjectiveEngine(this.db, this.logger);
+    this.evolutionGateway = new SelfDevelopmentGateway({
+      repoRoot: process.cwd(),
+      boundaryGuard,
+      trustTiers,
+      safetyController: this.evolutionSafetyController,
+      worktreeManager: this.evolutionWorktreeManager,
+      db: this.db,
+      resourceGovernor: this.resourceGovernor,
+      eventBus: this.eventBus,
+      logger: this.logger,
+    });
+    this.evolutionSupervisorGateway = new SupervisorGateway(
+      this.db,
+      this.evolutionSafetyController,
+      this.eventBus,
+      this.logger
+    );
+    this.evolutionEngine = new EvolutionLoopEngine({
+      db: this.db,
+      gateway: this.evolutionGateway,
+      worktreeManager: this.evolutionWorktreeManager,
+      objectiveEngine: this.evolutionObjectiveEngine,
+      supervisorGateway: this.evolutionSupervisorGateway,
+      safetyController: this.evolutionSafetyController,
+      trustTiers,
+      boundaryGuard,
+      resourceGovernor: this.resourceGovernor,
+      eventBus: this.eventBus,
+      logger: this.logger,
+    });
+
+    for (const tool of createEvolutionTools(this.evolutionGateway)) {
+      this.toolRegistry.register(tool);
+    }
+
     // Wire Goal Engine & Company OS to Conversation Service for unified human chat interaction
     this.conversation.setGoalEngine(this.goalEngine);
     this.conversation.setCompanyService(this.companyService);
@@ -1509,6 +1567,7 @@ export class HrisekesaKernel {
     this.server.setOperator(this.operator);
     this.server.setMissionRuntime(this.missionRuntime);
     this.server.setEcosystemFabric(this.ecosystemFabric);
+    this.server.setEvolutionEngine(this.evolutionEngine, this.resourceGovernor);
 
     this.setupLifecycleHooks(config);
   }

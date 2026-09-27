@@ -650,6 +650,8 @@ export interface EventMap {
   // FP-19 Persistent Distributed Execution events
   [key: `worker.${string}`]: any;
   [key: `execution.${string}`]: any;
+  // Self-Evolution & Gateway events
+  [key: `evolution.${string}`]: any;
 }
 
 export type EventKey = keyof EventMap;

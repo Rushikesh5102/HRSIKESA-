@@ -17,3 +17,4 @@ export * from './services/dependency-intelligence.service.js';
 export * from './services/self-repair.service.js';
 export * from './services/self-improvement-coordinator.js';
 export * from './tools/self-improvement.tools.js';
+export * from './evolution/index.js';

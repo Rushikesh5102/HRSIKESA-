@@ -1261,4 +1261,58 @@ export const api = {
     fetchJson<any>(`${API_BASE}/api/execution/jobs/${id}/cancel`, { method: 'POST' }),
   drainExecutionWorker: (id: string) =>
     fetchJson<any>(`${API_BASE}/api/workers/${id}/drain`, { method: 'POST' }),
+
+  // Self-Evolution Engine API (Safe Self-Development)
+  getEvolutionStatus: () =>
+    fetchJson<any>(`${API_BASE}/api/evolution/status`),
+  getEvolutionObjectives: () =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives`),
+  getEvolutionObjective: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}`),
+  createEvolutionObjective: (body: any) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives`, { method: 'POST', body: JSON.stringify(body) }),
+  deleteEvolutionObjective: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}`, { method: 'DELETE' }),
+  cancelEvolutionObjective: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}/cancel`, { method: 'POST' }),
+  resumeEvolutionObjective: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/objectives/${id}/resume`, { method: 'POST' }),
+  getEvolutionExperiments: (objectiveId?: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/experiments${objectiveId ? `?objectiveId=${encodeURIComponent(objectiveId)}` : ''}`),
+  getEvolutionExperiment: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/experiments/${id}`),
+  getEvolutionCheckpoints: (objectiveId?: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/checkpoints${objectiveId ? `?objectiveId=${encodeURIComponent(objectiveId)}` : ''}`),
+  getEvolutionAuditLogs: (limit?: number) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/audit-logs${limit ? `?limit=${limit}` : ''}`),
+  pauseEvolution: () =>
+    fetchJson<any>(`${API_BASE}/api/evolution/safety/pause`, { method: 'POST' }),
+  resumeEvolution: () =>
+    fetchJson<any>(`${API_BASE}/api/evolution/safety/resume`, { method: 'POST' }),
+  cancelEvolution: () =>
+    fetchJson<any>(`${API_BASE}/api/evolution/cancel`, { method: 'POST' }),
+  emergencyStopEvolution: (reason?: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/safety/emergency-stop`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason || 'Sovereign Creator Directive: Instant Emergency Stop (RUSHIKESH)' }),
+    }),
+  promoteEvolutionExperiment: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/experiments/${id}/promote`, { method: 'POST' }),
+  subscribeEvolutionEvents: (onMessage: (event: any) => void, onError?: (err: any) => void) => {
+    const eventSource = new EventSource(`${API_BASE}/api/evolution/events`);
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      } catch (err) {
+        console.error('Failed to parse evolution SSE payload', err);
+      }
+    };
+    eventSource.onerror = (err) => {
+      if (onError) onError(err);
+    };
+    return () => {
+      eventSource.close();
+    };
+  },
 };
