@@ -94,8 +94,10 @@ interface FindingRecord {
 export const ResearchView: React.FC = () => {
   const [studies, setStudies] = useState<StudyRecord[]>([]);
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'new'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'decisions' | 'new'>('active');
   const [loading, setLoading] = useState<boolean>(false);
+  const [decisionRecords, setDecisionRecords] = useState<any[]>([]);
+  const [selectedDecision, setSelectedDecision] = useState<any | null>(null);
 
   // New Research Form State
   const [question, setQuestion] = useState<string>('');
@@ -147,8 +149,24 @@ export const ResearchView: React.FC = () => {
     }
   };
 
+  const fetchDecisions = async () => {
+    try {
+      const res = await fetch('/api/decision/records');
+      if (res.ok) {
+        const data = await res.json();
+        setDecisionRecords(data.records || []);
+        if (data.records?.length > 0 && !selectedDecision) {
+          setSelectedDecision(data.records[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load decision records', err);
+    }
+  };
+
   useEffect(() => {
     fetchStudies();
+    fetchDecisions();
   }, []);
 
   useEffect(() => {
@@ -282,6 +300,17 @@ export const ResearchView: React.FC = () => {
               Completed ({completedStudies.length})
             </button>
             <button
+              onClick={() => { setActiveTab('decisions'); fetchDecisions(); }}
+              className={`flex items-center gap-2 rounded px-3 py-1.5 text-xs font-medium transition ${
+                activeTab === 'decisions'
+                  ? 'border border-amber-500/40 bg-amber-950/60 text-amber-200 shadow-sm'
+                  : 'text-stone-400 hover:text-stone-200'
+              }`}
+            >
+              <Award className="h-3.5 w-3.5" />
+              Decisions ({decisionRecords.length})
+            </button>
+            <button
               onClick={() => setActiveTab('new')}
               className={`flex items-center gap-2 rounded px-3 py-1.5 text-xs font-medium transition ${
                 activeTab === 'new'
@@ -303,7 +332,7 @@ export const ResearchView: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="mx-auto max-w-2xl rounded-xl border border-amber-900/40 bg-stone-900/60 p-6 shadow-xl backdrop-blur">
               <div className="mb-6 flex items-center gap-3">
-                <IndianEmblem size={28} />
+                <IndianEmblem size={32} showText={false} variant="crest" />
                 <div>
                   <h2 className="text-lg font-bold text-amber-200">Formulate Research Objective</h2>
                   <p className="text-xs text-stone-400">
@@ -391,6 +420,120 @@ export const ResearchView: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        ) : activeTab === 'decisions' ? (
+          /* Master-Detail Decisions Browser */
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left list */}
+            <div className="w-80 border-r border-stone-800 bg-stone-900/30 overflow-y-auto p-3">
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center justify-between">
+                <span>Decision Records</span>
+                <span className="rounded bg-amber-950/60 px-1.5 py-0.5 text-[10px] text-amber-300">
+                  {decisionRecords.length}
+                </span>
+              </div>
+              {decisionRecords.length === 0 ? (
+                <div className="p-6 text-center text-xs text-stone-500">
+                  No decision records found. Completed research cases can record formal decisions.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {decisionRecords.map((dec) => (
+                    <button
+                      key={dec.id}
+                      onClick={() => setSelectedDecision(dec)}
+                      className={`w-full text-left rounded-lg p-3 border text-xs transition ${
+                        selectedDecision?.id === dec.id
+                          ? 'border-amber-500/60 bg-amber-950/40 text-stone-100'
+                          : 'border-stone-800 bg-stone-950/60 text-stone-400 hover:border-stone-700'
+                      }`}
+                    >
+                      <div className="font-semibold text-amber-200 line-clamp-1">{dec.objective}</div>
+                      <div className="mt-1 flex items-center justify-between">
+                        <span className="text-[10px] text-stone-400">Selected: {dec.selectedOption?.name}</span>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                            dec.status === 'ACTIVE'
+                              ? 'bg-emerald-950 text-emerald-400'
+                              : dec.status === 'UNDER_REVIEW'
+                              ? 'bg-amber-950 text-amber-400'
+                              : 'bg-stone-800 text-stone-400'
+                          }`}
+                        >
+                          {dec.status}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right details */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {selectedDecision ? (
+                <div className="space-y-6 max-w-4xl mx-auto">
+                  <div className="rounded-xl border border-amber-900/40 bg-stone-900/40 p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="rounded border border-amber-500/30 bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                          {selectedDecision.status}
+                        </span>
+                        <h2 className="mt-2 text-lg font-bold text-amber-100">{selectedDecision.objective}</h2>
+                        <p className="text-xs text-stone-400 mt-1">Context: {selectedDecision.context}</p>
+                      </div>
+                      <div className="text-right text-xs text-stone-400">
+                        <div>Approver: <span className="font-semibold text-stone-200">{selectedDecision.approver}</span></div>
+                        <div className="text-[11px] text-stone-500">{new Date(selectedDecision.timestamp).toLocaleString()}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-950/20 p-4">
+                      <div className="text-xs font-semibold uppercase text-amber-400">Selected Candidate</div>
+                      <div className="mt-1 text-base font-bold text-amber-200">{selectedDecision.selectedOption?.name}</div>
+                      <div className="mt-2 text-xs text-stone-300">{selectedDecision.rationale}</div>
+                    </div>
+
+                    {selectedDecision.evidenceSummary && (
+                      <div className="mt-4">
+                        <div className="text-xs font-semibold text-stone-300 mb-1">Evidence Summary</div>
+                        <div className="text-xs text-stone-400 bg-stone-950/60 p-3 rounded-lg border border-stone-800">
+                          {selectedDecision.evidenceSummary}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedDecision.resultingActions?.length > 0 && (
+                      <div className="mt-5">
+                        <div className="text-xs font-bold uppercase tracking-wider text-amber-300 mb-2">
+                          Resulting Proposed Actions ({selectedDecision.resultingActions.length})
+                        </div>
+                        <div className="space-y-2">
+                          {selectedDecision.resultingActions.map((act: any) => (
+                            <div key={act.id} className="rounded-lg border border-stone-800 bg-stone-950 p-3 text-xs flex items-center justify-between">
+                              <div>
+                                <span className="font-bold text-amber-400 mr-2">[{act.type}]</span>
+                                <span className="text-stone-200">{act.title}</span>
+                                <p className="text-[11px] text-stone-400 mt-0.5">{act.description}</p>
+                              </div>
+                              <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                                act.status === 'APPROVED' ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-400'
+                              }`}>
+                                {act.status}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex h-full items-center justify-center text-xs text-stone-500">
+                  Select a decision record to view details, criteria, and resulting actions.
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -538,8 +681,8 @@ export const ResearchView: React.FC = () => {
 
                     <div className="relative flex h-32 items-center justify-around rounded-lg border border-amber-900/30 bg-gradient-to-r from-amber-950/20 via-stone-950 to-amber-950/20 p-4">
                       <div className="flex flex-col items-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 bg-amber-950 text-amber-300 shadow-md">
-                          <IndianEmblem size={20} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/60 bg-amber-950/80 text-amber-300 shadow-md overflow-hidden">
+                          <IndianEmblem size={24} showText={false} variant="feather" />
                         </div>
                         <span className="mt-1 text-[10px] font-semibold text-amber-200">Objective</span>
                       </div>

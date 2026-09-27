@@ -123,6 +123,18 @@ export class SessionManager {
     return this.createSession(id);
   }
 
+  public updateTitle(id: string, title: string): boolean {
+    const session = this.getSession(id);
+    if (session) {
+      session.title = title;
+      this.memoryCache.set(id, session);
+    }
+    if (this.sessionRepo) {
+      return this.sessionRepo.update(id, { title });
+    }
+    return true;
+  }
+
   public addMessage(
     sessionId: string,
     role: ChatRole,
@@ -174,7 +186,7 @@ export class SessionManager {
    * Returns conversation history bounded by the context window policy.
    * If a systemPrompt is provided, it is always anchored at index 0.
    */
-  public getBoundedHistory(sessionId: string, systemPrompt?: string): ChatMessage[] {
+  public getBoundedHistory(sessionId: string, systemPrompt?: string, maxMessages?: number): ChatMessage[] {
     const session = this.getSession(sessionId);
     const rawMessages = session ? [...session.messages] : [];
 
@@ -182,7 +194,8 @@ export class SessionManager {
     const userAndAssistantMessages = rawMessages.filter((m) => m.role !== 'system');
 
     // Apply conservative sliding window: keep most recent N messages
-    const boundedMessages = userAndAssistantMessages.slice(-this.policy.maxHistoryMessages);
+    const windowLimit = maxMessages !== undefined ? Math.max(1, maxMessages) : this.policy.maxHistoryMessages;
+    const boundedMessages = userAndAssistantMessages.slice(-windowLimit);
 
     // Apply character ceiling safety: if total characters exceed maxHistoryChars, trim older messages
     let totalChars = boundedMessages.reduce((sum, m) => sum + m.content.length, 0);

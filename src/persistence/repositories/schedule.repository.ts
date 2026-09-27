@@ -6,7 +6,7 @@
 
 import { DatabaseManager } from '../database/database.manager.js';
 
-export type ScheduleTargetType = 'goal' | 'mission' | 'tool' | 'evaluation' | 'custom';
+export type ScheduleTargetType = 'goal' | 'mission' | 'tool' | 'evaluation' | 'custom' | 'workflow' | 'skill' | 'research';
 export type ScheduleType = 'ONE_TIME' | 'RECURRING' | 'INTERVAL' | 'EVENT_DRIVEN' | 'MANUAL';
 export type ScheduleStatus = 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
 

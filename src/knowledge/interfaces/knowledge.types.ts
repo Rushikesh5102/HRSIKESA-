@@ -115,6 +115,7 @@ export type ClaimStatus =
 
 export type ProvenanceType =
   | 'USER'
+  | 'EXPLICIT'
   | 'SYSTEM'
   | 'AGENT'
   | 'RESEARCH'
@@ -122,8 +123,10 @@ export type ProvenanceType =
   | 'WEB'
   | 'TOOL'
   | 'MODEL'
+  | 'INFERRED'
   | 'IMPORTED'
-  | 'DERIVED';
+  | 'DERIVED'
+  | string;
 
 export type SourceCredibility =
   | 'AUTHORITATIVE' // 1.0 confidence: system bootstrap, creator direct prompt
@@ -132,7 +135,13 @@ export type SourceCredibility =
   | 'COMMUNITY'     // 0.50 confidence: forum post, speculative observation
   | 'UNVERIFIED';   // 0.30 confidence: raw web snippet without verified domain
 
-export type ContradictionStatus = 'DETECTED' | 'RESOLVED' | 'DISPUTED' | 'SUPERSEDED';
+export type ContradictionStatus =
+  | 'DETECTED'
+  | 'RESOLVED'
+  | 'DISPUTED'
+  | 'SUPERSEDED'
+  | 'UNRESOLVED'
+  | 'FALSE_POSITIVE';
 
 export type ResolutionStrategy =
   | 'NEWER_SUPERSEDES'
@@ -140,6 +149,23 @@ export type ResolutionStrategy =
   | 'USER_CONFIRMED'
   | 'COEXISTENCE'
   | 'MANUAL';
+
+export type MergeProposalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'AUTO_APPROVED';
+
+export interface EntityMergeProposal {
+  id: string;
+  entityAId: string;
+  entityBId: string;
+  entityAName?: string;
+  entityBName?: string;
+  reason: string;
+  confidence: number;
+  evidence?: string;
+  status: MergeProposalStatus;
+  createdAt: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+}
 
 export interface KnowledgeEntity {
   id: string;
@@ -188,6 +214,8 @@ export interface KnowledgeFact {
   version: number;
   status: FactStatus;
   scope: KnowledgeScope;
+  provenance?: ProvenanceType;
+  sourceStudyId?: string;
   validFrom?: string;
   validUntil?: string;
   observedAt: string;
@@ -207,6 +235,10 @@ export interface KnowledgeEvidence {
   credibility: SourceCredibility;
   confidence: number;
   provenance: string;
+  claimId?: string;
+  studyId?: string;
+  url?: string;
+  contentHash?: string;
 }
 
 export interface KnowledgeClaim {
@@ -231,6 +263,9 @@ export interface KnowledgeContradiction {
   status: ContradictionStatus;
   resolutionStrategy?: ResolutionStrategy;
   resolvedFactId?: string;
+  sourceA?: string;
+  sourceB?: string;
+  reason?: string;
   detectedAt: string;
   resolvedAt?: string;
 }

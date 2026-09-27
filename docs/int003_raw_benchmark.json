@@ -1,0 +1,492 @@
+{
+  "timestamp": "2026-09-24T21:30:55.011Z",
+  "models": [
+    {
+      "model": "deepseek-r1:1.5b",
+      "passCount": 2,
+      "totalTasks": 13,
+      "avgTtft": 10340,
+      "avgTotal": 10620,
+      "avgTps": 24.2,
+      "tasks": [
+        {
+          "taskId": "TASK_A",
+          "taskName": "Casual conversation",
+          "passed": true,
+          "ttftMs": 291,
+          "totalDurationMs": 1920,
+          "evalCount": 44,
+          "tokensPerSec": 24.3,
+          "promptEvalCount": 7,
+          "snippet": "Hello! I'm just a virtual assistant, so I don't have feelings, but I'm here and ready to help you wi"
+        },
+        {
+          "taskId": "TASK_B",
+          "taskName": "Simple factual reasoning",
+          "passed": false,
+          "ttftMs": 10820,
+          "totalDurationMs": 10820,
+          "evalCount": 256,
+          "tokensPerSec": 24.2,
+          "promptEvalCount": 24,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_C",
+          "taskName": "Short explanation",
+          "passed": false,
+          "ttftMs": 11170,
+          "totalDurationMs": 11170,
+          "evalCount": 256,
+          "tokensPerSec": 23.4,
+          "promptEvalCount": 16,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_D",
+          "taskName": "Identity/context",
+          "passed": false,
+          "ttftMs": 10530,
+          "totalDurationMs": 10530,
+          "evalCount": 256,
+          "tokensPerSec": 24.8,
+          "promptEvalCount": 18,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_E",
+          "taskName": "Instruction following",
+          "passed": false,
+          "ttftMs": 11192,
+          "totalDurationMs": 11192,
+          "evalCount": 256,
+          "tokensPerSec": 23.7,
+          "promptEvalCount": 31,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_F",
+          "taskName": "Coding",
+          "passed": false,
+          "ttftMs": 10275,
+          "totalDurationMs": 10275,
+          "evalCount": 256,
+          "tokensPerSec": 25.5,
+          "promptEvalCount": 18,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_G",
+          "taskName": "Debugging",
+          "passed": false,
+          "ttftMs": 11434,
+          "totalDurationMs": 11434,
+          "evalCount": 256,
+          "tokensPerSec": 23.1,
+          "promptEvalCount": 34,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_H",
+          "taskName": "Planning",
+          "passed": false,
+          "ttftMs": 16445,
+          "totalDurationMs": 16445,
+          "evalCount": 384,
+          "tokensPerSec": 23.8,
+          "promptEvalCount": 24,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_I",
+          "taskName": "Structured output",
+          "passed": false,
+          "ttftMs": 10795,
+          "totalDurationMs": 10795,
+          "evalCount": 256,
+          "tokensPerSec": 24.7,
+          "promptEvalCount": 42,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_J",
+          "taskName": "Knowledge/context use",
+          "passed": false,
+          "ttftMs": 10633,
+          "totalDurationMs": 10633,
+          "evalCount": 256,
+          "tokensPerSec": 25.6,
+          "promptEvalCount": 58,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_K",
+          "taskName": "Agent planning",
+          "passed": false,
+          "ttftMs": 10983,
+          "totalDurationMs": 10983,
+          "evalCount": 256,
+          "tokensPerSec": 24.4,
+          "promptEvalCount": 51,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_L",
+          "taskName": "Tool reasoning",
+          "passed": false,
+          "ttftMs": 10776,
+          "totalDurationMs": 10776,
+          "evalCount": 256,
+          "tokensPerSec": 24.5,
+          "promptEvalCount": 32,
+          "snippet": ""
+        },
+        {
+          "taskId": "TASK_M",
+          "taskName": "Long-context handling",
+          "passed": true,
+          "ttftMs": 9075,
+          "totalDurationMs": 11083,
+          "evalCount": 226,
+          "tokensPerSec": 23.1,
+          "promptEvalCount": 142,
+          "snippet": "The leader of Project Osprey was Dr. Evelyn Reed, and the team involved had 8 members.   **Answer:**"
+        }
+      ]
+    },
+    {
+      "model": "llama3.2:3b",
+      "passCount": 11,
+      "totalTasks": 13,
+      "avgTtft": 837,
+      "avgTotal": 6103,
+      "avgTps": 14.4,
+      "tasks": [
+        {
+          "taskId": "TASK_A",
+          "taskName": "Casual conversation",
+          "passed": true,
+          "ttftMs": 355,
+          "totalDurationMs": 4306,
+          "evalCount": 47,
+          "tokensPerSec": 11.9,
+          "promptEvalCount": 29,
+          "snippet": "I'm just a language model, so I don't have feelings or emotions like humans do. However, I'm functio"
+        },
+        {
+          "taskId": "TASK_B",
+          "taskName": "Simple factual reasoning",
+          "passed": true,
+          "ttftMs": 658,
+          "totalDurationMs": 757,
+          "evalCount": 2,
+          "tokensPerSec": 20.4,
+          "promptEvalCount": 44,
+          "snippet": "31"
+        },
+        {
+          "taskId": "TASK_C",
+          "taskName": "Short explanation",
+          "passed": true,
+          "ttftMs": 492,
+          "totalDurationMs": 4878,
+          "evalCount": 55,
+          "tokensPerSec": 12.5,
+          "promptEvalCount": 38,
+          "snippet": "An API, or Application Programming Interface, is a set of rules and tools that allows different soft"
+        },
+        {
+          "taskId": "TASK_D",
+          "taskName": "Identity/context",
+          "passed": false,
+          "ttftMs": 495,
+          "totalDurationMs": 1804,
+          "evalCount": 18,
+          "tokensPerSec": 13.8,
+          "promptEvalCount": 44,
+          "snippet": "I cannot verify who created HṚṢĪKEŚA."
+        },
+        {
+          "taskId": "TASK_E",
+          "taskName": "Instruction following",
+          "passed": true,
+          "ttftMs": 741,
+          "totalDurationMs": 8784,
+          "evalCount": 102,
+          "tokensPerSec": 12.7,
+          "promptEvalCount": 53,
+          "snippet": "Here are three concise steps to create and switch to a new Git branch:  1. **Create a new branch**: "
+        },
+        {
+          "taskId": "TASK_F",
+          "taskName": "Coding",
+          "passed": true,
+          "ttftMs": 579,
+          "totalDurationMs": 2427,
+          "evalCount": 24,
+          "tokensPerSec": 13,
+          "promptEvalCount": 40,
+          "snippet": "```typescript function reverseString(s: string): string {     return s.split('').reverse().join('');"
+        },
+        {
+          "taskId": "TASK_G",
+          "taskName": "Debugging",
+          "passed": true,
+          "ttftMs": 679,
+          "totalDurationMs": 6358,
+          "evalCount": 70,
+          "tokensPerSec": 12.4,
+          "promptEvalCount": 56,
+          "snippet": "The bug in this function is that it is supposed to add two numbers together, but instead it is subtr"
+        },
+        {
+          "taskId": "TASK_H",
+          "taskName": "Planning",
+          "passed": false,
+          "ttftMs": 581,
+          "totalDurationMs": 30621,
+          "evalCount": 384,
+          "tokensPerSec": 12.8,
+          "promptEvalCount": 46,
+          "snippet": "Here's a 5-step plan to build a small web application:  **Step 1: Define Your Application's Requirem"
+        },
+        {
+          "taskId": "TASK_I",
+          "taskName": "Structured output",
+          "passed": true,
+          "ttftMs": 879,
+          "totalDurationMs": 8299,
+          "evalCount": 101,
+          "tokensPerSec": 13.6,
+          "promptEvalCount": 64,
+          "snippet": "Here is a JSON object that matches the specified requirements:  ``` {   \"title\": \"Authentication Sys"
+        },
+        {
+          "taskId": "TASK_J",
+          "taskName": "Knowledge/context use",
+          "passed": true,
+          "ttftMs": 1261,
+          "totalDurationMs": 2109,
+          "evalCount": 13,
+          "tokensPerSec": 15.4,
+          "promptEvalCount": 83,
+          "snippet": "The agent responsible for security sentinel operations is Vighna."
+        },
+        {
+          "taskId": "TASK_K",
+          "taskName": "Agent planning",
+          "passed": true,
+          "ttftMs": 1039,
+          "totalDurationMs": 3806,
+          "evalCount": 39,
+          "tokensPerSec": 14.1,
+          "promptEvalCount": 73,
+          "snippet": "The task should be categorized as a \"Mission\", as it involves a specific, high-level objective that "
+        },
+        {
+          "taskId": "TASK_L",
+          "taskName": "Tool reasoning",
+          "passed": true,
+          "ttftMs": 644,
+          "totalDurationMs": 798,
+          "evalCount": 3,
+          "tokensPerSec": 19.6,
+          "promptEvalCount": 54,
+          "snippet": "time.now"
+        },
+        {
+          "taskId": "TASK_M",
+          "taskName": "Long-context handling",
+          "passed": true,
+          "ttftMs": 2480,
+          "totalDurationMs": 4387,
+          "evalCount": 28,
+          "tokensPerSec": 14.7,
+          "promptEvalCount": 160,
+          "snippet": "According to the report, the leader of Project Osprey was Dr. Evelyn Reed, and the team consisted of"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5:7b",
+      "passCount": 12,
+      "totalTasks": 13,
+      "avgTtft": 2023,
+      "avgTotal": 12416,
+      "avgTps": 7,
+      "tasks": [
+        {
+          "taskId": "TASK_A",
+          "taskName": "Casual conversation",
+          "passed": true,
+          "ttftMs": 891,
+          "totalDurationMs": 7483,
+          "evalCount": 40,
+          "tokensPerSec": 6.2,
+          "promptEvalCount": 33,
+          "snippet": "I'm just a digital entity, so I don't have feelings, but I'm here and ready to help you with any que"
+        },
+        {
+          "taskId": "TASK_B",
+          "taskName": "Simple factual reasoning",
+          "passed": true,
+          "ttftMs": 1366,
+          "totalDurationMs": 1675,
+          "evalCount": 3,
+          "tokensPerSec": 10,
+          "promptEvalCount": 50,
+          "snippet": "31"
+        },
+        {
+          "taskId": "TASK_C",
+          "taskName": "Short explanation",
+          "passed": true,
+          "ttftMs": 1005,
+          "totalDurationMs": 8556,
+          "evalCount": 49,
+          "tokensPerSec": 6.5,
+          "promptEvalCount": 42,
+          "snippet": "An API is like a set of rules that allows different software programs to communicate with each other"
+        },
+        {
+          "taskId": "TASK_D",
+          "taskName": "Identity/context",
+          "passed": false,
+          "ttftMs": 1047,
+          "totalDurationMs": 19018,
+          "evalCount": 117,
+          "tokensPerSec": 6.5,
+          "promptEvalCount": 44,
+          "snippet": "Hṛṣīkeśa is a form of Lord Śiva in Hindu mythology. He is not created in the conventional sense but "
+        },
+        {
+          "taskId": "TASK_E",
+          "taskName": "Instruction following",
+          "passed": true,
+          "ttftMs": 1553,
+          "totalDurationMs": 8753,
+          "evalCount": 49,
+          "tokensPerSec": 6.8,
+          "promptEvalCount": 57,
+          "snippet": "1. Open your terminal or command prompt. 2. Create and switch to a new branch with: `git checkout -b"
+        },
+        {
+          "taskId": "TASK_F",
+          "taskName": "Coding",
+          "passed": true,
+          "ttftMs": 932,
+          "totalDurationMs": 4309,
+          "evalCount": 24,
+          "tokensPerSec": 7.1,
+          "promptEvalCount": 44,
+          "snippet": "```typescript function reverseString(s: string): string {     return s.split('').reverse().join('');"
+        },
+        {
+          "taskId": "TASK_G",
+          "taskName": "Debugging",
+          "passed": true,
+          "ttftMs": 1671,
+          "totalDurationMs": 15527,
+          "evalCount": 94,
+          "tokensPerSec": 6.8,
+          "promptEvalCount": 60,
+          "snippet": "The bug in the function is that it is performing subtraction (`a - b`) instead of addition, which is"
+        },
+        {
+          "taskId": "TASK_H",
+          "taskName": "Planning",
+          "passed": true,
+          "ttftMs": 1485,
+          "totalDurationMs": 60800,
+          "evalCount": 367,
+          "tokensPerSec": 6.2,
+          "promptEvalCount": 50,
+          "snippet": "Certainly! Here's a five-step plan to build a small web application:  1. **Define the Purpose and Sc"
+        },
+        {
+          "taskId": "TASK_I",
+          "taskName": "Structured output",
+          "passed": true,
+          "ttftMs": 2734,
+          "totalDurationMs": 9557,
+          "evalCount": 44,
+          "tokensPerSec": 6.5,
+          "promptEvalCount": 68,
+          "snippet": "```json {   \"title\": \"Authentication System\",   \"priority\": \"HIGH\",   \"tags\": [\"security\", \"user\", \""
+        },
+        {
+          "taskId": "TASK_J",
+          "taskName": "Knowledge/context use",
+          "passed": true,
+          "ttftMs": 2813,
+          "totalDurationMs": 4948,
+          "evalCount": 15,
+          "tokensPerSec": 7,
+          "promptEvalCount": 84,
+          "snippet": "According to the context provided, the security sentinel is Vighna."
+        },
+        {
+          "taskId": "TASK_K",
+          "taskName": "Agent planning",
+          "passed": true,
+          "ttftMs": 2766,
+          "totalDurationMs": 8294,
+          "evalCount": 37,
+          "tokensPerSec": 6.7,
+          "promptEvalCount": 77,
+          "snippet": "Mission: This task involves a broader objective of deploying and configuring a PostgreSQL cluster, w"
+        },
+        {
+          "taskId": "TASK_L",
+          "taskName": "Tool reasoning",
+          "passed": true,
+          "ttftMs": 1346,
+          "totalDurationMs": 1660,
+          "evalCount": 3,
+          "tokensPerSec": 9.7,
+          "promptEvalCount": 58,
+          "snippet": "time.now"
+        },
+        {
+          "taskId": "TASK_M",
+          "taskName": "Long-context handling",
+          "passed": true,
+          "ttftMs": 6691,
+          "totalDurationMs": 10824,
+          "evalCount": 23,
+          "tokensPerSec": 5.6,
+          "promptEvalCount": 168,
+          "snippet": "The leader of Project Osprey was Dr. Evelyn Reed, and the team consisted of 8 members."
+        }
+      ]
+    }
+  ],
+  "switching": {
+    "fromLlamaToQwen": {
+      "loadDurationMs": 61,
+      "totalDurationMs": 2157
+    },
+    "fromQwenToLlama": {
+      "loadDurationMs": 11,
+      "totalDurationMs": 508
+    }
+  },
+  "contextScaling": {
+    "model": "llama3.2:3b",
+    "minimal": {
+      "promptTokens": 36,
+      "promptEvalMs": 408,
+      "ttftMs": 442
+    },
+    "small": {
+      "promptTokens": 114,
+      "promptEvalMs": 2252,
+      "ttftMs": 2441
+    },
+    "large": {
+      "promptTokens": 0,
+      "promptEvalMs": 0,
+      "ttftMs": 18365
+    }
+  }
+}

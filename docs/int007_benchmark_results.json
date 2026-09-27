@@ -1,0 +1,309 @@
+{
+  "benchmark": "INT-007 Cognitive Context Engine Live Benchmark Suite",
+  "timestamp": "2026-09-25T04:42:59.146Z",
+  "summary": {
+    "totalTests": 15,
+    "passCount": 15,
+    "averageLatencyMs": 2.774,
+    "totalModelCalls": 0,
+    "allPassed": true
+  },
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Simple Greeting ('hello')",
+      "scope": "GLOBAL",
+      "latencyMs": 0.044,
+      "sources": [
+        "FAST_GATE"
+      ],
+      "candidates": 0,
+      "selected": 0,
+      "contextChars": 0,
+      "nodesTraversed": 0,
+      "modelCalls": 0,
+      "modelSelected": "fast-gate-instant",
+      "memoryMb": 11.72,
+      "correctness": "PASS",
+      "details": "Fast gate TTFB: 0.044ms (< 20ms invariant). Cognitive engine bypassed."
+    },
+    {
+      "id": 2,
+      "name": "Identity Query ('who created you?')",
+      "scope": "CREATOR",
+      "latencyMs": 0.021,
+      "sources": [
+        "FAST_GATE"
+      ],
+      "candidates": 0,
+      "selected": 0,
+      "contextChars": 0,
+      "nodesTraversed": 0,
+      "modelCalls": 0,
+      "modelSelected": "fast-gate-instant",
+      "memoryMb": 11.73,
+      "correctness": "PASS",
+      "details": "Fast gate TTFB: 0.021ms. Identified Rushikesh with 0 model calls."
+    },
+    {
+      "id": 3,
+      "name": "Live Time Query ('what time is it?')",
+      "scope": "GLOBAL",
+      "latencyMs": 0.155,
+      "sources": [
+        "FAST_GATE"
+      ],
+      "candidates": 0,
+      "selected": 0,
+      "contextChars": 0,
+      "nodesTraversed": 0,
+      "modelCalls": 0,
+      "modelSelected": "fast-gate-instant",
+      "memoryMb": 11.73,
+      "correctness": "PASS",
+      "details": "Fast gate TTFB: 0.155ms (< 20ms invariant). Zero LLM overhead."
+    },
+    {
+      "id": 4,
+      "name": "Project Architecture ('What is the architecture of HṚṢĪKEŚA?')",
+      "scope": "PROJECT",
+      "latencyMs": 4.211,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 12,
+      "selected": 12,
+      "contextChars": 1535,
+      "nodesTraversed": 3,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.05,
+      "correctness": "PASS",
+      "details": "Resolved architecture fact from KG with 3 nodes traversed in 4.211ms"
+    },
+    {
+      "id": 5,
+      "name": "Decision Rationale ('Why did we choose SQLite for HṚṢĪKEŚA persistence?')",
+      "scope": "PROJECT",
+      "latencyMs": 1.831,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 12,
+      "selected": 12,
+      "contextChars": 1535,
+      "nodesTraversed": 3,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.21,
+      "correctness": "PASS",
+      "details": "Recalled ADR-001 with explicit rationale and ACCEPTED status in 1.831ms"
+    },
+    {
+      "id": 6,
+      "name": "Creator Preference Priority ('What are Rushikesh\\'s coding preferences?')",
+      "scope": "CREATOR",
+      "latencyMs": 1.519,
+      "sources": [
+        "MEMORY_EPISODIC",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE"
+      ],
+      "candidates": 11,
+      "selected": 8,
+      "contextChars": 711,
+      "nodesTraversed": 1,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.38,
+      "correctness": "PASS",
+      "details": "User preference received top rank boost (score: 1) in 1.519ms"
+    },
+    {
+      "id": 7,
+      "name": "Knowledge Graph Traversal ('What default model does HṚṢĪKEŚA Core use?')",
+      "scope": "PROJECT",
+      "latencyMs": 1.711,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 14,
+      "selected": 14,
+      "contextChars": 1700,
+      "nodesTraversed": 5,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.57,
+      "correctness": "PASS",
+      "details": "Traversed KG nodes to extract resident active model fact in 1.711ms"
+    },
+    {
+      "id": 8,
+      "name": "Research Evidence Recall ('What research evidence do we have on local LLM residency?')",
+      "scope": "PROJECT",
+      "latencyMs": 1.151,
+      "sources": [
+        "DECISION",
+        "RESEARCH_EVIDENCE",
+        "KNOWLEDGE_GRAPH"
+      ],
+      "candidates": 8,
+      "selected": 8,
+      "contextChars": 1376,
+      "nodesTraversed": 5,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.92,
+      "correctness": "PASS",
+      "details": "Recalled empirical benchmark whitepaper citation and evidence in 1.151ms"
+    },
+    {
+      "id": 9,
+      "name": "Temporal Fact Versioning ('What is the active model vs historical model?')",
+      "scope": "PROJECT",
+      "latencyMs": 1.156,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 15,
+      "selected": 15,
+      "contextChars": 1777,
+      "nodesTraversed": 6,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 12.9,
+      "correctness": "PASS",
+      "details": "Classified CURRENT (llama3.2:3b) and HISTORICAL (qwen2.5:3b) versioned facts in 1.156ms"
+    },
+    {
+      "id": 10,
+      "name": "Company Scope Isolation ('Show KPI goals for Pragnya AI')",
+      "scope": "COMPANY",
+      "latencyMs": 2.195,
+      "sources": [
+        "KNOWLEDGE_GRAPH",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 11,
+      "selected": 8,
+      "contextChars": 544,
+      "nodesTraversed": 2,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 13.05,
+      "correctness": "PASS",
+      "details": "Enforced company scope boundary: included Pragnya KPI, zero SAHIKARA leakage in 2.195ms"
+    },
+    {
+      "id": 11,
+      "name": "Project Scope Isolation ('Show HṚṢĪKEŚA decisions' vs 'SAHIKARA DEX')",
+      "scope": "PROJECT",
+      "latencyMs": 2.545,
+      "sources": [
+        "DECISION"
+      ],
+      "candidates": 20,
+      "selected": 20,
+      "contextChars": 2428,
+      "nodesTraversed": 0,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 13.56,
+      "correctness": "PASS",
+      "details": "Dual-project scope verified: absolute isolation between Hsk (ADR-001) & DEX (ADR-002) in 2.545ms"
+    },
+    {
+      "id": 12,
+      "name": "Contradiction Preservation ('DEX gas fee baseline query')",
+      "scope": "PROJECT",
+      "latencyMs": 1.621,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 11,
+      "selected": 10,
+      "contextChars": 1820,
+      "nodesTraversed": 2,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 13.45,
+      "correctness": "PASS",
+      "details": "Structured [CONTESTED INFORMATION / UNRESOLVED] block generated and preserved in 1.621ms"
+    },
+    {
+      "id": 13,
+      "name": "Complex Technical Multi-Source Architecture Query",
+      "scope": "PROJECT",
+      "latencyMs": 1.691,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 14,
+      "selected": 14,
+      "contextChars": 1700,
+      "nodesTraversed": 5,
+      "modelCalls": 0,
+      "modelSelected": "qwen2.5-coder:7b",
+      "memoryMb": 13.63,
+      "correctness": "PASS",
+      "details": "Synthesized DECISION, KNOWLEDGE_GRAPH, RESEARCH_EVIDENCE, MEMORY_EPISODIC within budget (425/2000 tok) in 1.691ms"
+    },
+    {
+      "id": 14,
+      "name": "Normal Chat Isolation ('casual turn with minimal memory')",
+      "scope": "GLOBAL",
+      "latencyMs": 1.215,
+      "sources": [
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 10,
+      "selected": 5,
+      "contextChars": 185,
+      "nodesTraversed": 0,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 13.76,
+      "correctness": "PASS",
+      "details": "Minimal conversational tier context budget enforced (47 tokens, 0 bleeding) in 1.215ms"
+    },
+    {
+      "id": 15,
+      "name": "Restart Persistence Across SQLite Re-instantiation",
+      "scope": "SYSTEM",
+      "latencyMs": 20.54,
+      "sources": [
+        "DECISION",
+        "KNOWLEDGE_GRAPH",
+        "RESEARCH_EVIDENCE",
+        "MEMORY_EPISODIC"
+      ],
+      "candidates": 12,
+      "selected": 12,
+      "contextChars": 1535,
+      "nodesTraversed": 3,
+      "modelCalls": 0,
+      "modelSelected": "llama3.2:3b",
+      "memoryMb": 13.92,
+      "correctness": "PASS",
+      "details": "Re-instantiated cold SQLite database: 2 decisions, entity HṚṢĪKEŚA Core verified intact in 20.54ms"
+    }
+  ]
+}

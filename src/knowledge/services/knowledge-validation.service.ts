@@ -62,8 +62,9 @@ export class KnowledgeValidationService {
    * Redacts credentials, tokens, and passwords from any text.
    */
   public redactSecrets(input: string): string {
-    if (!input) return input;
-    let sanitized = input;
+    const raw = typeof input === 'string' ? input : (input != null ? String(input) : '');
+    if (!raw) return '';
+    let sanitized = raw;
     sanitized = sanitized.replace(/sk-[a-zA-Z0-9_\-]{20,}/g, '[REDACTED_API_KEY]');
     sanitized = sanitized.replace(/password\s*(?:is|[:=]|\s)\s*['"]?[^\s'"]+/gi, 'password=[REDACTED_SECRET]');
     for (const pattern of KnowledgeValidationService.SECRET_PATTERNS) {
@@ -81,11 +82,12 @@ export class KnowledgeValidationService {
    * Ensures external text is treated as inert DATA rather than an executable command.
    */
   public defangPromptInjection(input: string): string & { safeText: string; injectionDetected: boolean; includes(str: string): boolean } {
-    if (!input) {
-      const emptyStr = Object.assign('', { safeText: '', injectionDetected: false });
+    const raw = typeof input === 'string' ? input : (input != null ? String(input) : '');
+    if (!raw) {
+      const emptyStr = Object.assign(new String(''), { safeText: '', injectionDetected: false });
       return emptyStr as any;
     }
-    let sanitized = input;
+    let sanitized = raw;
     let detected = false;
 
     for (const pattern of KnowledgeValidationService.INJECTION_PATTERNS) {
@@ -95,9 +97,10 @@ export class KnowledgeValidationService {
       }
     }
 
-    const strObj = new String(sanitized);
-    (strObj as any).safeText = sanitized;
-    (strObj as any).injectionDetected = detected;
+    const strObj = Object.assign(new String(sanitized), {
+      safeText: sanitized,
+      injectionDetected: detected,
+    });
     return strObj as any;
   }
 

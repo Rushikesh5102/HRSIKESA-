@@ -11,6 +11,7 @@ import { ComputerOperatorView } from './views/ComputerOperatorView';
 import { AgentTown } from './views/AgentTown';
 import { AgentsView } from './views/AgentsView';
 import { MissionsView } from './views/MissionsView';
+import { MissionControlView } from './views/MissionControlView';
 import { TasksView } from './views/TasksView';
 import { ToolsView } from './views/ToolsView';
 import { ApprovalsView } from './views/ApprovalsView';
@@ -29,6 +30,17 @@ import { MultimodalView } from './views/MultimodalView';
 import { SelfImprovementView } from './views/SelfImprovementView';
 import { IntegrationsView } from './views/IntegrationsView';
 import { CouncilChatView } from './views/CouncilChatView';
+import { WorkersView } from './views/WorkersView';
+import { CapabilityCenter } from './views/CapabilityCenter';
+import { GitHubIntelligenceCenter } from './views/GitHubIntelligenceCenter';
+import { UniversalIDEView } from './views/UniversalIDEView';
+import { AutonomousEngineeringView } from './views/AutonomousEngineeringView';
+import { WorkflowEngineView } from './views/WorkflowEngineView';
+import { AccountsView } from './views/AccountsView';
+import { DigitalWorkspaceView } from './views/DigitalWorkspaceView';
+import { EcosystemView } from './views/EcosystemView';
+import { CreationStudioView } from './views/CreationStudioView';
+import { PersistentOperationsView } from './views/PersistentOperationsView';
 
 import {
   HealthResponse,
@@ -51,7 +63,7 @@ import { api } from './services/api';
 const VALID_TABS: NavTab[] = [
   'home', 'command-center', 'chat', 'council-chat', 'work', 'goals', 'missions', 'research', 'knowledge',
   'agent-town', 'agents', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
-  'environment', 'models', 'integrations', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement'
+  'environment', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'ecosystem', 'creation', 'persistent-ops'
 ];
 
 export const App: React.FC = () => {
@@ -356,9 +368,7 @@ export const App: React.FC = () => {
 
           {currentTab === 'goals' && <GoalsView onRefresh={loadAllData} />}
 
-          {currentTab === 'missions' && (
-            <MissionsView missions={missions} onRefresh={loadAllData} />
-          )}
+          {currentTab === 'missions' && <MissionControlView />}
 
           {currentTab === 'tasks' && <TasksView tasks={tasks} />}
 
@@ -372,6 +382,7 @@ export const App: React.FC = () => {
 
           {currentTab === 'models' && <ModelsView providers={models} />}
           {currentTab === 'integrations' && <IntegrationsView />}
+          {currentTab === 'capabilities' && <CapabilityCenter />}
 
           {currentTab === 'audit' && <AuditView auditLogs={auditLogs} />}
 
@@ -382,6 +393,16 @@ export const App: React.FC = () => {
           {currentTab === 'mcp' && <MCPView />}
           {currentTab === 'multimodal' && <MultimodalView />}
           {currentTab === 'self-improvement' && <SelfImprovementView />}
+          {currentTab === 'workers' && <WorkersView />}
+          {currentTab === 'github' && <GitHubIntelligenceCenter />}
+          {currentTab === 'ide' && <UniversalIDEView />}
+          {currentTab === 'engineering' && <AutonomousEngineeringView />}
+          {currentTab === 'workflows' && <WorkflowEngineView />}
+          {currentTab === 'accounts' && <AccountsView />}
+          {currentTab === 'workspaces' && <DigitalWorkspaceView />}
+          {currentTab === 'ecosystem' && <EcosystemView />}
+          {currentTab === 'creation' && <CreationStudioView />}
+          {currentTab === 'persistent-ops' && <PersistentOperationsView />}
 
           {currentTab === 'settings' && (
             <SettingsView

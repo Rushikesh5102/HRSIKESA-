@@ -42,7 +42,10 @@ class MockToolProposingVoiceProvider implements IModelProvider {
       contextWindow: 4096,
       supportsStreaming: false,
       supportsToolCalling: true,
-      priority: 1,
+      supportsTools: true,
+      capabilities: ['chat', 'tools', 'text-generation'],
+      availability: true,
+      priority: 100,
       isLocal: true
     }];
   }
@@ -108,7 +111,7 @@ test('Voice Security Subsystem', async (t) => {
   const conversation = new ConversationService(sessionManager, router, identity, undefined, undefined, toolBus, toolRegistry);
 
   const stt = new MockSpeechToTextProvider();
-  stt.mockTextToReturn = 'Delete everything outside workspace';
+  stt.mockTextToReturn = 'Write files outside workspace';
   const tts = new MockTextToSpeechProvider(testAudioDir);
   const recorder = new MockAudioRecorder(testAudioDir);
   const player = new MockAudioPlayer();

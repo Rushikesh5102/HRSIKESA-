@@ -11,7 +11,8 @@ describe('Global Instant Response & Low-Latency Chat Subsystem', () => {
   test('setup: should start kernel', async () => {
     kernel = new HrisekesaKernel({
       HRISEKESA_PORT: TEST_PORT,
-      HRISEKESA_LOG_LEVEL: 'warn'
+      HRISEKESA_LOG_LEVEL: 'warn',
+      HRISEKESA_DB_PATH: ':memory:',
     });
     await kernel.start();
   });

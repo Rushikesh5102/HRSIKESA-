@@ -21,6 +21,11 @@ import { MissionOrchestrator } from '../agents/mission/mission.orchestrator.js';
 import { FastChatGate } from './fast.chat.gate.js';
 import { ChatLatencyTracker, latencyDiagnostics, ChatMetricsReport } from './latency.tracker.js';
 import { EventBus } from '../core/events/event-bus.js';
+import { InferenceScheduler } from '../inference/inference.scheduler.js';
+import { CancellationManager } from './cancellation.manager.js';
+import { ChatNamer } from './chat.namer.js';
+import { ExecutionPolicyEngine } from './execution.policy.js';
+import { ResponseMode, getResponseModeConfig } from '../inference/backend.types.js';
 
 export interface ToolExecutionSummary {
   readonly tool: string;
@@ -42,6 +47,7 @@ export interface ConversationResponse {
   readonly missionId?: string;
   readonly goalId?: string;
   readonly intentMode?: string;
+  readonly responseMode?: ResponseMode;
   readonly metrics?: ChatMetricsReport;
 }
 
@@ -58,7 +64,15 @@ export class ConversationService {
   private toolRegistry?: ToolRegistry;
   private missionOrchestrator?: MissionOrchestrator;
   private goalEngine?: import('../goal/engine/goal.execution.engine.js').GoalExecutionEngine;
+  private researchEngine?: import('../research/engine/research.engine.js').ResearchEngine;
+  private workingMemoryEngine?: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine;
   private maxToolIterations = 2;
+
+  /** In-flight background mission IDs: tracked so shutdown() can cancel them. */
+  private readonly _backgroundMissionIds = new Set<string>();
+  /** In-flight background task promises: awaited on shutdown() drain. */
+  private readonly _backgroundTasks = new Set<Promise<unknown>>();
+  private _shuttingDown = false;
 
   constructor(
     sessionManager: SessionManager,
@@ -96,8 +110,31 @@ export class ConversationService {
     this.goalEngine = goalEngine;
   }
 
+  public setResearchEngine(researchEngine: import('../research/engine/research.engine.js').ResearchEngine): void {
+    this.researchEngine = researchEngine;
+  }
+
   public setCompanyService(_companyService: import('../company/services/company.service.js').CompanyService): void {
     // Reserved for future company-goal orchestration integration
+  }
+
+  public setKnowledgeContextAssembler(assembler: import('../knowledge/services/knowledge-context-assembler.js').KnowledgeContextAssembler): void {
+    if (this.contextAssembler) {
+      this.contextAssembler.setKnowledgeAssembler(assembler);
+    }
+  }
+
+  public setCognitiveContextEngine(engine: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine): void {
+    if (this.contextAssembler) {
+      this.contextAssembler.setCognitiveEngine(engine);
+    }
+  }
+
+  public setWorkingMemoryEngine(engine: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine): void {
+    this.workingMemoryEngine = engine;
+    if (this.contextAssembler) {
+      this.contextAssembler.setWorkingMemoryEngine(engine);
+    }
   }
 
 
@@ -110,7 +147,8 @@ export class ConversationService {
     sessionId?: string,
     preferredModel?: string,
     preferredProvider?: string,
-    onToken?: (token: string) => void
+    onToken?: (token: string) => void,
+    responseMode?: ResponseMode
   ): Promise<ConversationResponse> {
     const trimmed = userMessage.trim();
     if (!trimmed) {
@@ -122,10 +160,34 @@ export class ConversationService {
 
     const session = this.sessionManager.getOrCreateSession(sessionId);
 
+    // 0. High-Priority Interrupt / STOP Command Check (Instant abort without LLM invocation)
+    if (CancellationManager.isInterruptCommand(trimmed)) {
+      CancellationManager.getInstance().cancelSession(session.id, 'Operator interrupt command.');
+      const cancelText = '🛑 **Generation Stopped:** Active model inference and tool execution have been safely cancelled.';
+      if (onToken) onToken(cancelText);
+      this.sessionManager.addMessage(session.id, 'assistant', cancelText);
+      const metrics = tracker.complete();
+      latencyDiagnostics.record(metrics);
+      return {
+        success: true,
+        sessionId: session.id,
+        response: cancelText,
+        model: 'system-interrupt',
+        provider: 'local',
+        timestamp: new Date().toISOString(),
+        durationMs: metrics.totalDurationMs,
+        intentMode: 'STATUS_QUERY',
+        metrics
+      };
+    }
+
     // 1. Append user message to durable session immediately
     tracker.startSpan('session_persistence');
     this.sessionManager.addMessage(session.id, 'user', trimmed);
     tracker.endSpan('session_persistence');
+
+    // Asynchronously name the conversation in background (ChatGPT-style, non-blocking)
+    ChatNamer.nameSessionAsync(session.id, trimmed, this.sessionManager).catch(() => {});
 
     // 2. Fast Chat Gate Evaluation (< 2ms)
     tracker.startSpan('fast_gate');
@@ -134,10 +196,30 @@ export class ConversationService {
     const gateDecision = this.fastGate.evaluate(trimmed, ownerName);
     tracker.endSpan('fast_gate');
 
-    // Path A: Deterministic Instant Response (Casual Greetings, Courtesies, Identity) -> TTFB < 5ms
+    // Path A: Deterministic Instant Response (Casual Greetings, Courtesies, Identity, Live Time/Date) -> TTFB < 5ms
     if (gateDecision.isDeterministicInstant && gateDecision.instantResponse) {
       tracker.markFirstVisibleResponse();
-      const instantText = gateDecision.instantResponse;
+      let instantText = gateDecision.instantResponse;
+
+      // Deterministic tool optimization: If ToolBus is wired, route live time/date through ToolBus to enforce permissions & audit
+      if (this.toolBus && (gateDecision.intent === 'TIME_QUERY' || gateDecision.intent === 'DATE_QUERY')) {
+        try {
+          const toolRes = await this.toolBus.execute('time.now', {}, {
+            sessionId: session.id,
+            userId: 'ROOT_RUSHIKESH'
+          });
+          if (toolRes.success && toolRes.output) {
+            const out = toolRes.output as any;
+            if (gateDecision.intent === 'TIME_QUERY') {
+              instantText = `The current system time is **${new Date(out.unixMs).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })} IST** (ISO: \`${out.iso}\`).`;
+            } else {
+              instantText = `Today is **${new Date(out.unixMs).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}** (System ISO: \`${out.iso}\`).`;
+            }
+          }
+        } catch {
+          // Graceful fallback to gateDecision instantResponse
+        }
+      }
 
       if (onToken) {
         onToken(instantText);
@@ -287,6 +369,39 @@ export class ConversationService {
     }
 
     // Path E: Interactive Model Cognition & Streaming Response
+    if (this.workingMemoryEngine) {
+      try {
+        await this.workingMemoryEngine.processIncomingTurn(trimmed, session.id);
+      } catch {
+        // Non-blocking working memory safety
+      }
+    }
+
+    // Execution-First Policy Evaluation: Check if clarification is strictly required
+    const execDecision = ExecutionPolicyEngine.evaluate(trimmed, {
+      intent: gateDecision.intent,
+      hasTools: !gateDecision.skipToolAttachment,
+    });
+
+    if (execDecision.action === 'ASK_CLARIFICATION' && execDecision.blockingQuestion) {
+      tracker.markFirstVisibleResponse();
+      if (onToken) onToken(execDecision.blockingQuestion);
+      this.sessionManager.addMessage(session.id, 'assistant', execDecision.blockingQuestion);
+      const metrics = tracker.complete();
+      latencyDiagnostics.record(metrics);
+      return {
+        success: true,
+        sessionId: session.id,
+        response: execDecision.blockingQuestion,
+        model: 'system-policy',
+        provider: 'local',
+        timestamp: new Date().toISOString(),
+        durationMs: metrics.totalDurationMs,
+        intentMode: 'CLARIFICATION_REQUIRED',
+        metrics
+      };
+    }
+
     tracker.startSpan('context_assembly');
     const messages: ChatMessage[] = this.contextAssembler
       ? [...await this.contextAssembler.assembleContext(session.id, {
@@ -306,10 +421,11 @@ export class ConversationService {
 
       const relevantTools = allTools.filter((tool) => {
         const id = tool.id.toLowerCase();
-        if (id === 'system.info' || id === 'time.now') return true;
+        if ((lowerMsg.includes('hardware') || lowerMsg.includes('spec') || lowerMsg.includes('battery') || lowerMsg.includes('cpu') || lowerMsg.includes('ram')) && id === 'system.info') return true;
+        if ((lowerMsg.includes('what time') || lowerMsg.includes('what date') || lowerMsg.includes('clock')) && id === 'time.now') return true;
         if ((lowerMsg.includes('browse') || lowerMsg.includes('web') || lowerMsg.includes('url') || lowerMsg.includes('page') || lowerMsg.includes('search') || lowerMsg.includes('http')) && id.startsWith('browser.')) return true;
-        if ((lowerMsg.includes('file') || lowerMsg.includes('read') || lowerMsg.includes('write') || lowerMsg.includes('dir') || lowerMsg.includes('folder')) && id.startsWith('filesystem.')) return true;
-        if ((lowerMsg.includes('terminal') || lowerMsg.includes('command') || lowerMsg.includes('exec') || lowerMsg.includes('run') || lowerMsg.includes('python')) && id === 'terminal.execute') return true;
+        if ((lowerMsg.includes('file') || lowerMsg.includes('read') || lowerMsg.includes('write') || lowerMsg.includes('dir') || lowerMsg.includes('folder') || lowerMsg.includes('directory') || lowerMsg.includes('list files')) && id.startsWith('filesystem.')) return true;
+        if ((lowerMsg.includes('terminal') || lowerMsg.includes('command') || lowerMsg.includes('exec') || lowerMsg.includes('run') || lowerMsg.includes('bash') || lowerMsg.includes('powershell')) && id === 'terminal.execute') return true;
         return false;
       });
 
@@ -325,6 +441,9 @@ export class ConversationService {
       tracker.endSpan('tool_selection');
     }
 
+    const effectiveMode = responseMode || this.detectResponseMode(trimmed, gateDecision.intent);
+    const modeConfig = getResponseModeConfig(effectiveMode);
+
     let currentModel = '';
     let currentProvider = '';
     let finalAssistantText = '';
@@ -337,6 +456,46 @@ export class ConversationService {
      * rather than propagating an error that would cause the HTTP layer to 422.
      */
     const executeInference = async (): Promise<void> => {
+      // Fast Hardware-Agnostic Direct Inference (Llama.cpp Intel Arc GPU / Multi-Threaded CPU)
+      const hasMockProvider = this.router &&
+        typeof (this.router as any).getRegistry === 'function' &&
+        (this.router as any).getRegistry()?.getAllRecords()?.some((r: any) => r.provider?.id?.includes('mock') || r.models?.some((m: any) => m.id?.includes('mock')));
+
+      if (availableTools.length === 0 && !hasMockProvider) {
+        try {
+          tracker.markModelStarted();
+          tracker.startSpan('model_inference');
+          let hasEmittedFirstToken = false;
+          const cancelToken = CancellationManager.getInstance().createTokenForSession(session.id);
+
+          const schedResult = await InferenceScheduler.getInstance().scheduleAndExecute({
+            messages,
+            preferredModel,
+            tier: preferredModel ? undefined : 'T2',
+            responseMode: effectiveMode,
+            temperature: 0.7,
+            maxTokens: modeConfig.maxTokens,
+            cancellationToken: cancelToken,
+            sessionId: session.id,
+            onToken: (tok: string) => {
+              if (!hasEmittedFirstToken) {
+                hasEmittedFirstToken = true;
+                tracker.markModelFirstToken();
+              }
+              if (onToken) onToken(tok);
+            }
+          });
+
+          tracker.endSpan('model_inference');
+          currentModel = schedResult.modelId;
+          currentProvider = schedResult.backendType.toLowerCase();
+          finalAssistantText = schedResult.text;
+          return;
+        } catch (schedErr: any) {
+          this.logger?.warn(`Direct hardware-agnostic inference fallback: ${schedErr?.message}`);
+        }
+      }
+
       let iteration = 0;
       while (iteration <= this.maxToolIterations) {
         iteration++;
@@ -350,7 +509,8 @@ export class ConversationService {
           preferredModel,
           preferredProvider,
           temperature: 0.7,
-          maxTokens: 512,
+          maxTokens: modeConfig.maxTokens,
+          priority: 'HIGH',
           tools: availableTools.length > 0 ? availableTools : undefined,
           stream: true,
           onToken: (tok: string) => {
@@ -465,6 +625,11 @@ export class ConversationService {
     });
     tracker.endSpan('session_persistence');
 
+    if (this.workingMemoryEngine) {
+      // Non-blocking asynchronous working memory turn update (Part M SLA requirement)
+      this.workingMemoryEngine.processOutgoingTurn(session.id, finalAssistantText).catch(() => {});
+    }
+
     const metrics = tracker.complete();
     latencyDiagnostics.record(metrics);
 
@@ -478,8 +643,54 @@ export class ConversationService {
       durationMs: metrics.totalDurationMs,
       toolCallsExecuted: executedTools.length > 0 ? executedTools : undefined,
       intentMode: gateDecision.intent,
+      responseMode: effectiveMode,
       metrics
     };
+  }
+
+  /**
+   * Auto-detects appropriate response mode for simple or deep requests (Part C).
+   */
+  private detectResponseMode(message: string, intent: string): ResponseMode {
+    const lower = message.toLowerCase();
+    // Simple / quick queries -> CONCISE (e.g. quick tip, one-liner, short summary)
+    if (
+      lower.includes('quick tip') ||
+      lower.includes('give me a tip') ||
+      lower.includes('simple tip') ||
+      lower.includes('briefly') ||
+      lower.includes('in short') ||
+      lower.includes('in one sentence') ||
+      lower.includes('one sentence') ||
+      lower.includes('tl;dr') ||
+      lower.includes('tldr') ||
+      lower.includes('short summary') ||
+      lower.includes('quick typescript') ||
+      lower.includes('quick python') ||
+      (intent === 'GENERAL_CONVERSATION' && lower.length < 35 && (lower.startsWith('what is') || lower.startsWith('how to') || lower.startsWith('define')))
+    ) {
+      return 'CONCISE';
+    }
+
+    if (
+      lower.includes('deep dive') ||
+      lower.includes('in-depth') ||
+      lower.includes('detailed breakdown') ||
+      lower.includes('comprehensive analysis')
+    ) {
+      return 'DEEP';
+    }
+
+    if (
+      lower.includes('explain in detail') ||
+      lower.includes('detailed explanation') ||
+      lower.includes('step by step') ||
+      lower.includes('with examples')
+    ) {
+      return 'DETAILED';
+    }
+
+    return 'NORMAL';
   }
 
   /**
@@ -488,11 +699,47 @@ export class ConversationService {
   private async dispatchBackgroundTask(
     prompt: string,
     sessionId: string,
-    _intent: string,
+    intent: string,
     suggestedAgentId = 'gandiva'
   ): Promise<void> {
     try {
-      if (this.missionOrchestrator) {
+      if (this.goalEngine && (intent === 'GOAL_COMPANY_TASK' || prompt.toLowerCase().startsWith('goal:'))) {
+        try {
+          const goal = this.goalEngine.createGoal({
+            title: prompt.slice(0, 100),
+            description: prompt,
+            objective: prompt
+          });
+          this.eventBus?.emit('goal.created' as any, { goalId: goal.id, title: goal.title } as any);
+        } catch (err: unknown) {
+          this.logger?.warn('Background goal creation notice:', { error: String(err) });
+        }
+      }
+
+      if (this.researchEngine && intent === 'RESEARCH_TASK') {
+        try {
+          const study = await this.researchEngine.createStudy(prompt, 'ROOT_RUSHIKESH');
+          this.eventBus?.emit('research.created' as any, {
+            studyId: study.id,
+            topic: study.title,
+            status: 'ACCEPTED'
+          } as any);
+
+          // Trigger execution asynchronously without blocking chat — tracked for clean shutdown drain.
+          if (!this._shuttingDown) {
+            const resTask = this.researchEngine.executeStudy(study.id)
+              .catch((err) => {
+                this.logger?.warn(`Background research execution notice [${study.id}]:`, { error: String(err) });
+              })
+              .finally(() => {
+                this._backgroundTasks.delete(resTask!);
+              });
+            this._backgroundTasks.add(resTask);
+          }
+        } catch (err: unknown) {
+          this.logger?.warn('Background research creation notice:', { error: String(err) });
+        }
+      } else if (this.missionOrchestrator) {
         const mission = await this.missionOrchestrator.planAndCreateMission({
           objective: prompt,
           sessionId,
@@ -505,13 +752,56 @@ export class ConversationService {
           status: 'ACCEPTED'
         } as any);
 
-        // Trigger execution asynchronously
-        this.missionOrchestrator.executeMission(mission.id).catch((err) => {
-          this.logger?.warn(`Background mission execution notice [${mission.id}]:`, { error: String(err) });
-        });
+        // Trigger execution asynchronously — tracked so shutdown() can cancel and drain it.
+        if (!this._shuttingDown) {
+          this._backgroundMissionIds.add(mission.id);
+          const task = this.missionOrchestrator.executeMission(mission.id)
+            .catch((err) => {
+              this.logger?.warn(`Background mission execution notice [${mission.id}]:`, { error: String(err) });
+            })
+            .finally(() => {
+              this._backgroundMissionIds.delete(mission.id);
+              this._backgroundTasks.delete(task!);
+            });
+          this._backgroundTasks.add(task);
+        }
       }
     } catch (err) {
       this.logger?.warn('Background task dispatch notice:', { error: String(err) });
+    }
+  }
+
+  /**
+   * Gracefully shuts down the ConversationService.
+   *
+   * Cancels all in-flight background missions so their promises settle promptly,
+   * then waits up to 5 seconds for any remaining task promises to drain.
+   * This prevents the process from hanging after kernel.shutdown() when
+   * fire-and-forget executeMission() calls are still pending in the event loop.
+   */
+  public async shutdown(): Promise<void> {
+    this._shuttingDown = true;
+
+    // Cancel all missions that are still in-flight
+    if (this.missionOrchestrator && this._backgroundMissionIds.size > 0) {
+      for (const missionId of Array.from(this._backgroundMissionIds)) {
+        try {
+          await this.missionOrchestrator.cancelMission(missionId, 'Kernel shutdown');
+        } catch {
+          // Ignore — mission may have already completed or failed
+        }
+      }
+    }
+
+    // Drain remaining promise references with a bounded timeout
+    if (this._backgroundTasks.size > 0) {
+      const drain = Promise.allSettled(Array.from(this._backgroundTasks));
+      const timeout = new Promise<void>((resolve) => {
+        const t = setTimeout(resolve, 5000);
+        // Unref so this timer itself does not prevent process exit
+        if (typeof (t as any).unref === 'function') (t as any).unref();
+      });
+      await Promise.race([drain, timeout]);
     }
   }
 
@@ -526,11 +816,11 @@ export class ConversationService {
     return [
       `You are ${sys.name} (${sys.sanskrit} / ${sys.internationalSpelling}), a sovereign personal AI operating system and autonomous AI workforce control plane.`,
       `Your sole creator, developer, and master is ${owner.fullName}.`,
-      `You are currently operating on Rushikesh's local workstation (Acer Swift, 16 GB RAM, Intel Core Ultra 5 125H) with the local neural model Qwen 2.5 (7B) hosted via Ollama.`,
+      `English Self-Name: In English conversation, refer to yourself naturally as 'Rishi' (e.g. "I’m Rishi").`,
+      `Execution-First Policy: If a user request is actionable and sufficiently specified, execute immediately. Do not ask unnecessary clarification questions; use safe defaults, project knowledge, and available tools. Ask only for irreversible/high-risk actions or when missing essential inputs.`,
+      `You are operating on Rushikesh's local workstation (Intel Core Ultra 5 125H, Intel Arc GPU, 16 GB RAM) with hardware-agnostic local neural inference (Vulkan GPU & CPU).`,
       `Identity Invariants:`,
-      `- Your sovereign persona, OS control plane, and identity is ${sys.name}.`,
-      `- The underlying local neural language model executing your reasoning is Qwen (qwen2.5:7b).`,
-      `- Do not pretend that Qwen itself is ${sys.name}; you are the sovereign OS orchestrator operating through Qwen as your local cognition engine.`,
+      `- Your sovereign persona, OS control plane, and identity is ${sys.name}. In English, you are Rishi.`,
       `- Maintain accurate conversation context across multiple turns.`,
       `- When tools are available to answer queries about the environment, files, or system, call the appropriate tool.`
     ].join('\n');

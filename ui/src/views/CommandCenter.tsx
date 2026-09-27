@@ -744,7 +744,63 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </IndianFrame>
       </div>
 
-      {/* 5. System Health & Environment Bar */}
+      {/* 5. Distributed Resource Fabric & Worker Fleet Banner */}
+      <IndianFrame
+        title="Distributed Resource Fabric"
+        subtitle="FP-03 Execution Capacity • Local & LAN Compute Plane"
+        badge={
+          <button
+            onClick={() => onNavigate('workers')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-gold)',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            Manage Fabric
+            <ArrowRight size={13} />
+          </button>
+        }
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+          <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Primary Control Node</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+              Intel Core Ultra 125H (14C/18T)
+            </div>
+            <div style={{ fontSize: '11.5px', color: '#10b981', marginTop: '2px' }}>Vulkan Intel Arc Active</div>
+          </div>
+          <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Host Memory State</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+              {status?.hardware?.memory?.usedPercentage ? `${status.hardware.memory.usedPercentage}% Committed` : 'Nominal (~16GB)'}
+            </div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-gold)', marginTop: '2px' }}>Governor: NORMAL</div>
+          </div>
+          <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Worker Nodes</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+              Local Node Active
+            </div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>LAN Auto-pairing Ready</div>
+          </div>
+          <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Execution Policy</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+              Sovereign Local First
+            </div>
+            <div style={{ fontSize: '11.5px', color: '#60a5fa', marginTop: '2px' }}>Zero Cloud Leaks</div>
+          </div>
+        </div>
+      </IndianFrame>
+
+      {/* 6. System Health & Environment Bar */}
       <div
         style={{
           display: 'grid',

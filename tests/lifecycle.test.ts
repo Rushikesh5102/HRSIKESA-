@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { LifecycleManager } from '../src/core/lifecycle/lifecycle.manager.js';
+import { HrisekesaKernel } from '../src/runtime/kernel.js';
 
 describe('Lifecycle Subsystem', () => {
   test('should initialize in STOPPED state and transition to READY', async () => {
@@ -51,5 +52,30 @@ describe('Lifecycle Subsystem', () => {
     assert.equal(lifecycle.getState(), 'STOPPED');
     assert.deepEqual(order, [2, 1]); // LIFO execution
     assert.equal(lifecycle.getSnapshot().shutdownReason, 'User termination');
+  });
+
+  test('HrisekesaKernel should start, execute representative async operations, and shutdown with zero event loop leaks', async () => {
+    const TEST_PORT = '19202';
+    const kernel = new HrisekesaKernel({
+      HRISEKESA_PORT: TEST_PORT,
+      HRISEKESA_LOG_LEVEL: 'warn',
+      HRISEKESA_VOICE_TTS: 'sapi',
+      HRISEKESA_VOICE_STT: 'windows',
+      HRISEKESA_DB_PATH: ':memory:',
+    });
+
+    await kernel.start();
+    assert.equal(kernel.lifecycle.getState(), 'READY');
+
+    // Perform representative async operations
+    const health = await fetch(`http://127.0.0.1:${TEST_PORT}/health`);
+    assert.equal(health.status, 200);
+
+    const agents = await fetch(`http://127.0.0.1:${TEST_PORT}/agents`);
+    assert.equal(agents.status, 200);
+
+    // Shutdown cleanly
+    await kernel.shutdown('Natural process termination test');
+    assert.equal(kernel.lifecycle.getState(), 'STOPPED');
   });
 });

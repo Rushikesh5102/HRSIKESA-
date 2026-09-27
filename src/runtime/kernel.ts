@@ -149,14 +149,32 @@ import {
   NativeFileSystemCapabilityAdapter,
   PowerShellTerminalCapabilityAdapter,
   ResearchWebCapabilityAdapter,
+  UniversalCapabilityFabric,
 } from '../capabilities/index.js';
 
-// Phase 17: Advanced Research & Web Intelligence Subsystem
+// FP-08: GitHub & Open-Source Intelligence / Acquisition Fabric
+import { GitHubFabric } from '../github/github.fabric.js';
+
+// FP-09: Universal IDE & Development Workspace Fabric
+import { IdeFabric } from '../ide/ide.fabric.js';
+
+// FP-10: Autonomous Software Engineering & Agentic Coding Engine
+import { EngineeringFabric } from '../engineering/engineering.fabric.js';
+
+// FP-11: Native Universal Workflow & Automation Engine
+import { WorkflowFabric } from '../workflows/workflow.fabric.js';
+
 import { ResearchRepository } from '../persistence/repositories/research.repository.js';
 import { ResearchSourceRepository } from '../persistence/repositories/research-source.repository.js';
 import { ResearchEvidenceRepository } from '../persistence/repositories/research-evidence.repository.js';
 import { ResearchFindingRepository } from '../persistence/repositories/research-finding.repository.js';
 import { ResearchEngine } from '../research/engine/research.engine.js';
+import { ResearchExecuteTool, ResearchQueryTool } from '../tools/builtin/research.tool.js';
+import {
+  KnowledgeSearchTool,
+  KnowledgeEntityLookupTool,
+  KnowledgeFactQueryTool,
+} from '../tools/builtin/knowledge.tool.js';
 
 // Phase 19: Advanced Memory & Knowledge Graph Subsystem
 import {
@@ -166,6 +184,7 @@ import {
   KnowledgeEvidenceRepository,
   KnowledgeClaimRepository,
   KnowledgeContradictionRepository,
+  KnowledgeMergeProposalRepository,
   EntityResolutionService,
   KnowledgeGraphService,
   KnowledgeValidationService,
@@ -173,6 +192,7 @@ import {
   KnowledgeContextAssembler,
   KnowledgeConsolidationService,
   KnowledgeTimelineService,
+  ResearchKnowledgeBridgeService,
 } from '../knowledge/index.js';
 
 // Phase 20: Skills & Procedural Intelligence Subsystem
@@ -261,6 +281,52 @@ import {
   createSelfImprovementTools,
 } from '../self-improvement/index.js';
 
+// Track A / INT-007: Cognitive Context Engine Subsystem
+import {
+  CognitiveContextEngine,
+  RequestClassifierService,
+  ScopeResolverService,
+  CandidateCollectorService,
+  RelevanceRankerService,
+  TemporalFilterService,
+  ConflictResolverService,
+  ContextBudgetManagerService,
+  ContextCompressorService,
+} from '../context/index.js';
+import {
+  ContextInspectTool,
+  ContextSearchTool,
+  ContextTraceTool,
+} from '../tools/builtin/context.tool.js';
+
+// Track A / INT-008: Persistent Working Memory & Continuity Subsystem
+import {
+  WorkingMemoryEngine,
+  ConversationThreadRepository,
+  WorkingMemoryItemRepository,
+  ConversationCheckpointRepository,
+  PendingItemRepository,
+} from '../working-memory/index.js';
+import {
+  WorkingMemoryInspectTool,
+  WorkingMemoryThreadsTool,
+  WorkingMemoryPendingTool,
+  WorkingMemoryCheckpointTool,
+} from '../tools/builtin/working-memory.tool.js';
+
+// FP-03: Distributed Local/LAN Resource Fabric Subsystem
+import { ResourceManager } from '../resources/index.js';
+
+// FP-12: Universal Service & Account Integration Fabric
+import { AccountFabric } from '../accounts/account.fabric.js';
+// FP-13: Universal Digital Workspace & Application Operator
+import { ApplicationOperator } from '../operator/application.operator.js';
+import { WorkspaceRepository } from '../operator/repository/workspace.repository.js';
+// FP-14: Universal Agentic Mission & Workforce Runtime
+import { UniversalAgenticMissionRuntime } from '../mission/mission.runtime.js';
+// FP-15: Universal Application & Service Ecosystem Fabric
+import { UniversalEcosystemFabric } from '../ecosystem/ecosystem.fabric.js';
+
 export class HrisekesaKernel {
   public readonly identity: IdentityManager;
   public readonly configManager: ConfigManager;
@@ -307,6 +373,11 @@ export class HrisekesaKernel {
   public readonly resourceGovernor: ResourceGovernor;
   public readonly capabilityRegistry: CapabilityRegistry;
   public readonly capabilityRouter: AgentCapabilityRouter;
+  public readonly capabilityFabric: UniversalCapabilityFabric;
+  public readonly githubFabric: GitHubFabric;
+  public readonly ideFabric: IdeFabric;
+  public readonly engineeringFabric: EngineeringFabric;
+  public readonly workflowFabric: WorkflowFabric;
 
   // Phase 17: Advanced Research & Web Intelligence Subsystem
   public readonly researchStudyRepo: ResearchRepository;
@@ -371,6 +442,8 @@ export class HrisekesaKernel {
   public readonly knowledgeContextAssembler: KnowledgeContextAssembler;
   public readonly knowledgeConsolidation: KnowledgeConsolidationService;
   public readonly knowledgeTimeline: KnowledgeTimelineService;
+  public readonly knowledgeMergeProposalRepo: KnowledgeMergeProposalRepository;
+  public readonly researchKnowledgeBridge: ResearchKnowledgeBridgeService;
 
   // Phase 20: Skills & Procedural Intelligence Subsystem
   public readonly skillRepo: SkillRepository;
@@ -438,9 +511,24 @@ export class HrisekesaKernel {
   public readonly selfImprovementRepo: SelfImprovementRepository;
   public readonly selfImprovementCoordinator: SelfImprovementCoordinator;
 
+  // Track A / INT-007: Cognitive Context Engine
+  public readonly cognitiveContextEngine: CognitiveContextEngine;
+
+  // Track A / INT-008: Persistent Working Memory Subsystem
+  public readonly conversationThreadRepo: ConversationThreadRepository;
+  public readonly workingMemoryItemRepo: WorkingMemoryItemRepository;
+  public readonly conversationCheckpointRepo: ConversationCheckpointRepository;
+  public readonly pendingItemRepo: PendingItemRepository;
+  public readonly workingMemoryEngine: WorkingMemoryEngine;
+
   public readonly sessionManager: SessionManager;
   public readonly contextAssembler: ContextAssembler;
   public readonly conversation: ConversationService;
+  public readonly resourceManager: ResourceManager;
+  public readonly accountFabric: AccountFabric;
+  public readonly operator: ApplicationOperator;
+  public readonly missionRuntime: UniversalAgenticMissionRuntime;
+  public readonly ecosystemFabric: UniversalEcosystemFabric;
   public readonly server: HttpServer;
   private refreshTimer?: ReturnType<typeof setTimeout>;
 
@@ -477,6 +565,8 @@ export class HrisekesaKernel {
     const dbPath = envOverrides['HRISEKESA_DB_PATH'] || envOverrides['DATABASE_PATH'] || process.env.HRISEKESA_DB_PATH || 'data/hrisekesa.db';
     this.db = new DatabaseManager(dbPath, this.logger);
     this.migrations = new MigrationManager(this.db, this.logger);
+    this.db.open();
+    this.migrations.runPending();
     this.sessionRepo = new SessionRepository(this.db);
     this.messageRepo = new MessageRepository(this.db);
     this.memoryRepo = new MemoryRepository(this.db);
@@ -744,6 +834,7 @@ export class HrisekesaKernel {
     );
     this.resourceGovernor = new ResourceGovernor(this.eventBus, this.logger);
     this.router.setResourceGovernor(this.resourceGovernor);
+    this.resourceManager = ResourceManager.initialize(this.db, this.resourceGovernor, this.eventBus, this.logger);
 
     this.capabilityRegistry = new CapabilityRegistry(this.eventBus, this.logger);
     this.capabilityRouter = new AgentCapabilityRouter(
@@ -765,8 +856,14 @@ export class HrisekesaKernel {
       this.researchFindingRepo,
       this.memoryRepo,
       this.semanticIndexer,
-      this.browserAdapter
+      this.browserAdapter,
+      undefined,
+      this.eventBus,
+      this.router
     );
+    this.conversation.setResearchEngine(this.researchEngine);
+    this.toolRegistry.register(new ResearchExecuteTool(this.researchEngine));
+    this.toolRegistry.register(new ResearchQueryTool(this.researchEngine));
 
     this.scheduler.registerHandler('research', async (schedule) => {
       await this.researchEngine.executeStudy(schedule.targetId);
@@ -779,11 +876,13 @@ export class HrisekesaKernel {
     this.knowledgeEvidenceRepo = new KnowledgeEvidenceRepository(this.db);
     this.knowledgeClaimRepo = new KnowledgeClaimRepository(this.db);
     this.knowledgeContradictionRepo = new KnowledgeContradictionRepository(this.db);
+    this.knowledgeMergeProposalRepo = new KnowledgeMergeProposalRepository(this.db);
 
     this.entityResolution = new EntityResolutionService(
       this.knowledgeEntityRepo,
       this.knowledgeRelRepo,
-      this.knowledgeFactRepo
+      this.knowledgeFactRepo,
+      this.knowledgeMergeProposalRepo
     );
     this.knowledgeGraph = new KnowledgeGraphService(
       this.knowledgeEntityRepo,
@@ -801,6 +900,11 @@ export class HrisekesaKernel {
       this.entityResolution,
       this.knowledgeValidation,
       this.router
+    );
+    this.knowledgeExtraction.setGraphRepositories(
+      this.knowledgeEntityRepo,
+      this.knowledgeFactRepo,
+      this.knowledgeRelRepo
     );
     this.knowledgeContextAssembler = new KnowledgeContextAssembler(
       this.knowledgeEntityRepo,
@@ -827,6 +931,31 @@ export class HrisekesaKernel {
       this.knowledgeEvidenceRepo,
       this.knowledgeContradictionRepo
     );
+    this.researchKnowledgeBridge = new ResearchKnowledgeBridgeService(
+      this.knowledgeEntityRepo,
+      this.knowledgeRelRepo,
+      this.knowledgeFactRepo,
+      this.knowledgeEvidenceRepo,
+      this.knowledgeContradictionRepo,
+      this.entityResolution,
+      this.knowledgeValidation
+    );
+
+    // Register Knowledge Tools into ToolRegistry
+    this.toolRegistry.register(new KnowledgeSearchTool(this.entityResolution, this.knowledgeGraph));
+    this.toolRegistry.register(new KnowledgeEntityLookupTool(this.knowledgeGraph, this.entityResolution));
+    this.toolRegistry.register(new KnowledgeFactQueryTool(this.knowledgeFactRepo));
+
+    // Auto-ingest completed research studies into sovereign knowledge graph
+    this.eventBus.on('research.completed', async (data: any) => {
+      if (data?.bundle) {
+        try {
+          await this.researchKnowledgeBridge.ingestResearchStudy(data.bundle);
+        } catch (err) {
+          this.logger.warn('Failed to auto-ingest research bundle into knowledge graph', { error: String(err) });
+        }
+      }
+    });
 
     this.registerBuiltinCapabilities();
 
@@ -916,6 +1045,72 @@ export class HrisekesaKernel {
       this.eventBus,
       this.logger
     );
+
+    // FP-07: Universal Capability & Connector Fabric
+    this.capabilityFabric = new UniversalCapabilityFabric({
+      dbManager: this.db,
+      eventBus: this.eventBus,
+      logger: this.logger,
+      permissionManager: this.permissionManager,
+      resourceGovernor: this.resourceGovernor,
+      toolRegistry: this.toolRegistry,
+      mcpToolRepo: this.mcpToolRepo,
+      mcpServerRepo: this.mcpServerRepo,
+      appDiscovery: (this.environmentManager as any)?.discovery,
+    });
+
+    // FP-08: GitHub & Open-Source Intelligence / Acquisition Fabric
+    this.githubFabric = new GitHubFabric({
+      dbManager: this.db,
+      fabric: this.capabilityFabric,
+      eventBus: this.eventBus,
+      resourceGovernor: this.resourceGovernor,
+      knowledgeEntityRepo: this.knowledgeEntityRepo,
+      knowledgeRelationshipRepo: this.knowledgeRelRepo,
+      researchEngine: this.researchEngine,
+      logger: this.logger,
+    });
+
+    // FP-09: Universal IDE & Development Workspace Fabric
+    this.ideFabric = new IdeFabric({
+      dbManager: this.db,
+      capabilityFabric: this.capabilityFabric,
+      resourceGovernor: this.resourceGovernor,
+      eventBus: this.eventBus,
+      logger: this.logger,
+    });
+
+    // FP-10: Autonomous Software Engineering & Agentic Coding Engine
+    this.engineeringFabric = new EngineeringFabric({
+      dbManager: this.db,
+      ideFabric: this.ideFabric,
+      modelRouter: this.router,
+      capabilityFabric: this.capabilityFabric,
+      resourceGovernor: this.resourceGovernor,
+      agentRegistry: this.agentRegistry,
+      eventBus: this.eventBus,
+      logger: this.logger,
+    });
+
+    // FP-11: Native Universal Workflow & Automation Engine
+    this.workflowFabric = new WorkflowFabric({
+      dbManager: this.db,
+      eventBus: this.eventBus,
+      logger: this.logger,
+      resourceGovernor: this.resourceGovernor,
+      permissionManager: this.permissionManager,
+      toolBus: this.toolBus,
+      agentRegistry: this.agentRegistry,
+      agentRuntime: this.agentRuntime,
+      skillEngine: this.skillExecutionEngine,
+      capabilityFabric: this.capabilityFabric,
+      modelRouter: this.router,
+      missionOrchestrator: this.missionOrchestrator,
+      goalEngine: this.goalEngine,
+      researchEngine: this.researchEngine,
+      engineeringFabric: this.engineeringFabric,
+      scheduler: this.scheduler,
+    });
 
     // Phase 22: Advanced Computer Operator Subsystem
     this.computerOperatorRepo = new ComputerOperatorRepository(this.db);
@@ -1059,6 +1254,7 @@ export class HrisekesaKernel {
     // Wire Goal Engine & Company OS to Conversation Service for unified human chat interaction
     this.conversation.setGoalEngine(this.goalEngine);
     this.conversation.setCompanyService(this.companyService);
+    this.conversation.setKnowledgeContextAssembler(this.knowledgeContextAssembler);
 
     // 6. Initialize HTTP Gateway with Persistence, Tool & Agent Contexts
     this.server = new HttpServer(
@@ -1151,6 +1347,7 @@ export class HrisekesaKernel {
       {
         registry: this.capabilityRegistry,
         router: this.capabilityRouter,
+        fabric: this.capabilityFabric,
       },
       {
         engine: this.researchEngine,
@@ -1173,6 +1370,9 @@ export class HrisekesaKernel {
         contextAssembler: this.knowledgeContextAssembler,
         consolidationService: this.knowledgeConsolidation,
         timelineService: this.knowledgeTimeline,
+        mergeProposalRepo: this.knowledgeMergeProposalRepo,
+        researchBridge: this.researchKnowledgeBridge,
+        decisionRepo: this.decisionRepo,
       },
       {
         skillRepo: this.skillRepo,
@@ -1213,6 +1413,102 @@ export class HrisekesaKernel {
         coordinator: this.selfImprovementCoordinator,
       }
     );
+
+    // Track A / INT-008: Persistent Working Memory Repositories & Engine
+    this.conversationThreadRepo = new ConversationThreadRepository(this.db);
+    this.workingMemoryItemRepo = new WorkingMemoryItemRepository(this.db);
+    this.conversationCheckpointRepo = new ConversationCheckpointRepository(this.db);
+    this.pendingItemRepo = new PendingItemRepository(this.db);
+    this.workingMemoryEngine = new WorkingMemoryEngine(
+      this.conversationThreadRepo,
+      this.workingMemoryItemRepo,
+      this.conversationCheckpointRepo,
+      this.pendingItemRepo,
+      this.resourceGovernor
+    );
+
+    // Track A / INT-007: Cognitive Context Engine
+    const requestClassifier = new RequestClassifierService();
+    const scopeResolver = new ScopeResolverService();
+    const candidateCollector = new CandidateCollectorService({
+      memoryRepo: this.memoryRepo,
+      creatorManager: this.creatorProfile,
+      sessionManager: this.sessionManager,
+      entityRepo: this.knowledgeEntityRepo,
+      factRepo: this.knowledgeFactRepo,
+      relRepo: this.knowledgeRelRepo,
+      evidenceRepo: this.knowledgeEvidenceRepo,
+      contradictionRepo: this.knowledgeContradictionRepo,
+      resolutionService: this.entityResolution,
+      graphService: this.knowledgeGraph,
+      decisionRepo: this.decisionRepo,
+      hybridMemoryRetriever: this.hybridRetriever,
+      workingMemoryEngine: this.workingMemoryEngine,
+    });
+    const relevanceRanker = new RelevanceRankerService();
+    const temporalFilter = new TemporalFilterService();
+    const conflictResolver = new ConflictResolverService();
+    const budgetManager = new ContextBudgetManagerService(this.resourceGovernor);
+    const compressor = new ContextCompressorService();
+
+    this.cognitiveContextEngine = new CognitiveContextEngine({
+      classifier: requestClassifier,
+      scopeResolver,
+      candidateCollector,
+      relevanceRanker,
+      temporalFilter,
+      conflictResolver,
+      budgetManager,
+      compressor,
+    });
+
+    // Register Cognitive Context tools into ToolRegistry
+    this.toolRegistry.register(new ContextInspectTool(this.cognitiveContextEngine));
+    this.toolRegistry.register(new ContextSearchTool(this.cognitiveContextEngine));
+    this.toolRegistry.register(new ContextTraceTool(this.cognitiveContextEngine));
+
+    // Register Working Memory tools into ToolRegistry
+    this.toolRegistry.register(new WorkingMemoryInspectTool(this.workingMemoryEngine));
+    this.toolRegistry.register(new WorkingMemoryThreadsTool(this.workingMemoryEngine));
+    this.toolRegistry.register(new WorkingMemoryPendingTool(this.workingMemoryEngine));
+    this.toolRegistry.register(new WorkingMemoryCheckpointTool(this.workingMemoryEngine));
+
+    // Connect to ContextAssembler, ConversationService, and HttpServer
+    this.contextAssembler.setCognitiveEngine(this.cognitiveContextEngine);
+    this.conversation.setCognitiveContextEngine(this.cognitiveContextEngine);
+    this.server.setCognitiveContextEngine(this.cognitiveContextEngine);
+
+    // FP-12: Universal Service & Account Integration Fabric
+    this.accountFabric = new AccountFabric(this.db.getRawDb(), this.logger, this.eventBus);
+
+    // FP-13: Universal Digital Workspace & Application Operator
+    const workspaceRepo = new WorkspaceRepository(this.db.getRawDb());
+    this.operator = new ApplicationOperator(workspaceRepo, this.logger, this.eventBus);
+
+    // FP-14: Universal Agentic Mission & Workforce Runtime
+    this.missionRuntime = new UniversalAgenticMissionRuntime(this.eventBus, this.db.getPath());
+
+    // FP-15: Universal Application & Service Ecosystem Fabric
+    this.ecosystemFabric = new UniversalEcosystemFabric(
+      this.db.getRawDb(),
+      this.logger,
+      this.accountFabric,
+      this.operator,
+      this.eventBus
+    );
+
+    this.contextAssembler.setWorkingMemoryEngine(this.workingMemoryEngine);
+    this.conversation.setWorkingMemoryEngine(this.workingMemoryEngine);
+    this.server.setWorkingMemoryEngine(this.workingMemoryEngine);
+    this.server.setResourceManager(this.resourceManager);
+    this.server.setGitHubFabric(this.githubFabric);
+    this.server.setIdeFabric(this.ideFabric);
+    this.server.setEngineeringFabric(this.engineeringFabric);
+    this.server.setWorkflowFabric(this.workflowFabric);
+    this.server.setAccountFabric(this.accountFabric);
+    this.server.setOperator(this.operator);
+    this.server.setMissionRuntime(this.missionRuntime);
+    this.server.setEcosystemFabric(this.ecosystemFabric);
 
     this.setupLifecycleHooks(config);
   }
@@ -1330,6 +1626,21 @@ export class HrisekesaKernel {
       // Phase 16: Start persistent scheduler
       this.scheduler.start();
 
+      // FP-03: Start Distributed Resource Fabric Manager
+      await this.resourceManager.start();
+
+      // FP-07: Initialize Universal Capability & Connector Fabric
+      await this.capabilityFabric.initialize();
+
+      // FP-09: Initialize Universal IDE & Development Workspace Fabric
+      await this.ideFabric.initialize();
+
+      // FP-10: Initialize Autonomous Software Engineering Engine
+      await this.engineeringFabric.initialize();
+
+      // FP-11: Initialize Native Universal Workflow & Automation Engine
+      await this.workflowFabric.initialize();
+
       // 4. Start HTTP Gateway
       await this.server.start();
 
@@ -1394,6 +1705,10 @@ export class HrisekesaKernel {
       this.logger.info('Commencing clean shutdown sequence...');
       const snapshot = this.lifecycle.getSnapshot();
 
+      // Cancel and drain in-flight background missions so no async work
+      // survives kernel.shutdown() and keeps the event loop alive.
+      await this.conversation.shutdown().catch(() => {});
+
       // Stop HTTP server before closing DB
       await this.server.stop();
 
@@ -1415,6 +1730,19 @@ export class HrisekesaKernel {
       // Phase 16: Stop persistent scheduler & timers
       if (this.refreshTimer) clearTimeout(this.refreshTimer);
       this.scheduler.stop();
+
+      // FP-03: Stop Distributed Resource Fabric Manager
+      await this.resourceManager.stop();
+      await ResourceManager.resetInstance();
+
+      // FP-09: Shutdown Universal IDE Fabric & Active Terminals/Servers
+      await this.ideFabric.shutdown().catch(() => {});
+
+      // FP-10: Shutdown Autonomous Engineering Engine & Active Repairs
+      await this.engineeringFabric.shutdown().catch(() => {});
+
+      // FP-12: Shutdown Universal Service & Account Integration Fabric
+      await this.accountFabric.shutdown().catch(() => {});
 
       // Phase 21: Shutdown all active MCP child processes
       await this.mcpProcessManager.shutdownAll().catch(() => {});
@@ -1480,6 +1808,14 @@ export class HrisekesaKernel {
 
   public getMCPDiscovery(): MCPCapabilityDiscovery {
     return this.mcpDiscovery;
+  }
+
+  public getIdeFabric(): IdeFabric {
+    return this.ideFabric;
+  }
+
+  public getEngineeringFabric(): EngineeringFabric {
+    return this.engineeringFabric;
   }
 
   private async ensureLocalOllamaReady(ollamaConfig: { host: string }): Promise<void> {

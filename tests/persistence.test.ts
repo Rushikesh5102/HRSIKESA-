@@ -40,40 +40,21 @@ describe('Persistence & SQLite Subsystem', () => {
     const initialVersion = migrations.getCurrentVersion();
     assert.equal(initialVersion, 0);
 
+    const expectedMigrationCount = migrations.getAvailableMigrations().length;
+    assert.ok(expectedMigrationCount >= 28, 'Should have at least 28 migrations registered');
+
     const appliedCount = migrations.runPending();
-    assert.equal(appliedCount, 17); // 001 through 017 (Phase 26 Safe Self-Improvement Schema)
+    assert.equal(appliedCount, expectedMigrationCount);
 
     const versionAfter = migrations.getCurrentVersion();
-    assert.equal(versionAfter, 17);
+    assert.equal(versionAfter, expectedMigrationCount);
 
     const appliedList = migrations.getAppliedMigrations();
-    assert.equal(appliedList.length, 17);
-    assert.equal(appliedList[0].version, 1);
-    assert.equal(appliedList[0].name, '001_initial_schema');
-    assert.equal(appliedList[1].version, 2);
-    assert.equal(appliedList[1].name, '002_agent_tasks_schema');
-    assert.equal(appliedList[2].version, 3);
-    assert.equal(appliedList[2].name, '003_semantic_memory_schema');
-    assert.equal(appliedList[3].version, 4);
-    assert.equal(appliedList[3].name, '004_autonomous_mission_schema');
-    assert.equal(appliedList[4].version, 5);
-    assert.equal(appliedList[4].name, '005_company_os_schema');
-    assert.equal(appliedList[5].version, 6);
-    assert.equal(appliedList[5].name, '006_goal_engine_schema');
-    assert.equal(appliedList[6].version, 7);
-    assert.equal(appliedList[6].name, '007_persistent_operations_schema');
-    assert.equal(appliedList[7].version, 8);
-    assert.equal(appliedList[7].name, '008_research_intelligence_schema');
-    assert.equal(appliedList[8].version, 9);
-    assert.equal(appliedList[8].name, '009_model_routing_schema');
-    assert.equal(appliedList[9].version, 10);
-    assert.equal(appliedList[9].name, '010_knowledge_graph_schema');
-    assert.equal(appliedList[10].version, 11);
-    assert.equal(appliedList[10].name, '011_skills_schema');
-    assert.equal(appliedList[11].version, 12);
-    assert.equal(appliedList[11].name, '012_mcp_capability_ecosystem_schema');
-    assert.equal(appliedList[12].version, 13);
-    assert.equal(appliedList[12].name, '013_computer_operator_schema');
+    assert.equal(appliedList.length, expectedMigrationCount);
+    appliedList.forEach((m, idx) => {
+      assert.equal(m.version, idx + 1);
+      assert.equal(m.name, migrations.getAvailableMigrations()[idx].name);
+    });
 
     // Running again should apply 0
     const reRun = migrations.runPending();

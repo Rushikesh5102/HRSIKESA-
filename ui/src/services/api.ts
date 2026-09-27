@@ -23,6 +23,12 @@ import {
   CompanyOverviewInfo,
   ProjectOverviewInfo,
   LifecycleStageInfo,
+  WorkerInfo,
+  WorkerCapabilityInfo,
+  ResourceSnapshotInfo,
+  WorkerTaskInfo,
+  ResourceFabricOverview,
+  EnrollmentTokenResponse,
 } from '../types/api.types';
 
 const API_BASE = '';
@@ -58,12 +64,12 @@ export const api = {
   getStatus: () => fetchJson<SystemStatusResponse>(`${API_BASE}/status`),
 
   // Chat & Multi-Session History
-  sendChat: (message: string, sessionId?: string, preferredModel?: string, preferredProvider?: string) =>
-    fetchJson<{ response: string; sessionId: string; model?: string; provider?: string; toolsUsed?: string[]; durationMs?: number; metrics?: any }>(
+  sendChat: (message: string, sessionId?: string, preferredModel?: string, preferredProvider?: string, responseMode?: 'CONCISE' | 'NORMAL' | 'DETAILED' | 'DEEP') =>
+    fetchJson<{ response: string; sessionId: string; model?: string; provider?: string; toolsUsed?: string[]; durationMs?: number; responseMode?: string; metrics?: any }>(
       `${API_BASE}/chat`,
       {
         method: 'POST',
-        body: JSON.stringify({ message, sessionId, preferredModel, preferredProvider }),
+        body: JSON.stringify({ message, sessionId, preferredModel, preferredProvider, responseMode }),
       }
     ),
   streamChat: async (
@@ -71,8 +77,9 @@ export const api = {
     sessionId: string | undefined,
     preferredModel: string | undefined,
     preferredProvider: string | undefined,
-    onToken: (token: string) => void
-  ): Promise<{ response: string; sessionId: string; model?: string; provider?: string; durationMs?: number; metrics?: any }> => {
+    onToken: (token: string) => void,
+    responseMode?: 'CONCISE' | 'NORMAL' | 'DETAILED' | 'DEEP'
+  ): Promise<{ response: string; sessionId: string; model?: string; provider?: string; durationMs?: number; responseMode?: string; metrics?: any }> => {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
       headers: {
@@ -84,6 +91,7 @@ export const api = {
         sessionId,
         preferredModel,
         preferredProvider,
+        responseMode,
         stream: true
       })
     });
@@ -921,7 +929,305 @@ export const api = {
   getSelfDependencies: () =>
     fetchJson<{ success: boolean; count: number; findings: any[] }>(`${API_BASE}/self/dependencies`),
 
-  // Events SSE
+  // FP-03: Distributed Resource Fabric & Worker Fleet
+  getFabricOverview: () =>
+    fetchJson<ResourceFabricOverview>(`${API_BASE}/resources/overview`),
+  getWorkers: () =>
+    fetchJson<{ workers: WorkerInfo[]; total: number }>(`${API_BASE}/resources/workers`),
+  getWorker: (id: string) =>
+    fetchJson<{ worker: WorkerInfo; latestSnapshots: ResourceSnapshotInfo[]; recentTasks: WorkerTaskInfo[] }>(`${API_BASE}/resources/workers/${id}`),
+  pairWorker: (name?: string, ttlSeconds = 600) =>
+    fetchJson<EnrollmentTokenResponse>(`${API_BASE}/resources/workers/pair`, {
+      method: 'POST',
+      body: JSON.stringify({ name, ttlSeconds }),
+    }),
+  enrollWorker: (worker: any, token: string) =>
+    fetchJson<{ success: boolean; workerId: string }>(`${API_BASE}/resources/workers/enroll`, {
+      method: 'POST',
+      body: JSON.stringify({ worker, token }),
+    }),
+  revokeWorker: (id: string) =>
+    fetchJson<{ success: boolean; workerId: string }>(`${API_BASE}/resources/workers/${id}/revoke`, { method: 'POST' }),
+  drainWorker: (id: string) =>
+    fetchJson<{ success: boolean; workerId: string }>(`${API_BASE}/resources/workers/${id}/drain`, { method: 'POST' }),
+  resumeWorker: (id: string) =>
+    fetchJson<{ success: boolean; workerId: string }>(`${API_BASE}/resources/workers/${id}/resume`, { method: 'POST' }),
+  getWorkerCapabilities: (id: string) =>
+    fetchJson<{ workerId: string; capabilities: WorkerCapabilityInfo[] }>(`${API_BASE}/resources/workers/${id}/capabilities`),
+  getWorkerHealth: (id: string) =>
+    fetchJson<{ workerId: string; status: string; trustLevel: string; lastHeartbeat: string; loadScore: number }>(`${API_BASE}/resources/workers/${id}/health`),
+  getWorkerTasks: () =>
+    fetchJson<{ tasks: WorkerTaskInfo[]; total: number }>(`${API_BASE}/resources/tasks`),
+  getWorkerTask: (id: string) =>
+    fetchJson<{ task: WorkerTaskInfo }>(`${API_BASE}/resources/tasks/${id}`),
+  submitWorkerTask: (payload: {
+    taskType: string;
+    priority?: number;
+    privacyLevel?: string;
+    requiredCapabilities?: string[];
+    resourceRequirements?: any;
+    preferredWorkerId?: string;
+    inputPayload?: Record<string, unknown>;
+  }) =>
+    fetchJson<{ success: boolean; taskId: string; workerId?: string; output?: any; error?: string }>(`${API_BASE}/resources/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  cancelWorkerTask: (id: string) =>
+    fetchJson<{ success: boolean; taskId: string }>(`${API_BASE}/resources/tasks/${id}/cancel`, { method: 'POST' }),
+
+  // FP-11 Universal Workflow & Automation Engine
+  listWorkflows: (params?: { scope?: string; status?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.scope) q.set('scope', params.scope);
+    if (params?.status) q.set('status', params.status);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{ success: boolean; count: number; workflows: any[] }>(`${API_BASE}/api/workflows${qs}`);
+  },
+  getWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; workflow: any; activeVersion: any }>(`${API_BASE}/api/workflows/${id}`),
+  createWorkflow: (payload: any) =>
+    fetchJson<{ success: boolean; workflow: any; version: any }>(`${API_BASE}/api/workflows`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  validateWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; validation: any }>(`${API_BASE}/api/workflows/${id}/validate`, { method: 'POST' }),
+  activateWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflows/${id}/activate`, { method: 'POST' }),
+  pauseWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflows/${id}/pause`, { method: 'POST' }),
+  resumeWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflows/${id}/resume`, { method: 'POST' }),
+  disableWorkflow: (id: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflows/${id}/disable`, { method: 'POST' }),
+  runWorkflow: (id: string, payload?: { inputVariables?: Record<string, any>; triggerType?: string }) =>
+    fetchJson<{ success: boolean; run: any }>(`${API_BASE}/api/workflows/${id}/run`, {
+      method: 'POST',
+      body: JSON.stringify(payload || {}),
+    }),
+  getWorkflowRuns: (id: string) =>
+    fetchJson<{ success: boolean; count: number; runs: any[] }>(`${API_BASE}/api/workflows/${id}/runs`),
+  getWorkflowRun: (runId: string) =>
+    fetchJson<{ success: boolean; run: any; nodes: any[]; approvals: any[]; checkpoints: any[] }>(`${API_BASE}/api/workflow-runs/${runId}`),
+  getWorkflowRunTimeline: (runId: string) =>
+    fetchJson<{ success: boolean; runId: string; status: string; durationMs: number; timeline: any[] }>(`${API_BASE}/api/workflow-runs/${runId}/timeline`),
+  pauseWorkflowRun: (runId: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflow-runs/${runId}/pause`, { method: 'POST' }),
+  resumeWorkflowRun: (runId: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflow-runs/${runId}/resume`, { method: 'POST' }),
+  cancelWorkflowRun: (runId: string) =>
+    fetchJson<{ success: boolean; status: string }>(`${API_BASE}/api/workflow-runs/${runId}/cancel`, { method: 'POST' }),
+  retryWorkflowRun: (runId: string) =>
+    fetchJson<{ success: boolean; run: any }>(`${API_BASE}/api/workflow-runs/${runId}/retry`, { method: 'POST' }),
+  listWorkflowApprovals: (status?: string) => {
+    const qs = status ? `?status=${status}` : '';
+    return fetchJson<{ success: boolean; count: number; approvals: any[] }>(`${API_BASE}/api/workflow-approvals${qs}`);
+  },
+  respondWorkflowApproval: (approvalId: string, payload: { decision: 'APPROVE' | 'REJECT'; decidedBy?: string; comments?: string }) =>
+    fetchJson<{ success: boolean; approval: any }>(`${API_BASE}/api/workflow-approvals/${approvalId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  listWorkflowTemplates: () =>
+    fetchJson<{ success: boolean; count: number; templates: any[] }>(`${API_BASE}/api/workflow-templates`),
+  instantiateWorkflowTemplate: (templateId: string) =>
+    fetchJson<{ success: boolean; workflow: any; version: any }>(`${API_BASE}/api/workflow-templates/${templateId}/instantiate`, { method: 'POST' }),
+  planWorkflowNaturalLanguage: (prompt: string, scope?: string) =>
+    fetchJson<{ success: boolean; workflow: any; version: any }>(`${API_BASE}/api/workflows/plan`, {
+      method: 'POST',
+      body: JSON.stringify({ prompt, scope }),
+    }),
+  explainWorkflow: (workflowId: string, runId?: string) => {
+    const qs = runId ? `?runId=${runId}` : '';
+    return fetchJson<{ success: boolean; explanation: any }>(`${API_BASE}/api/workflows/${workflowId}/explain${qs}`);
+  },
+  subscribeWorkflowEvents: (onMessage: (event: any) => void) => {
+    const eventSource = new EventSource(`${API_BASE}/api/workflow-events`);
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      } catch (err) {
+        console.error('Failed to parse workflow SSE payload', err);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  },
+
+  // FP-12: Universal Service & Account Integration Fabric
+  listAccounts: (params?: { providerId?: string; status?: string }) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return fetchJson<{ success: boolean; count: number; accounts: any[] }>(`${API_BASE}/api/accounts${qs ? `?${qs}` : ''}`);
+  },
+  getAccount: (id: string) =>
+    fetchJson<{ success: boolean; account: any }>(`${API_BASE}/api/accounts/${id}`),
+  connectAccount: (payload: { providerId: string; ownerIdentity?: string; scopeType?: string; requestedScopes?: string[] }) =>
+    fetchJson<{ success: boolean; authorizationRequest: any }>(`${API_BASE}/api/accounts/connect`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  verifyAccount: (id: string) =>
+    fetchJson<{ success: boolean; health: any }>(`${API_BASE}/api/accounts/${id}/verify`, { method: 'POST' }),
+  refreshAccount: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`${API_BASE}/api/accounts/${id}/refresh`, { method: 'POST' }),
+  revokeAccount: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`${API_BASE}/api/accounts/${id}/revoke`, { method: 'POST' }),
+  deleteAccount: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`${API_BASE}/api/accounts/${id}`, { method: 'DELETE' }),
+  getAccountHealth: (id: string) =>
+    fetchJson<{ success: boolean; health: any }>(`${API_BASE}/api/accounts/${id}/health`),
+  getAccountUsage: (id: string) =>
+    fetchJson<{ success: boolean; usage: any }>(`${API_BASE}/api/accounts/${id}/usage`),
+  listProviders: () =>
+    fetchJson<{ success: boolean; count: number; providers: any[] }>(`${API_BASE}/api/providers`),
+  getProvider: (id: string) =>
+    fetchJson<{ success: boolean; provider: any }>(`${API_BASE}/api/providers/${id}`),
+  getProviderCapabilities: (id: string) =>
+    fetchJson<{ success: boolean; capabilities: any[] }>(`${API_BASE}/api/providers/${id}/capabilities`),
+  resolveAccountIntent: (prompt: string, ownerIdentity?: string) =>
+    fetchJson<{ success: boolean; result: any }>(`${API_BASE}/api/accounts/intent`, {
+      method: 'POST',
+      body: JSON.stringify({ prompt, ownerIdentity }),
+    }),
+  subscribeAccountEvents: (onMessage: (event: any) => void) => {
+    const eventSource = new EventSource(`${API_BASE}/api/accounts/events/stream`);
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      } catch (err) {
+        console.error('Failed to parse account SSE payload', err);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  },
+
+  // FP-13 Universal Digital Workspace & Application Operator
+  getWorkspaces: () =>
+    fetchJson<{ success: boolean; count: number; workspaces: any[] }>(`${API_BASE}/api/workspaces`),
+  getWorkspace: (id: string) =>
+    fetchJson<{ success: boolean; workspace: any }>(`${API_BASE}/api/workspaces/${id}`),
+  connectWorkspace: (workspaceId: string, agentId?: string) =>
+    fetchJson<{ success: boolean; sessionId: string; status: string }>(`${API_BASE}/api/workspaces/connect`, {
+      method: 'POST',
+      body: JSON.stringify({ workspaceId, agentId }),
+    }),
+  disconnectWorkspace: (id: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/api/workspaces/${id}/disconnect`, {
+      method: 'POST',
+    }),
+  observeWorkspace: (id: string) =>
+    fetchJson<{ success: boolean; observation: any }>(`${API_BASE}/api/workspaces/${id}/observe`, {
+      method: 'POST',
+    }),
+  getWorkspaceApplications: (id: string) =>
+    fetchJson<{ success: boolean; applications: any[] }>(`${API_BASE}/api/workspaces/${id}/applications`),
+  getOperatorApplications: () =>
+    fetchJson<{ success: boolean; count: number; applications: any[] }>(`${API_BASE}/api/applications`),
+  launchApplication: (id: string, options?: any) =>
+    fetchJson<{ success: boolean; session: any }>(`${API_BASE}/api/applications/${id}/launch`, {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    }),
+  focusApplication: (id: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/api/applications/${id}/focus`, {
+      method: 'POST',
+    }),
+  closeApplication: (id: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/api/applications/${id}/close`, {
+      method: 'POST',
+    }),
+  resolveOperatorTarget: (workspaceId: string, request: any) =>
+    fetchJson<{ success: boolean; resolution: any }>(`${API_BASE}/api/operator/resolve-target`, {
+      method: 'POST',
+      body: JSON.stringify({ workspaceId, request }),
+    }),
+  executeOperatorAction: (action: any) =>
+    fetchJson<{ success: boolean; result: any }>(`${API_BASE}/api/operator/action`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+    }),
+  subscribeOperatorEvents: (onMessage: (event: any) => void) => {
+    const eventSource = new EventSource(`${API_BASE}/api/operator/events/stream`);
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      } catch (err) {
+        console.error('Failed to parse operator SSE payload', err);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  },
+
+  // FP-14 Universal Agentic Mission & Workforce Runtime API
+  getRuntimeMissions: () =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions`),
+  submitMissionObjective: (objective: string, options?: any) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions`, {
+      method: 'POST',
+      body: JSON.stringify({ objective, ...(options || {}) }),
+    }),
+  getRuntimeMission: (id: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}`),
+  startRuntimeMission: (id: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/start`, { method: 'POST' }),
+  pauseRuntimeMission: (id: string, reason?: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/pause`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  resumeRuntimeMission: (id: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/resume`, { method: 'POST' }),
+  cancelRuntimeMission: (id: string, reason?: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  replanRuntimeMission: (id: string, reason: string, author?: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/replan`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, author }),
+    }),
+  approveMissionTask: (missionId: string, taskId: string, approvedBy?: string) =>
+    fetchJson<{ success: boolean; message: string }>(`${API_BASE}/api/missions/${missionId}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ taskId, approvedBy }),
+    }),
+  getRuntimeMissionOutcomes: (id: string) =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions/${id}/outcomes`),
+  getRuntimeMissionTasks: (id: string) =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions/${id}/tasks`),
+  getRuntimeMissionArtifacts: (id: string) =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions/${id}/artifacts`),
+  getRuntimeMissionBlackboard: (id: string) =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions/${id}/blackboard`),
+  getRuntimeMissionReport: (id: string) =>
+    fetchJson<{ success: boolean; data: any }>(`${API_BASE}/api/missions/${id}/report`),
+  getWorkforceCapacities: () =>
+    fetchJson<{ success: boolean; data: any[] }>(`${API_BASE}/api/missions/workforce/capacities`),
+  subscribeMissionEvents: (onMessage: (event: any) => void) => {
+    const eventSource = new EventSource(`${API_BASE}/api/missions/events/stream`);
+    eventSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      } catch (err) {
+        console.error('Failed to parse mission SSE payload', err);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  },
+
   subscribeEvents: (onMessage: (event: any) => void, onError?: (err: any) => void) => {
     const eventSource = new EventSource(`${API_BASE}/events`);
     eventSource.onmessage = (e) => {
@@ -939,4 +1245,20 @@ export const api = {
       eventSource.close();
     };
   },
+
+  // FP-19 Persistent Distributed Execution API
+  getExecutionSummary: () =>
+    fetchJson<any>(`${API_BASE}/api/execution/summary`),
+  getExecutionWorkers: () =>
+    fetchJson<any>(`${API_BASE}/api/execution/workers`),
+  getExecutionJobs: () =>
+    fetchJson<any>(`${API_BASE}/api/execution/jobs`),
+  pauseExecutionJob: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/execution/jobs/${id}/pause`, { method: 'POST' }),
+  resumeExecutionJob: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/execution/jobs/${id}/resume`, { method: 'POST' }),
+  cancelExecutionJob: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/execution/jobs/${id}/cancel`, { method: 'POST' }),
+  drainExecutionWorker: (id: string) =>
+    fetchJson<any>(`${API_BASE}/api/workers/${id}/drain`, { method: 'POST' }),
 };

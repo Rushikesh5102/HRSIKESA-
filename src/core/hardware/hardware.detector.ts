@@ -5,10 +5,18 @@
 import os from 'node:os';
 import { HardwareProfile } from './hardware.types.js';
 
+export type LockPriority = 'HIGH' | 'NORMAL';
+
+interface LockWaiter {
+  readonly priority: LockPriority;
+  readonly callback: () => void;
+  readonly queuedAt: number;
+}
+
 export class HardwareDetector {
   private localModelLocked = false;
   private readonly maxConcurrentLocal = 1;
-  private lockWaiters: Array<() => void> = [];
+  private lockWaiters: LockWaiter[] = [];
 
   public getProfile(): HardwareProfile {
     const cpus = os.cpus();
@@ -79,7 +87,7 @@ export class HardwareDetector {
     return true;
   }
 
-  public async acquireLocalModelLockAsync(timeoutMs = 2500): Promise<boolean> {
+  public async acquireLocalModelLockAsync(timeoutMs = 2500, priority: LockPriority = 'NORMAL'): Promise<boolean> {
     if (!this.localModelLocked) {
       this.localModelLocked = true;
       return true;
@@ -91,10 +99,12 @@ export class HardwareDetector {
 
     return new Promise<boolean>((resolve) => {
       let resolved = false;
+      let waiter: LockWaiter;
+
       const timer = setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          this.lockWaiters = this.lockWaiters.filter((cb) => cb !== onAvailable);
+          this.lockWaiters = this.lockWaiters.filter((w) => w !== waiter);
           resolve(false);
         }
       }, timeoutMs);
@@ -108,21 +118,55 @@ export class HardwareDetector {
         }
       };
 
-      this.lockWaiters.push(onAvailable);
+      waiter = {
+        priority,
+        callback: onAvailable,
+        queuedAt: Date.now()
+      };
+
+      // Priority ordering: HIGH priority waiters placed ahead of NORMAL priority waiters,
+      // while preserving FIFO within each priority tier.
+      if (priority === 'HIGH') {
+        const firstNormalIndex = this.lockWaiters.findIndex((w) => w.priority === 'NORMAL');
+        if (firstNormalIndex === -1) {
+          this.lockWaiters.push(waiter);
+        } else {
+          this.lockWaiters.splice(firstNormalIndex, 0, waiter);
+        }
+      } else {
+        this.lockWaiters.push(waiter);
+      }
     });
   }
 
   public releaseLocalModelLock(): void {
     this.localModelLocked = false;
     if (this.lockWaiters.length > 0) {
+      // Pick next waiter according to queue order (HIGH priority was inserted first)
       const next = this.lockWaiters.shift();
       if (next) {
-        next();
+        next.callback();
       }
     }
   }
 
   public isLocalModelLocked(): boolean {
     return this.localModelLocked;
+  }
+
+  public getLockQueueStats(): {
+    locked: boolean;
+    highPriorityWaiters: number;
+    normalPriorityWaiters: number;
+    totalWaiters: number;
+  } {
+    const high = this.lockWaiters.filter((w) => w.priority === 'HIGH').length;
+    const normal = this.lockWaiters.filter((w) => w.priority === 'NORMAL').length;
+    return {
+      locked: this.localModelLocked,
+      highPriorityWaiters: high,
+      normalPriorityWaiters: normal,
+      totalWaiters: this.lockWaiters.length
+    };
   }
 }

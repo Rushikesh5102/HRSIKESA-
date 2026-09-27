@@ -9,7 +9,8 @@ describe('HTTP API Gateway Subsystem', () => {
   test('should start kernel, serve all API endpoints, support chat sessions, and shut down cleanly', async () => {
     const kernel = new HrisekesaKernel({
       HRISEKESA_PORT: TEST_PORT,
-      HRISEKESA_LOG_LEVEL: 'warn'
+      HRISEKESA_LOG_LEVEL: 'warn',
+      HRISEKESA_DB_PATH: ':memory:',
     });
 
     await kernel.start();

@@ -26,6 +26,11 @@ import {
   RefreshCw,
   Key,
   Globe,
+  Github,
+  Code,
+  Terminal,
+  GitBranch,
+  Palette,
 } from 'lucide-react';
 import { IndianEmblem } from './IndianEmblem';
 
@@ -55,7 +60,18 @@ export type NavTab =
   | 'companies'
   | 'skills'
   | 'mcp'
-  | 'self-improvement';
+  | 'self-improvement'
+  | 'capabilities'
+  | 'workers'
+  | 'github'
+  | 'ide'
+  | 'engineering'
+  | 'workflows'
+  | 'accounts'
+  | 'workspaces'
+  | 'ecosystem'
+  | 'creation'
+  | 'persistent-ops';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -83,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   knowledgeCount = 0,
 }) => {
   const [advancedOpen, setAdvancedOpen] = useState(
-    ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement'].includes(currentTab)
+    ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'capabilities', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement', 'creation', 'persistent-ops'].includes(currentTab)
   );
 
   const activeWorkTotal = activeGoalsCount + activeMissionsCount;
@@ -178,15 +194,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     { id: 'models', label: 'AI Models', icon: <Cpu size={15} /> },
     { id: 'integrations', label: 'Integrations & APIs', icon: <Globe size={15} /> },
+    { id: 'capabilities', label: 'Capability Fabric', icon: <Layers size={15} /> },
+    { id: 'workers', label: 'Resource Fabric', icon: <Server size={15} /> },
+    { id: 'github', label: 'GitHub Intelligence', icon: <Github size={15} /> },
+    { id: 'ide', label: 'Universal IDE', icon: <Code size={15} /> },
+    { id: 'engineering', label: 'Autonomous Coding', icon: <Terminal size={15} /> },
+    { id: 'workflows', label: 'Universal Workflows', icon: <GitBranch size={15} /> },
+    { id: 'accounts', label: 'Service Accounts (FP-12)', icon: <Key size={15} /> },
+    { id: 'workspaces', label: 'Digital Workspaces (FP-13)', icon: <Monitor size={15} /> },
+    { id: 'ecosystem', label: 'Ecosystem (FP-15)', icon: <Globe size={15} /> },
+    { id: 'creation', label: 'Creation Studio (FP-17)', icon: <Palette size={15} /> },
+    { id: 'persistent-ops', label: 'Persistent Operations (FP-19)', icon: <Cpu size={15} /> },
     { id: 'audit', label: 'Audit Trail', icon: <Activity size={15} /> },
     { id: 'environment', label: 'System Monitoring', icon: <Layers size={15} /> },
   ];
 
   return (
     <aside className="sidebar">
-      {/* Brand Header with Sacred Emblem */}
-      <div className="sidebar-header">
-        <IndianEmblem size={34} showText={true} />
+      {/* Brand Header with Sacred Feather Emblem */}
+      <div className="sidebar-header" style={{ padding: '16px 14px' }}>
+        <IndianEmblem size={40} showText={true} variant="crest" />
       </div>
 
       <nav style={{ padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, overflowY: 'auto' }}>

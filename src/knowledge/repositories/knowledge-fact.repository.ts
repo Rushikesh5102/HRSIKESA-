@@ -24,6 +24,8 @@ interface RawFactRow {
   confidence: number;
   status: string;
   scope: string;
+  provenance?: string | null;
+  source_study_id?: string | null;
   valid_from: string | null;
   valid_until: string | null;
   observed_at: string;
@@ -62,6 +64,8 @@ export class KnowledgeFactRepository {
     confidence?: number;
     status?: FactStatus;
     scope?: KnowledgeScope;
+    provenance?: import('../interfaces/knowledge.types.js').ProvenanceType;
+    sourceStudyId?: string;
     validFrom?: string;
     validUntil?: string;
     observedAt?: string;
@@ -75,6 +79,8 @@ export class KnowledgeFactRepository {
     const confidence = data.confidence !== undefined ? data.confidence : 1.0;
     const status = data.status || 'ACTIVE';
     const scope = data.scope || 'GLOBAL';
+    const provenance = data.provenance || 'SYSTEM';
+    const sourceStudyId = data.sourceStudyId || null;
 
     let version = data.version || 1;
     if (data.supersedePrevious) {
@@ -99,30 +105,59 @@ export class KnowledgeFactRepository {
       }
     }
 
-    this.db.prepare(`
-      INSERT INTO knowledge_facts (
-        id, subject_entity_id, predicate, object_entity_id, object_value,
-        value_type, confidence, status, scope, valid_from, valid_until,
-        observed_at, version, created_at, updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      data.subjectEntityId,
-      data.predicate.trim().toLowerCase(),
-      data.objectEntityId || null,
-      data.objectValue,
-      valueType,
-      confidence,
-      status,
-      scope,
-      data.validFrom || null,
-      data.validUntil || null,
-      observedAt,
-      version,
-      now,
-      now
-    );
+    try {
+      this.db.prepare(`
+        INSERT INTO knowledge_facts (
+          id, subject_entity_id, predicate, object_entity_id, object_value,
+          value_type, confidence, status, scope, provenance, source_study_id,
+          valid_from, valid_until, observed_at, version, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        data.subjectEntityId,
+        data.predicate.trim().toLowerCase(),
+        data.objectEntityId || null,
+        data.objectValue,
+        valueType,
+        confidence,
+        status,
+        scope,
+        provenance,
+        sourceStudyId,
+        data.validFrom || null,
+        data.validUntil || null,
+        observedAt,
+        version,
+        now,
+        now
+      );
+    } catch {
+      this.db.prepare(`
+        INSERT INTO knowledge_facts (
+          id, subject_entity_id, predicate, object_entity_id, object_value,
+          value_type, confidence, status, scope, valid_from, valid_until,
+          observed_at, version, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        data.subjectEntityId,
+        data.predicate.trim().toLowerCase(),
+        data.objectEntityId || null,
+        data.objectValue,
+        valueType,
+        confidence,
+        status,
+        scope,
+        data.validFrom || null,
+        data.validUntil || null,
+        observedAt,
+        version,
+        now,
+        now
+      );
+    }
 
     // Initial version entry
     this.recordVersion({
@@ -149,6 +184,8 @@ export class KnowledgeFactRepository {
       validUntil: data.validUntil,
       observedAt,
       version,
+      provenance,
+      sourceStudyId: data.sourceStudyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -377,6 +414,8 @@ export class KnowledgeFactRepository {
       confidence: row.confidence,
       status: row.status as FactStatus,
       scope: row.scope,
+      provenance: (row.provenance as any) || undefined,
+      sourceStudyId: row.source_study_id || undefined,
       validFrom: row.valid_from || undefined,
       validUntil: row.valid_until || undefined,
       observedAt: row.observed_at,

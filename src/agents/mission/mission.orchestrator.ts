@@ -74,6 +74,7 @@ export class MissionOrchestrator {
   private readonly hardware?: HardwareDetector;
   private readonly logger?: ILogger;
   private readonly eventBus?: EventBus;
+  private readonly cancelledMissionIds = new Set<string>();
 
   constructor(
     agentRegistry: AgentRegistry,
@@ -356,6 +357,19 @@ export class MissionOrchestrator {
     let lastTaskOutput = '';
 
     while (!isTerminated) {
+      // 0. Check cancellation
+      if (this.cancelledMissionIds.has(missionId)) {
+        finalMissionStatus = 'failed';
+        terminationReason = 'Mission cancelled';
+        break;
+      }
+      const currentMission = this.missionRepo.get(missionId);
+      if (currentMission?.status === 'cancelled') {
+        finalMissionStatus = 'failed';
+        terminationReason = currentMission.result || 'Mission cancelled';
+        break;
+      }
+
       // 1. Check mission-level execution timeout
       if (Date.now() - startTime > budget.maxExecutionTimeMs) {
         finalMissionStatus = 'failed';
@@ -394,6 +408,9 @@ export class MissionOrchestrator {
 
       // 3. Process ready tasks
       for (const pTask of readyTasks) {
+        if (this.cancelledMissionIds.has(missionId)) {
+          break;
+        }
         if (runningTaskIds.size >= budget.maxConcurrentTasks) {
           break; // Concurrency limit reached
         }
@@ -760,6 +777,7 @@ export class MissionOrchestrator {
    * Cancel an active mission safely.
    */
   public async cancelMission(missionId: string, reason = 'User requested cancellation'): Promise<IMission> {
+    this.cancelledMissionIds.add(missionId);
     const mission = this.missionRepo.get(missionId);
     if (!mission) throw new Error(`Mission '${missionId}' not found.`);
 

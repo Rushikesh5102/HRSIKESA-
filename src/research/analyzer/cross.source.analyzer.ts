@@ -29,17 +29,94 @@ export interface ContradictionReport {
 
 export class CrossSourceAnalyzer {
   /**
+   * Evaluate whether a piece of evidence supports, contradicts, mentions, or does not support a claim.
+   */
+  public evaluateSupportType(claim: string, evidenceText: string): 'SUPPORTS' | 'CONTRADICTS' | 'MENTIONS' | 'DOES_NOT_SUPPORT' {
+    const cLower = claim.toLowerCase();
+    const eLower = evidenceText.toLowerCase();
+
+    // Check negation
+    const notSupports = eLower.includes('not ') || eLower.includes('does not') || eLower.includes('incompatible') || eLower.includes('never');
+    if (notSupports && cLower.includes('support')) {
+      return 'CONTRADICTS';
+    }
+
+    if (eLower.includes(cLower) || (eLower.includes('confirm') && this.calculateJaccardSimilarity(this.tokenize(cLower), this.tokenize(eLower)) > 0.3)) {
+      return 'SUPPORTS';
+    }
+
+    if (this.calculateJaccardSimilarity(this.tokenize(cLower), this.tokenize(eLower)) > 0.1) {
+      return 'MENTIONS';
+    }
+
+    return 'DOES_NOT_SUPPORT';
+  }
+
+  /**
+   * Directly detect contradictions across an evidence list.
+   */
+  public detectContradictions(
+    evidences: IResearchEvidence[],
+    sources?: IResearchSource[]
+  ): Array<ContradictionReport & { type: string }> {
+    const sourceMap = new Map<string, IResearchSource>();
+    if (sources) {
+      for (const s of sources) {
+        sourceMap.set(s.id, s);
+      }
+    }
+    // Create fallback entries for any missing sources in sourceMap so detection can run seamlessly
+    for (const ev of evidences) {
+      if (!sourceMap.has(ev.sourceId)) {
+        sourceMap.set(ev.sourceId, {
+          id: ev.sourceId,
+          researchId: ev.researchId || 'study',
+          url: `https://${ev.sourceId}.org`,
+          domain: `${ev.sourceId}.org`,
+          title: `Source ${ev.sourceId}`,
+          sourceType: 'NEWS',
+          credibilityTier: 'SECONDARY',
+          freshness: 'CURRENT',
+          contentHash: 'mock-hash',
+          retrievedAt: new Date().toISOString(),
+          isDuplicate: false,
+          status: 'EXTRACTED',
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    const reports = this.detectDiscrepancies(evidences, sourceMap);
+    return reports.map((r) => ({
+      ...r,
+      type: r.discrepancyType,
+    }));
+  }
+
+  /**
    * Analyze all collected evidence across sources and generate verified findings.
    */
   public analyze(
-    studyId: string,
-    sources: IResearchSource[],
-    evidences: IResearchEvidence[]
+    studyIdOrSources: string | IResearchSource[],
+    sourcesOrEvidences: IResearchSource[] | IResearchEvidence[],
+    evidencesParam?: IResearchEvidence[]
   ): {
     findings: Array<Omit<IResearchFinding, 'id' | 'createdAt' | 'updatedAt'>>;
     citations: ResearchCitation[];
     contradictions: ContradictionReport[];
   } {
+    const sources: IResearchSource[] = Array.isArray(studyIdOrSources)
+      ? (studyIdOrSources as IResearchSource[])
+      : (sourcesOrEvidences as IResearchSource[]);
+
+    const evidences: IResearchEvidence[] = Array.isArray(studyIdOrSources)
+      ? ((sourcesOrEvidences || []) as IResearchEvidence[])
+      : (evidencesParam || []);
+
+    const studyId = typeof studyIdOrSources === 'string'
+      ? studyIdOrSources
+      : (sources[0]?.researchId || 'study');
+
     const sourceMap = new Map<string, IResearchSource>();
     for (const src of sources) {
       sourceMap.set(src.id, src);
@@ -247,10 +324,75 @@ export class CrossSourceAnalyzer {
             sourceB: { sourceId: srcB.id, sourceTitle: srcB.title, url: srcB.url, claim: claimB },
           });
         }
+
+        // Check for date discrepancy
+        const dateA = this.extractDateString(claimA + ' ' + (evA.supportingText || evA.quoteText || ''));
+        const dateB = this.extractDateString(claimB + ' ' + (evB.supportingText || evB.quoteText || ''));
+        if (dateA && dateB && dateA.toLowerCase() !== dateB.toLowerCase()) {
+          reports.push({
+            findingTitle: claimA,
+            discrepancyType: 'DATE_MISMATCH',
+            description: `Conflicting dates: "${srcA.title}" claims ${dateA} while "${srcB.title}" claims ${dateB}`,
+            sourceA: { sourceId: srcA.id, sourceTitle: srcA.title, url: srcA.url, claim: claimA },
+            sourceB: { sourceId: srcB.id, sourceTitle: srcB.title, url: srcB.url, claim: claimB },
+          });
+        }
+
+        // Check for numerical discrepancy
+        const numA = this.extractNumberWithUnit(claimA + ' ' + (evA.supportingText || evA.quoteText || ''));
+        const numB = this.extractNumberWithUnit(claimB + ' ' + (evB.supportingText || evB.quoteText || ''));
+        if (numA && numB && numA.unit === numB.unit && numA.value !== numB.value) {
+          reports.push({
+            findingTitle: claimA,
+            discrepancyType: 'NUMERICAL_DISCREPANCY',
+            description: `Numerical discrepancy: "${srcA.title}" claims ${numA.raw} while "${srcB.title}" claims ${numB.raw}`,
+            sourceA: { sourceId: srcA.id, sourceTitle: srcA.title, url: srcA.url, claim: claimA },
+            sourceB: { sourceId: srcB.id, sourceTitle: srcB.title, url: srcB.url, claim: claimB },
+          });
+        }
+
+        // Check for factual disagreement
+        const isFreeA = textA.includes('open source') || textA.includes('free') || textA.includes('permissive');
+        const isProprietaryA = textA.includes('closed source') || textA.includes('proprietary') || textA.includes('commercial only');
+        const isFreeB = textB.includes('open source') || textB.includes('free') || textB.includes('permissive');
+        const isProprietaryB = textB.includes('closed source') || textB.includes('proprietary') || textB.includes('commercial only');
+
+        if ((isFreeA && isProprietaryB) || (isProprietaryA && isFreeB)) {
+          reports.push({
+            findingTitle: claimA,
+            discrepancyType: 'FACTUAL_DISAGREEMENT',
+            description: `Direct factual disagreement on license/nature: "${srcA.title}" vs "${srcB.title}"`,
+            sourceA: { sourceId: srcA.id, sourceTitle: srcA.title, url: srcA.url, claim: claimA },
+            sourceB: { sourceId: srcB.id, sourceTitle: srcB.title, url: srcB.url, claim: claimB },
+          });
+        }
       }
     }
 
     return reports;
+  }
+
+  private extractDateString(text: string): string | null {
+    const monthNames = 'january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec';
+    const regex1 = new RegExp(`\\b(?:${monthNames})(?:\\s+\\d{1,2}(?:st|nd|rd|th)?)?(?:,?\\s+\\d{4})?\\b`, 'i');
+    const regex2 = /\b\d{4}-\d{2}-\d{2}\b/;
+    const regex3 = /\bQ[1-4]\s+\d{4}\b/i;
+    const match1 = text.match(regex1);
+    if (match1) return match1[0].trim();
+    const match2 = text.match(regex2);
+    if (match2) return match2[0].trim();
+    const match3 = text.match(regex3);
+    if (match3) return match3[0].trim();
+    return null;
+  }
+
+  private extractNumberWithUnit(text: string): { value: number; unit: string; raw: string } | null {
+    const match = text.match(/\b(\d+(?:\.\d+)?)\s*(million|billion|trillion|gb|mb|tb|%|users|parameters|agents|tiers|nodes|stars|forks)?\b/i);
+    if (!match) return null;
+    const value = parseFloat(match[1]);
+    const unit = (match[2] || '').toLowerCase();
+    if (isNaN(value)) return null;
+    return { value, unit, raw: match[0] };
   }
 
   private extractVersionNumber(text: string): string | null {

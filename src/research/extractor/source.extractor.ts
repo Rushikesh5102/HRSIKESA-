@@ -4,13 +4,14 @@
  * Phase 17: Structured Extraction, Freshness & Credibility Evaluation
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { URL } from 'node:url';
 import {
   SourceType,
   SourceFreshness,
   SourceCredibilityTier,
   ClaimType,
+  IResearchSource,
 } from '../interfaces/research.types.js';
 import { PromptInjectionDefense } from '../security/prompt.injection.defense.js';
 import { classifySourceType } from '../providers/search.provider.js';
@@ -35,10 +36,13 @@ export interface ExtractedSourceResult {
 
 export interface ExtractedClaimItem {
   claim: string;
+  claimText: string;
   supportingText?: string;
   claimType: ClaimType;
   confidence: number;
   location?: string;
+  sourceId?: string;
+  researchId?: string;
 }
 
 export class SourceExtractor {
@@ -47,6 +51,84 @@ export class SourceExtractor {
    */
   public extractFromHtml(rawContent: string, urlStr: string, titleFallback?: string): ExtractedSourceResult {
     return SourceExtractor.extract(rawContent, urlStr, { titleFallback });
+  }
+
+  public extractContent(html: string, url: string): ExtractedSourceResult & { wordCount: number } {
+    const res = this.extractFromHtml(html, url);
+    const wordCount = res.cleanText.trim() ? res.cleanText.trim().split(/\s+/).length : 0;
+    return { ...res, wordCount };
+  }
+
+  public generateContentHash(text: string): string {
+    return createHash('sha256').update(text.toLowerCase().replace(/\s+/g, ' ').trim()).digest('hex');
+  }
+
+  public assessCredibility(url: string, sourceType?: SourceType): SourceCredibilityTier {
+    let domain = 'unknown';
+    try { domain = new URL(url).hostname.toLowerCase(); } catch {}
+    const sType = sourceType || classifySourceType(url);
+    return SourceExtractor.evaluateCredibility(sType, domain).tier;
+  }
+
+  public assessFreshness(publishedAt?: string): SourceFreshness {
+    return SourceExtractor.evaluateFreshness(publishedAt);
+  }
+
+  public sanitizeUntrustedContent(content: string): { hasPotentialInjection: boolean; sanitizedText: string } {
+    const scan = PromptInjectionDefense.scan(content);
+    return { hasPotentialInjection: scan.isSuspicious, sanitizedText: scan.sanitizedText };
+  }
+
+  public wrapInUntrustedEnvelope(text: string, sourceId: string): string {
+    return `<<<UNTRUSTED_EXTERNAL_SOURCE sourceId="${sourceId}">>>\n${text}\n<<</UNTRUSTED_EXTERNAL_SOURCE>>>`;
+  }
+
+  public detectAccessControl(html: string): { isCaptcha: boolean; requiresAuth: boolean } {
+    const lower = html.toLowerCase();
+    const isCaptcha = lower.includes('recaptcha') || lower.includes('captcha') || lower.includes('verify you are human') || lower.includes('cf-challenge');
+    const requiresAuth = lower.includes('sign in') || lower.includes('login') || lower.includes('authentication required') || lower.includes('two-factor') || lower.includes('access denied');
+    return { isCaptcha, requiresAuth };
+  }
+
+  public redactSensitiveData(text: string): string {
+    return text
+      .replace(/\bsk-[a-zA-Z0-9_-]{20,}\b/g, '[REDACTED_API_KEY]')
+      .replace(/(?:password|secret|token)\s*=\s*[^\s&]+/gi, '[REDACTED_SECRET]');
+  }
+
+  public createSourceRecord(
+    studyId: string,
+    url: string,
+    title: string,
+    content: string,
+    sourceType?: SourceType,
+    publishedAt?: string
+  ): IResearchSource {
+    let domain = 'unknown';
+    try { domain = new URL(url).hostname.toLowerCase(); } catch {}
+    const sType = sourceType || classifySourceType(url);
+    const contentHash = this.generateContentHash(content);
+    const freshness = this.assessFreshness(publishedAt);
+    const credibilityTier = this.assessCredibility(url, sType);
+
+    return {
+      id: randomUUID(),
+      researchId: studyId,
+      url,
+      title,
+      domain,
+      sourceType: sType,
+      credibilityTier,
+      freshness,
+      contentHash,
+      cleanText: content,
+      extractedText: content,
+      retrievedAt: new Date().toISOString(),
+      isDuplicate: false,
+      status: 'EXTRACTED',
+      createdAt: new Date().toISOString(),
+      publishedAt,
+    };
   }
 
   /**
@@ -100,7 +182,7 @@ export class SourceExtractor {
   /**
    * Extract distinct claims and classify their type (FACT, CLAIM, INFERENCE, OPINION).
    */
-  public extractClaims(text: string): ExtractedClaimItem[] {
+  public extractClaims(text: string, sourceId?: string, researchId?: string): ExtractedClaimItem[] {
     const sentences = text
       .split(/(?<=[.!?\n])\s+/)
       .map((s) => s.trim())
@@ -132,10 +214,13 @@ export class SourceExtractor {
 
       claims.push({
         claim: sentence,
+        claimText: sentence,
         supportingText: sentence,
         claimType,
         confidence,
-        location: 'body',
+        location: 'paragraph',
+        sourceId,
+        researchId,
       });
 
       if (claims.length >= 10) break; // Limit claims per single source
@@ -274,8 +359,11 @@ export class SourceExtractor {
     if (sourceType === 'COMPANY') {
       return { tier: 'PRIMARY', reason: `Primary vendor / corporate organization domain on ${domain}.` };
     }
-    if (sourceType === 'NEWS' || sourceType === 'BLOG') {
+    if (sourceType === 'NEWS') {
       return { tier: 'SECONDARY', reason: `Secondary commentary, news publication, or technical writeup on ${domain}.` };
+    }
+    if (sourceType === 'BLOG' || sourceType === 'COMMUNITY' || domain.includes('wordpress.com') || domain.includes('medium.com') || domain.includes('blogspot.com')) {
+      return { tier: 'COMMUNITY', reason: `Community blog, user opinions, or self-published content on ${domain}.` };
     }
     if (sourceType === 'FORUM') {
       return { tier: 'COMMUNITY', reason: `Community discussion, subjective opinions, or uncurated forum threads on ${domain}.` };

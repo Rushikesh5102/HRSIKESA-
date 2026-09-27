@@ -8,6 +8,7 @@ export interface SystemIdentity {
   readonly sanskrit: string;
   readonly internationalSpelling: string;
   readonly asciiAlias: string;
+  readonly englishSelfName: string;
   readonly version: string;
   readonly role: string;
   readonly philosophy: {
@@ -40,6 +41,7 @@ export const SOVEREIGN_SYSTEM_IDENTITY: SystemIdentity = {
   sanskrit: 'हृषीकेश',
   internationalSpelling: 'HRISHIKESHA',
   asciiAlias: 'HRISEKESA',
+  englishSelfName: 'Rishi',
   version: '0.2.0',
   role: 'Sovereign Personal AI Operating System & Autonomous Workforce Control Plane',
   philosophy: {

@@ -22,6 +22,9 @@ interface RawContradictionRow {
   status: string;
   resolution_strategy: string | null;
   resolved_fact_id: string | null;
+  source_a?: string | null;
+  source_b?: string | null;
+  reason?: string | null;
   detected_at: string;
   resolved_at: string | null;
 }
@@ -43,6 +46,9 @@ export class KnowledgeContradictionRepository {
     predicate: string;
     description?: string;
     explanation?: string;
+    sourceA?: string;
+    sourceB?: string;
+    reason?: string;
     status?: ContradictionStatus;
     resolutionStrategy?: ResolutionStrategy;
     resolvedFactId?: string;
@@ -53,35 +59,69 @@ export class KnowledgeContradictionRepository {
     const status = data.status || 'DETECTED';
     const factIdA = data.factIdA || data.existingFactId || 'UNKNOWN_A';
     const factIdB = data.factIdB || data.conflictingFactId || 'UNKNOWN_B';
-    const description = data.description || data.explanation || null;
+    const description = data.description || data.explanation || data.reason || null;
+    const sourceA = data.sourceA || null;
+    const sourceB = data.sourceB || null;
+    const reason = data.reason || data.description || null;
 
-    this.db.prepare(`
-      INSERT INTO knowledge_contradictions (
-        id, fact_id_a, fact_id_b, subject_entity_id, predicate, description,
-        status, resolution_strategy, resolved_fact_id, detected_at, resolved_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      factIdA,
-      factIdB,
-      data.subjectEntityId,
-      data.predicate.trim().toLowerCase(),
-      description,
-      status,
-      data.resolutionStrategy || null,
-      data.resolvedFactId || null,
-      now,
-      data.resolvedFactId ? now : null
-    );
+    const predicate = ((data.predicate || 'contradiction') as string).trim().toLowerCase();
+    const subjectEntityId = data.subjectEntityId || (data as any).entityIdA || 'UNKNOWN_SUBJECT';
+
+    try {
+      this.db.prepare(`
+        INSERT INTO knowledge_contradictions (
+          id, fact_id_a, fact_id_b, subject_entity_id, predicate, description,
+          source_a, source_b, reason, status, resolution_strategy, resolved_fact_id, detected_at, resolved_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        factIdA,
+        factIdB,
+        subjectEntityId,
+        predicate,
+        description,
+        sourceA,
+        sourceB,
+        reason,
+        status,
+        data.resolutionStrategy || null,
+        data.resolvedFactId || null,
+        now,
+        data.resolvedFactId ? now : null
+      );
+    } catch {
+      this.db.prepare(`
+        INSERT INTO knowledge_contradictions (
+          id, fact_id_a, fact_id_b, subject_entity_id, predicate, description,
+          status, resolution_strategy, resolved_fact_id, detected_at, resolved_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        factIdA,
+        factIdB,
+        subjectEntityId,
+        predicate,
+        description,
+        status,
+        data.resolutionStrategy || null,
+        data.resolvedFactId || null,
+        now,
+        data.resolvedFactId ? now : null
+      );
+    }
 
     return {
       id,
       factIdA,
       factIdB,
-      subjectEntityId: data.subjectEntityId,
-      predicate: data.predicate.trim().toLowerCase(),
+      subjectEntityId,
+      predicate,
       description: description || undefined,
+      sourceA: sourceA || undefined,
+      sourceB: sourceB || undefined,
+      reason: reason || undefined,
       status,
       resolutionStrategy: data.resolutionStrategy,
       resolvedFactId: data.resolvedFactId,
@@ -154,6 +194,9 @@ export class KnowledgeContradictionRepository {
       subjectEntityId: row.subject_entity_id,
       predicate: row.predicate,
       description: row.description || undefined,
+      sourceA: row.source_a || undefined,
+      sourceB: row.source_b || undefined,
+      reason: row.reason || undefined,
       status: row.status as ContradictionStatus,
       resolutionStrategy: row.resolution_strategy as ResolutionStrategy | undefined,
       resolvedFactId: row.resolved_fact_id || undefined,

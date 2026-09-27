@@ -7,6 +7,7 @@ import {
   Command,
 } from 'lucide-react';
 import { VoiceStatusResponse } from '../types/api.types';
+import { IndianEmblem } from './IndianEmblem';
 
 interface TopBarProps {
   systemOnline: boolean;
@@ -42,8 +43,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <header className="topbar">
       <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {/* Sanskrit Title Tag */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Sanskrit Title Tag with Sacred Brand Emblem */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <IndianEmblem size={28} showText={false} variant="crest" />
           <span
             style={{
               fontSize: '15px',
@@ -55,7 +57,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           >
             HṚṢĪKEŚA
           </span>
-
         </div>
 
         {/* Approvals Alert Notification Button if pending */}

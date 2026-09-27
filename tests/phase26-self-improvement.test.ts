@@ -78,7 +78,10 @@ describe('Phase 26: Safe Self-Improvement & Self-Maintenance Engine', () => {
   describe('1. Schema & Migration Integrity', () => {
     test('1.1 migration 017 executes cleanly on migration runner', () => {
       const currentVersion = migrations.getCurrentVersion();
-      assert.strictEqual(currentVersion, 17);
+      const applied = migrations.getAppliedMigrations();
+      assert.strictEqual(currentVersion, applied.length);
+      assert.ok(currentVersion >= 17, 'Migration 017 and subsequent migrations should have executed');
+      assert.ok(applied.some((m) => m.version === 17 && m.name === '017_safe_self_improvement_schema'));
     });
 
     test('1.2 all 12 self-improvement relational tables exist', () => {

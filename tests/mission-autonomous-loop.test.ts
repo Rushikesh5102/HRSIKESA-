@@ -52,7 +52,7 @@ class MockLoopModelProvider implements IModelProvider {
       displayName: 'qwen2.5:7b',
       isLocal: true,
       contextWindow: 4096,
-      capabilities: ['text-generation', 'chat', 'tools'],
+      capabilities: ['text-generation', 'chat', 'tools', 'structured-output'],
       costClassification: 'free-local',
       availability: true,
       statusText: 'available',

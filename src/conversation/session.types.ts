@@ -16,7 +16,7 @@ export interface SessionMessage extends ChatMessage {
 
 export interface ConversationSession {
   readonly id: string;
-  readonly title?: string | null;
+  title?: string | null;
   readonly status?: string;
   readonly createdAt: string;
   updatedAt: string;

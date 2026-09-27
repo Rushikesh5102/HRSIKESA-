@@ -5,12 +5,16 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "hres": "./dist/cli/hres.js"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "prestart": "npm run build && npm run build --prefix ui",
     "start": "node dist/index.js",
     "hrishikesha": "tsx src/index.ts",
+    "hres": "tsx src/cli/hres.ts",
     "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "lint": "tsc --noEmit"
   },

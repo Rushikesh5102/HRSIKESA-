@@ -62,12 +62,24 @@ export class KnowledgeEntityRepository {
       type?: EntityType;
     }
   ): KnowledgeEntity {
-    const id = data.id || randomUUID();
-    const now = new Date().toISOString();
     const canonical = this.normalizeName(data.canonicalName);
     const scope = data.scope || 'GLOBAL';
     const status = data.status || 'ACTIVE';
     const entityType = data.entityType || (data as any).type || 'CONCEPT';
+
+    // Duplicate detection: reuse existing entity if already present
+    const existing = this.findByCanonicalName(canonical, scope);
+    if (existing) {
+      if (data.aliases && data.aliases.length > 0) {
+        for (const alias of data.aliases) {
+          this.addAlias(existing.id, alias);
+        }
+      }
+      return existing;
+    }
+
+    const id = data.id || randomUUID();
+    const now = new Date().toISOString();
 
     this.db.prepare(`
       INSERT INTO knowledge_entities (id, entity_type, canonical_name, display_name, description, scope, status, created_at, updated_at)

@@ -717,7 +717,518 @@ Following the establishment of the 17-agent specialized workforce, HṚṢĪKEŚ
 - **Positive:** Seamless enterprise orchestration; clean multi-project isolation; structured decision registry (ADR/PDR); complete mission and artifact traceability.
 - **Negative:** Schema complexity expanded by 7 tables and 6 new foreign key relationships.
 
+---
 
+## ADR-019: Foundation Performance & Execution Block (FP-01)
 
+- **Status:** Accepted
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+Conversational chat latency was unacceptably high (~80 seconds) due to monolithic reliance on CPU inference, routing simple greetings to 7B models, serializing heavy tool schemas onto every prompt, and synchronous memory/telemetry blocking. Furthermore, the assistant was question-first instead of execution-first.
+
+### Decision
+1. **Hardware-Agnostic Inference Engine:**
+   - Introduce an inference abstraction layer (`src/inference/`) supporting llama.cpp Vulkan (Intel Arc GPU), llama.cpp multi-threaded CPU (AVX2), and Ollama HTTP runner.
+2. **Intel Arc GPU Acceleration via Vulkan:**
+   - Detect Intel Arc GPU (Meteor Lake, 9,168 MiB shared VRAM) and offload model layers using standalone `tools/llama-vulkan/` with `-ngl 99`.
+3. **Explicit Compute Tiers (T0–T4):**
+   - Implement `T0` (deterministic zero-model, <25ms), `T1` (tiny model), `T2` (interactive conversational, `llama3.2:3b`), `T3` (complex reasoning, `qwen2.5:7b`), and `T4` (agentic reasoning).
+4. **Execution-First Policy & Assumption Logging:**
+   - Enforce `UNDERSTAND -> DECIDE -> EXECUTE -> VERIFY -> REPORT`.
+   - Suppress unnecessary clarification questions; record structured assumptions in memory.
+5. **English Self-Name "Rishi":**
+   - Maintain canonical system identity **HṚṢĪKEŚA** (हृषीकेश / HRISHIKESHA) while using **Rishi** ("I’m Rishi") for English conversational self-reference.
+6. **Asynchronous Non-Blocking Chat Naming:**
+   - Generate 2–6 word titles asynchronously in the background.
+7. **Real-Time Cancellation Tokens:**
+   - Immediately abort active model processes, tool executions, and voice playback upon receiving STOP/CANCEL/ABORT/PAUSE.
+8. **Offline-First Mode:**
+   - Preserve 100% offline capability; queue external operations with `OFFLINE — QUEUED`.
+
+### Consequences
+- **Positive:** Simple queries speed up by ~13,000x–23,000x (<10ms). Interactive chat latency drops to 16–22s. Unnecessary conversational interruptions eliminated. Sovereign offline operations guaranteed.
+- **Negative:** Additional binary footprint for standalone llama-vulkan runner.
+
+---
+
+## ADR-020: Interactive Inference Optimization (FP-02)
+
+- **Status:** Accepted
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+Following FP-01, deterministic fast paths (T0) achieved 3.5–20.7 ms, but normal conversational inference (T2) still exhibited 16–23 second wall-clock latency. Detailed pipeline instrumentation revealed two root causes:
+1. Spawning single-shot CLI processes (`llama-cli.exe`) incurred 14.8–15.9 seconds of cold-load disk I/O and shader initialization on every turn.
+2. Unconstrained generation produced 200–250 rambling tokens for simple queries (19.5s generation at 11–13 t/s).
+
+### Decision
+1. **Warm Model Residency for Interactive T2:**
+   - Maintain the primary interactive model (`llama3.2:3b`, Q4_K_M) resident in local memory using `keep_alive: 15m`.
+   - Deliver warm Time-To-First-Token (TTFT) of **253–314 ms** (target <= 2s met).
+2. **Response Length Modes (`CONCISE`, `NORMAL`, `DETAILED`, `DEEP`):**
+   - Introduce 4 response modes defaulting to `NORMAL` (256 tokens).
+   - `CONCISE` (max 75 tokens) enforces high-signal answers and drops generation time from 19s to 4.8s.
+   - Auto-detect concise mode for simple tips, one-liners, short summaries, or brief queries.
+3. **True Token Streaming Architecture:**
+   - Stream tokens immediately to the UI via Server-Sent Events (`text/event-stream`).
+   - Completely decouple database persistence, asynchronous chat naming, working memory updates, and telemetry from the streaming critical path.
+4. **Context Minimization for T2:**
+   - Strip all tool schemas, knowledge graph lookups, working memory dumps, and heavy identity documentation for standard conversational turns (Tier 1/2 context < 100 tokens).
+5. **Intel Arc Vulkan Profiling & Multi-Backend Strategy:**
+   - Fully profile Intel Arc Graphics (Meteor Lake, 9168 MiB shared VRAM) with `-ngl 99`, `-c 2048`, `-b 512`, `-ub 256`, `-t 8`.
+   - Maintain Ollama, llama.cpp Vulkan, and llama.cpp CPU backends with automatic tier-aware selection and graceful fallbacks.
+6. **Model Role Separation & Residency Protection:**
+   - T0: deterministic (<100ms)
+   - T1: ultra-fast local (1.5B)
+   - T2: interactive conversational (Llama 3.2 3B resident)
+   - T3/T4: complex planning & autonomous workforce (Qwen 2.5 7B on-demand)
+   - Under memory pressure: preserve T0 and T2; evict heavy models first.
+
+### Consequences
+- **Positive:** Warm TTFT dropped to 253–314 ms (~50x faster). Total chat latency for simple queries dropped from 22.7s to 2.42–6.15s (77–89% latency reduction). Conversational feel is immediate and streaming is continuous. 100% offline sovereign execution preserved.
+- **Negative:** Resident model holds ~1.95 GB of RAM/VRAM while active.
+
+---
+
+## ADR-021: Distributed Resource Fabric & Execution Capacity (FP-03)
+
+- **Status:** Accepted
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+Following FP-01 and FP-02, HṚṢĪKEŚA achieved fast deterministic cognition (T0 ~0.8–37ms) and low-latency warm interactive inference (T2 ~253–314ms TTFT). However, complex autonomous missions, compiler builds, intensive QA evaluations, and heavier 7B/14B reasoning models are constrained by single-machine hardware envelope (14 cores, 16 GB RAM, shared Intel Arc iGPU).
+
+The architecture required an execution capacity fabric capable of scheduling tasks across distributed execution nodes (Local Laptop, LAN Worker, future GPU/Cloud worker) while maintaining strict control plane sovereignty on the primary machine.
+
+### Decision
+1. **Control Plane vs Execution Plane Separation:**
+   - **Control Plane:** Remains exclusively on the primary HṚṢĪKEŚA machine. Authoritative owner of identity, policy, permissions, goals, missions, working memory, knowledge, and corporate state.
+   - **Execution Plane:** Stateless execution workers (Local, LAN, Remote, Cloud) perform authorized, scoped workloads under control plane supervision.
+   - Agents are NOT workers. The 17-agent workforce remains intact: `Agent -> Task -> Resource Fabric -> Worker -> Tool/Model`.
+2. **Persistent Resource Registry (SQLite Migration 020):**
+   - Tables: `workers`, `worker_capabilities`, `worker_tasks`, `worker_resource_snapshots`, `worker_enrollment_tokens`.
+   - In-memory caching with sub-millisecond lookups and SQLite durability across restarts. Bounded snapshot retention (latest 100 per worker).
+3. **Resource-Aware Placement Engine (`ResourceScheduler`):**
+   - Multi-factor evaluation: required capabilities, hardware constraints (CPU cores, RAM headroom, GPU requirement, GPU backend), model availability, privacy boundaries, priority ranking, and worker load score.
+   - Explainable decisions with factors recorded for auditability.
+   - Host memory pressure integration with `ResourceGovernor`: penalizes local worker under `CRITICAL_MEMORY` to offload eligible non-private workloads to LAN nodes.
+4. **Non-Negotiable Security & Cryptographic Pairing:**
+   - LAN enrollment uses single-use pairing tokens hashed with SHA-256 and bounded by TTL (default 10 minutes).
+   - No plaintext secrets in database, logs, or network payloads.
+   - Zero unrestricted remote shell execution: non-local workers are strictly restricted to whitelisted safe workloads (`compute.echo`, `compute.benchmark`, `resource.fabric.test`, `inference.generate`, `model.health`).
+   - Default network bindings remain localhost-only unless explicitly paired.
+5. **Privacy Levels & Isolation (`ResourcePolicyManager`):**
+   - `SOVEREIGN_LOCAL`: Strictly prohibited from leaving the primary local machine.
+   - `HIGHLY_PRIVATE`: Local execution by default; remote execution blocked unless sovereign policy explicitly overrides.
+   - `PRIVATE`: Trusted enrolled workers only (Local or trusted LAN). Cloud workers rejected.
+   - `PUBLIC`: May use configured remote/cloud workers.
+6. **Cooperative Cancellation & Fault Recovery:**
+   - Real-time cancellation tokens propagate from HṚṢĪKEŚA scheduler to active worker loops.
+   - Automatic health sweep detects stale heartbeats, auto-transitions nodes to `DEGRADED`/`OFFLINE`, and safely requeues in-flight tasks onto alternate eligible workers with idempotency protection.
+7. **Safe Artifact Transfer:**
+   - Hash verification (SHA-256), strict size bounds (max 50 MB), and path traversal protection against directory escape (`..`, absolute paths outside sandbox).
+
+### Consequences
+- **Positive:** Enables boundless horizontal compute scaling across local LAN workstations and GPU rigs; preserves 100% sovereign control plane on the primary laptop; sub-50ms placement latency; zero remote backdoor risks; seamless integration with ResourceGovernor and existing 17-agent workforce.
+- **Negative:** LAN worker communication introduces minor network latency (~1–3ms on local network) compared to in-process memory calls.
+
+---
+
+## ADR-022: Dedicated Worker Transport Layer & Distributed Inference Streaming (FP-04)
+
+- **Status:** Accepted
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+FP-03 established the Resource Fabric abstractions and loopback/in-process verification. However, exposing the primary HṚṢĪKEŚA control plane (Port 4200) to `0.0.0.0` would create a critical security vulnerability, exposing sovereign identity, working memory, knowledge graphs, company finances, and approval gates to the local network. Furthermore, physical execution requires real TLS encrypted socket transport, standalone physical worker runtimes, capability discovery, real-time token streaming for distributed inference, and fault-tolerant network partition handling.
+
+### Decision
+1. **Strict Port & Network Isolation:**
+   - Control plane (Port 4200) remains strictly bound to `127.0.0.1` (localhost).
+   - Dedicated Worker Transport listener runs on Port 4300 (`WorkerTransportServer`) exposing ONLY minimal, typed worker protocol frames (`ENROLL`, `AUTH`, `HEARTBEAT`, `CAPABILITIES`, `TELEMETRY`, `TASK_ACCEPTED`, `TASK_PROGRESS`, `TASK_COMPLETED`, `TASK_FAILED`, `TASK_CANCELLED`).
+2. **Encrypted Transport (TLS 1.3 / Pure-JS X.509):**
+   - Implemented zero-dependency pure JavaScript X.509 self-signed certificate generation with RSA-2048 and SHA-256 fingerprinting.
+   - Worker nodes authenticate via single-use enrollment tokens (`hrsk_enroll_<random>`), receiving ephemeral session tokens (`hrsk_sess_<random>`).
+3. **Framing & Defense-in-Depth:**
+   - 4-byte big-endian length-prefixed protocol frames.
+   - Strict 5 MB maximum payload ceiling per frame to defend against socket exhaustion and buffer attacks.
+4. **Physical Worker Runtime (`src/resources/worker-runtime/`):**
+   - Lightweight, standalone worker daemon executable on physical LAN nodes without running the HṚṢĪKEŚA control plane.
+   - Bounded typed workloads: `compute.echo`, `compute.benchmark`, `resource.fabric.test`, `model.health`, `inference.generate`.
+   - Zero unrestricted remote shell or remote filesystem access.
+5. **Distributed Inference & True Token Streaming:**
+   - Real-time token chunks stream over TLS frames (`TASK_PROGRESS` with `{ type: 'token', text }`) directly into HṚṢĪKEŚA SSE streams and the Chat UI.
+   - Integrated with Ollama and llama.cpp runtimes on remote nodes with `AbortController` cancellation.
+6. **Physical LAN Verification Discipline:**
+   - Where a second physical machine is not connected to the local network in the development environment, real socket and TLS transports are verified via automated suites, and the status is explicitly reported as `PHYSICAL_LAN_VERIFICATION = NOT_AVAILABLE` (zero fabrication).
+
+### Consequences
+- **Positive:** Absolute control plane security through port isolation; true distributed execution and token streaming across LAN nodes; graceful handling of Wi-Fi disconnects and network partitions; no dependency on external OpenSSL binaries.
+- **Negative:** Self-signed certificates require fingerprint pinning or disabled CA authority validation in local development environments.
+
+---
+
+## ADR-023: Multi-Worker Execution, Concurrent Inference & Queue-Aware Placement (FP-05)
+
+- **Status:** Accepted
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+FP-04 established secure TLS-encrypted transport and single-worker protocol execution. However, scaling HṚṢĪKEŚA beyond a single execution node required evolving the architecture into a true multi-worker execution fabric capable of handling simultaneous worker sessions, model-aware and residency-aware task placement, concurrent streaming inference, worker load balancing, concurrency limits, saturation handling, queue-aware priority scheduling with starvation prevention, graceful node draining, and automatic task migration upon network partitions.
+
+### Decision
+1. **Multi-Worker Registry & Simultaneous TLS Sessions:**
+   - Transport server (`WorkerTransportServer`) upgraded to manage concurrent worker sessions simultaneously via `Map<string, ConnectedWorkerSession>`, tracking multiple concurrent `activeTaskIds: Set<string>` per session.
+   - Resource registry tracks hardware configurations, residency states, and active workloads across all connected workers (`LOCAL`, `LAN-A`, `LAN-B`, `LAN-C`).
+2. **Model-Aware Placement & Warm Model Residency Scoring:**
+   - Tasks requesting specific models (`resourceRequirements.requiredModel`) route exclusively to workers advertising model availability.
+   - Workers with models pre-loaded in memory/VRAM (`worker.residentModels`) receive a +40 warm residency score bonus, avoiding cold-start latency.
+3. **Worker Capacity Accounting & Load Balancing:**
+   - Placement engine applies active tasks penalty (`-activeCount * 15`) and tie-breaking by lowest active tasks to balance load evenly across identical nodes.
+   - Enforces per-worker concurrency limits (`worker.resourceLimits.maxConcurrentTasks`), marking saturated workers ineligible for immediate placement (`isSaturated = true`).
+4. **Queue-Aware Priority Scheduling with Aging Bonus:**
+   - When all eligible nodes are saturated, tasks with `waitForCapacity !== false` enter a priority task queue (`taskQueue`).
+   - Schedulers evaluate queue priority using effective priority: `effectivePriority = basePriority + Math.floor((now - enqueuedAt) / 5000)`, granting +1 point every 5 seconds to eliminate starvation for lower-priority background tasks.
+5. **Graceful Worker Draining Lifecycle (`DRAINING` -> `DRAINED`):**
+   - Admin command `resourceManager.drainWorker(workerId)` marks worker status as `DRAINING` and sends `WORKER_DRAIN` transport frame.
+   - Draining workers reject all new task placements while continuing to execute in-flight workloads.
+   - As soon as the active task count drops to zero, the scheduler automatically transitions the worker to `DRAINED`.
+   - `resumeWorker(workerId)` transitions drained workers back to `ONLINE` and triggers `processQueue()`.
+6. **Automatic Task Migration on Network Dropped:**
+   - Tasks submitted with `allowMigration: true` that encounter transport socket disconnection/timeout during execution are automatically requeued (`REQUEUED`), incrementing attempt counter, clearing assigned worker, and re-evaluating placement against remaining online nodes.
+7. **In-Flight Idempotency Deduplication:**
+   - Schedulers maintain `inFlightByIdempotency: Map<string, Promise<TaskResult>>` to allow concurrent duplicate task submissions with identical keys to share the single in-flight execution promise, eliminating redundant compute cycles.
+8. **Physical LAN Verification Standard:**
+   - In environments where only one physical machine is active, all multi-worker tests execute over real TLS/TCP sockets and the physical status is reported transparently as `PHYSICAL_LAN_VERIFICATION = NOT_AVAILABLE` with zero fabricated data.
+
+### Consequences
+- **Positive:** True horizontal compute parallelism across multiple LAN nodes; zero task loss during worker draining; starvation-free fair priority queuing; sub-millisecond scheduling decisions; zero duplicate execution on concurrent requests; 100% sovereign control plane preservation.
+- **Negative:** Increased in-memory state tracking for active task sets and queue entries; network latency overhead on task migration.
+
+---
+
+## ADR-031: Universal Capability & Connector Fabric (FP-07)
+
+### Metadata
+- **Status:** Accepted & Empirically Verified
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+HṚṢĪKEŚA has established memory, cognitive context, model routing, a 17-agent workforce, goal/mission planners, MCP integrations, browser automation, and a multi-worker LAN compute fabric. However, invoking heterogeneous actuators (CLI commands, REST APIs, Playwright sessions, installed software, MCP servers, and local tools) previously used disparate interfaces without uniform risk tiers, strict anti-injection sandboxing, explicit trust hierarchies, or zero-secret handling. FP-07 requires unifying all capability actuation into a strongly-typed, securely governed, and verifiable fabric.
+
+### Decision
+1. **Universal Capability Contract (`src/capabilities/fabric/capability.types.ts`):**
+   - Standardize all capabilities across 6 protocols (`CLI`, `REST`, `BROWSER`, `SOFTWARE`, `MCP`, `LOCAL_TOOL`).
+   - Explicit trust levels: `SYSTEM`, `TRUSTED`, `VERIFIED`, `USER_APPROVED`, `UNVERIFIED`, `UNTRUSTED`, `BLOCKED`. Trust is NEVER inferred merely from discovery.
+   - Standardized danger tiers: `TIER_0_READ_ONLY` through `TIER_4_IRREVERSIBLE`.
+   - Privacy classes: `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`, `SOVEREIGN_LOCAL`.
+2. **Dual-Layer Persistent Repository & Sub-10ms Lookups:**
+   - Backed by SQLite migration `021_universal_capability_fabric_schema.ts`.
+   - In-memory `Map` cache guarantees sub-1.2ms deterministic lookups without LLM overhead.
+3. **Anti-Injection CLI Sandbox:**
+   - Strict binary allowlisting (`git`, `node`, `npm`, `ollama`) and rejection of shell metacharacters (`;`, `&`, `|`, `$`, etc.).
+4. **Zero Plaintext Secrets Storage & Secret Redaction:**
+   - Credentials stored exclusively by reference (`vault://...`, `env://...`); recursive secret redaction filter purges tokens, passwords, and authorization headers from logs and database records.
+5. **Invariant Verification Engine (`EXECUTED != VERIFIED`):**
+   - Invocations must satisfy post-condition invariant checks across 7 strategies (`schema_match`, `read_after_write`, `process_state`, `checksum`, `dom_presence`, `exit_code`, `dry_run`).
+6. **Indirect Prompt Injection Defense:**
+   - Untrusted external outputs are defanged into isolated data envelopes before returning to reasoning agents.
+7. **Native CLI & Control Center UI:**
+   - Native CLI commands (`hres capabilities list/search/inspect/health/verify/revoke/invoke`) and 7-tab Glassmorphic UI view (`CapabilityCenter.tsx`) with real-time SSE stream.
+
+### Consequences
+- **Positive:** Universal execution interface across all tool types; deterministic sub-millisecond intent matching; zero secret leakage; strong prompt injection defense; clear separation between execution and verification; zero regressions across earlier phases.
+- **Negative:** Schema definitions required for all capability inputs and outputs; additional post-condition verification latency for complex operations.
+
+---
+
+## ADR-023: Sovereign Development Workspace & Universal IDE Fabric (FP-09)
+- **Status:** Accepted & Empirically Verified
+- **Date:** 2026-09-25
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+To enable true sovereign autonomous engineering, HṚṢĪKEŚA required an integrated development environment (IDE) runtime providing workspace discovery, precision editing, ripgrep code search, sandboxed terminals, live preview servers, Git SCM, and baseline verification loops.
+
+### Decision
+1. **IdeFabric Architecture:** Unified orchestrator wiring 8 development subsystems (`WorkspaceManager`, `CodeSearchEngine`, `EditorEngine`, `TerminalManager`, `PreviewManager`, `GitWorkspaceManager`, `VerificationLoopEngine`, `IdeRepository`).
+2. **Sandbox Containment:** Enforce `resolveSafePath` across all file operations preventing path traversal.
+3. **Atomic Precision Edits:** Transactional multi-chunk replacement with atomic disk rollback if any chunk fails validation.
+4. **Governed Terminal Supervision:** Bounded circular output buffer (100KB) and destructive command regex rejection.
+5. **Persistence Schema (Migration 023):** Backed by SQLite tables for workspaces, changesets, terminals, preview servers, and verification runs.
+
+### Consequences
+- **Positive:** Full local IDE capability without external dependencies or cloud lock-in; sub-millisecond search and edit dispatch; safe execution.
+- **Negative:** Resource overhead when supervising multiple concurrent terminal and dev preview processes.
+
+---
+
+## ADR-024: Governed Autonomous Software Engineering & Convergence Architecture (FP-10)
+- **Status:** Accepted & Empirically Verified
+- **Date:** 2026-09-26
+- **Deciders:** Rushikesh Pattiwar
+
+### Context
+FP-09 provided development workspace primitives, but AI coding was architectural/simulated. Autonomous software engineering requires connecting the model router to a closed-loop repair engine with strict safety sandboxes, user conflict protections, failure normalization, and finite convergence guarantees to prevent infinite repair loops.
+
+### Decision
+1. **Model Proposes, Governed System Executes:** Models never receive arbitrary shell execution rights. Models output strictly typed `EngineeringActionPayload` validated against danger tiers and path boundaries by `EngineeringActionValidator`.
+2. **User Modification Conflict Protection:** Record SHA-256 pre-read hash on `READ_FILE`. Reject `EDIT_FILE` or patches with `Concurrent modification detected: User work protected` if file content was modified externally.
+3. **Normalized Failure Diagnostics & Fingerprinting:** Convert compiler/test/lint errors into `StructuredDiagnostic` with deterministic failure fingerprints (`category:file:line:hash`).
+4. **Convergence Engine & Anti-Loop Safeguards:** Enforce strict attempt budgets (`maxAttempts`), timeout ceilings (`maxDurationSeconds`), and non-monotonic regression halting. Immediately halt repair loops when >= 3 consecutive identical failure fingerprints are detected (`REPEATED_FAILURE`).
+5. **Surgical Precision Repairs:** Model prompts focus on defect diagnostic context and target file slices (±10 lines). Preconditions verify target content presence before disk application.
+6. **Unified Persistence (Migration 024):** SQLite tables `engineering_tasks`, `engineering_plans`, `engineering_actions`, `engineering_diagnostics`, `engineering_repairs`, and `engineering_verifications`.
+
+### Consequences
+
+---
+
+## ADR-019: Native Universal Workflow & Automation Engine Architecture (FP-11)
+
+### Status
+Accepted / Complete (FP-11)
+
+### Context
+Prior to FP-11, HṚṢĪKEŚA could autonomously execute individual missions, software engineering tasks (FP-10), and computer operations, but lacked a native, persistent, event-driven orchestration layer to compose, monitor, persist, recover, and verify complex multi-step workflows.
+
+### Decision
+1. **Durable Directed Executable Graph**: A workflow is modelled as an immutable versioned directed graph (`WorkflowVersion`) consisting of typed nodes and edges.
+2. **Re-use of Existing Subsystems**: No duplicate orchestration, task scheduling, or coding engines were introduced. FP-10 remains 100% frozen; workflow `CODE`, `TEST`, and `VERIFY` nodes dispatch directly to `EngineeringFabric`. `ACTION` nodes route to `ToolExecutionBus`; `CAPABILITY` nodes route to `UniversalCapabilityFabric`; `AGENT` nodes route to `AgentRuntime`; `MODEL` nodes route to `ModelRouter`.
+3. **Safe Deterministic Expression Evaluator**: All conditions (`{{expr}}`) and template interpolations are evaluated strictly by `SafeExpressionEvaluator`. Arbitrary JavaScript execution is forbidden.
+4. **Mandatory Financial Governance**: Outgoing monetary operations or irreversible high-risk steps automatically pause in `WAITING_APPROVAL` status and require human approval.
+5. **ACID-Compliant State Machine**: SQLite persistence utilizes `ON CONFLICT(id) DO UPDATE SET` on `workflow_runs` to ensure child records (approvals, checkpoints, run nodes) are preserved without triggering foreign key cascade deletions.
+6. **Crash Recovery**: SHA-256 idempotency checkpoints enable resuming in-flight workflows after system restart without repeating destructive side-effects.
+
+### Consequences
+---
+
+## ADR-020: Universal Service & Account Integration Fabric (FP-12)
+
+### Status
+Accepted / Complete (FP-12)
+
+### Context
+HṚṢĪKEŚA required unified credential management, provider protocol adapters, and account resolution for 50+ enterprise and consumer services.
+
+### Decision
+1. Implemented `AccountRepository` with Migration 026 and AES-256-GCM vault security.
+2. Abstracted authenticated providers behind `AccountResolver`, eliminating model exposure to plaintext tokens.
+
+---
+
+## ADR-021: Universal Digital Workspace & Application Operator (FP-13)
+
+### Status
+Accepted / Complete (FP-13)
+
+### Context
+Operating applications across heterogeneous environments (Windows GUI, browser, terminal, IDE, and remote VDI) required a unified, observable, and empirically verified control plane.
+
+### Decision
+1. **Digital Workspace Abstraction (`IDigitalWorkspace`)**: Provider-independent abstraction for Local Windows, Browser, Terminal, IDE, and Remote VDI workspaces.
+2. **Normalized Observation Hierarchy**: Prioritized resolution (Semantic UIA $\rightarrow$ A11y $\rightarrow$ DOM $\rightarrow$ App API $\rightarrow$ OCR $\rightarrow$ Vision $\rightarrow$ Coordinates).
+3. **Target Ambiguity Guard**: Refuses execution on ambiguous targets; requires confirmation.
+4. **Preconditions & Empirical Verification**: Rejects "dispatched = success"; validates post-action state via dedicated strategies.
+5. **Loop Prevention & Recovery**: Halts after 3 consecutive failures to avoid infinite GUI loops.
+6. **SQLite Persistence (Migration 027)**: 12 relational tables with foreign keys and secret sanitization.
+
+### Consequences
+- **Positive**: Coherent operator interface across all desktop and remote tools, robust against UI drift and loops.
+- **Negative**: Verification adds 2–5ms per action.
+
+---
+
+## ADR-022: Universal Agentic Mission & Workforce Runtime (FP-14)
+
+### Status
+Accepted / Complete (FP-14)
+
+### Context
+Executing multi-stage sovereign engineering and operational goals required compiling unstructured intent into formal executable mission DAGs, delegating to specialized agents, coordinating real-time blackboard communication, and enforcing outcome acceptance gates.
+
+### Decision
+1. **Dynamic Mission Compiler (`MissionCompiler`)**: Compiles unstructured prompts into validated, typed DAG plans with outcome definitions and acceptance criteria without LLM hallucination risks.
+2. **Workforce Allocation Engine (`WorkforcePlanner`)**: Allocates subtasks across the authoritative 17 specialized agents based on capability scoring, real-time load, and depth ceilings (max depth 3).
+3. **Mission Blackboard & Artifact Graph (`MissionBlackboard`)**: Scoped pub/sub state bus recording verified facts, decisions, blockers, and artifacts.
+4. **Independent Acceptance Engine (`MissionAcceptanceEngine`)**: Evaluates post-conditions with independent sign-off requirements (e.g. Vighna QA verification).
+5. **Durable Persistence (Migration 028)**: 6 relational tables (`missions`, `mission_tasks`, `mission_outcomes`, `mission_checkpoints`, `mission_artifacts`, `mission_blackboard_events`).
+
+### Consequences
+- **Positive**: Autonomous multi-agent mission workflows execute predictably with explicit quality gates and persistent recovery.
+- **Negative**: Compilation and verification steps introduce bounded orchestration overhead.
+
+---
+
+## ADR-023: Repository Hygiene, Dynamic Migration Invariants & Shutdown Lifecycle Contract
+
+### Status
+Accepted / Complete (Post-FP-14 Cleanup)
+
+### Context
+As the schema evolved from 17 migrations to 28 migrations, static test assertions broke with hardcoded counts. Furthermore, background tasks and unmanaged sockets prevented clean test teardown without `--forceExit`.
+
+### Decision
+1. **Dynamic Migration Introspection**: Tests must assert migration state dynamically via `MigrationManager.getAvailableMigrations()` rather than hardcoded integer literals.
+2. **Kernel Migration Timing**: `db.open()` and `migrations.runPending()` execute immediately upon `MigrationManager` instantiation in `HrisekesaKernel` constructor before dependent subsystems access the raw database.
+3. **Shutdown Contract & Socket Tracking**:
+   - `HttpServer` actively registers and tracks client sockets on the `'connection'` event, forcefully destroying open sockets on `stop()`.
+   - `worker.transport.server` destroys socket sessions and closes connections promptly.
+   - `ResourceManager.stop()` and `resetInstance()` are fully asynchronous and awaited by `kernel.shutdown()`.
+   - `MissionOrchestrator` implements `cancelMission()` and checks cancellation flags in execution loops, ensuring background missions resolve promptly during shutdown.
+4. **Process Exit Invariant**: No test runner or production command may use `--forceExit`; the runtime must terminate naturally.
+
+### Consequences
+- **Positive**: Zero resource leaks, natural process exit across all suites, and future-proof migration testing.
+- **Negative**: Explicit tracking of socket handles and cancellation sets in orchestrators.
+
+---
+
+## ADR-024: Universal Application & Service Ecosystem (FP-15)
+
+### Status
+Accepted / Complete (FP-15)
+
+### Context
+Following FP-01 through FP-14, HṚṢĪKEŚA required an ecosystem resolution layer sitting directly above capability and connection infrastructure and below mission orchestration. The objective is to make real-world software, CLI tools, provider APIs, and desktop applications deterministically discoverable and selectable without building another orchestrator or duplicating FP-13's ApplicationDescriptor or FP-12's AccountFabric.
+
+### Decision
+1. **Architectural Positioning**: Position FP-15 directly between FP-14 (Mission Runtime) and FP-07/11/12/13/20/21 (Execution & Account Fabrics).
+2. **Deterministic Interface Priority Ladder**:
+   - `LOCAL_API` (1) → `AUTHENTICATED_API` (2) → `MCP` (3) → `CLI` (4) → `BROWSER_DOM` (5) → `DESKTOP_UIA` (6) → `OCR_VISION` (7) → `COORDINATE_INPUT` (8).
+3. **Reuse Without Duplication**:
+   - Reused `ApplicationDescriptor` directly from FP-13 (`src/digital-workspace/types/index.ts`).
+   - Reused `AccountFabric` credential vault and routing from FP-12 (`src/accounts/`).
+   - Reused `ApplicationOperator` from FP-13 for physical desktop application interaction.
+4. **Natural Language Fast-Path & Anti-Hallucination**:
+   - Deterministic regex and catalog mapping resolves service, account, and capabilities with zero LLM latency (<5ms) and zero hallucination.
+   - Non-connected accounts or missing applications report truthful statuses (`NOT_CONNECTED`, `NOT_INSTALLED`, `UNKNOWN` quota).
+5. **Security & External Data Defanging**:
+   - External service data is defanged and tagged with `_untrustedExternalData: true`.
+   - Consequential operations enforce post-action verification (e.g. confirming issue number, calendar event ID).
+6. **Durable Persistence (Migration 029)**:
+   - 4 relational tables: `ecosystem_services`, `ecosystem_interfaces`, `ecosystem_operations`, `ecosystem_verifications`.
+
+### Consequences
+- **Positive**: Clean deterministic dispatch, zero credential leakage, robust multi-account scope isolation, and reliable offline fallback.
+- **Negative**: Requires maintaining adapter mappings for new third-party providers.
+
+---
+
+## ADR-031: Universal Digital Creation & Media Studio (FP-17)
+
+### Status
+Accepted / Complete (FP-17)
+
+### Context
+HṚṢĪKEŚA requires a unified, local-first creation and media production orchestration layer across all major modalities (images, vector graphics, video, audio, music, voice, 3D, documents, presentations, and compound packages). The objective is to give HṚṢĪKEŚA the ability to understand creative intent, select appropriate tools/models, execute generation and transformation pipelines, deterministically verify outputs, iterate with bounded budgets, and enforce sovereign human approval boundaries.
+
+### Decision
+1. **First Audit Principle**:
+   - Reused existing capability infrastructure (FP-07, FP-11, FP-12, FP-13, FP-14, FP-15, FP-16) without duplicating model routers, workflow engines, or skill engines.
+2. **Creation Domain Model (Migration 031)**:
+   - `CreationJob`: Complete lifecycle entity tracking ID, owner, company/project isolation, objective, prompt, inputs, outputs, provider, status, progress percentage, verification results, bounded iterations (`currentIteration`, `maxIterations`), and license provenance.
+   - `CreationArtifact`: Output deliverable tracking location, format, MIME type, dimensions/duration/pages, cryptographic SHA-256 hash, and deterministic QA verification flag.
+   - `DesignContext`: Multi-tenant styling tokens (brand identity, colors, typography, geometric rules, aesthetic constraints).
+3. **Local-First Priority & Native Synthesizers**:
+   - Native deterministic local providers (`native.image.synthesizer`, `native.video.composer`, `native.audio.synthesizer`, `native.document.compiler`) provide offline generation capabilities.
+   - Host applications (Blender, FFmpeg, ImageMagick) are probed honestly; if absent, they report `NOT_CONFIGURED` without fabricating execution.
+4. **Deterministic Multi-Stage Verifier**:
+   - Every artifact undergoes structural inspection, file existence checks, non-zero byte checks, format syntax checks, dimension/aspect ratio validation, and SHA-256 cryptographic hashing.
+5. **Bounded Iteration Loop & Convergence Guard**:
+   - Iteration requests (`iterateJob`) evaluate changes against requirements, increment iteration budget, and strictly halt when `maxIterations` is exceeded (`AWAITING_INPUT`).
+6. **Sovereign Approval Boundaries**:
+   - Commercial publishing, paid generation, and voice cloning require human confirmation (`AWAITING_APPROVAL`).
+7. **Security & Sandboxing**:
+   - Prompt injection neutralized, SVG `<script>` tags sanitized, executable formats (`.exe`, `.bat`, `.sh`) rejected, and path traversal stripped.
+8. **UI & CLI Integration**:
+   - Control Center view `CreationStudioView.tsx` with live SSE stream (`/api/creation/events`) and CLI `hres create <type>` / `hres creation list|status|verify|cancel`.
+
+### Consequences
+- **Positive**: Complete multi-modal creation capability without vendor lock-in, fully offline-capable, bounded resource usage, and auditable artifact provenance.
+- **Negative**: High-resolution photorealistic diffusion or long video rendering on this machine is constrained by 16GB RAM and integrated GPU; heavy cloud models remain optional and configurable.
+
+---
+
+## ADR-032: Universal Real-World Research, Knowledge & Decision Intelligence Fabric (FP-18)
+
+### Status
+Accepted / Complete (FP-18)
+
+### Context
+HṚṢĪKEŚA required an analytical and cognitive fabric turning fragmented external information (web, repositories, ecosystem) + existing knowledge/memory + company/project context + host machine constraints into auditable decision-support packages and actionable plans without silently making consequential decisions on behalf of Rushikesh.
+
+### Decision
+1. **Core Evidence -> Context -> Decision Support Pipeline**:
+   - Formulate research cases through a persistent 12-state lifecycle (`DRAFT` → `SCOPING` → `RESEARCHING` → `GATHERING_EVIDENCE` → `ANALYZING` → `COMPARING` → `SYNTHESIZING` → `REVIEWING` → `AWAITING_USER` → `COMPLETED` / `FAILED` / `ARCHIVED`).
+   - Decompose high-level objectives into subquestions with bounded resource budgets (`maxSources`, `maxSearches`, `maxPages`, `maxTokens`, `maxDurationMs`).
+2. **Reuse Without Duplication**:
+   - Reused Phase 17 ResearchEngine, WebSearchConnector, and BrowserInspectionService.
+   - Reused INT-006 KnowledgeGraph and INT-008 WorkingMemory for durable contextual grounding.
+   - Reused ResourceGovernor for host resource protection (reducing concurrency on `CRITICAL_MEMORY`).
+3. **Traceability, Contradiction & Temporal Intelligence**:
+   - Maintain traceable evidence ledger linking every claim to source, confidence, retrieval time, and polarity.
+   - Analyze multi-source contradictions and extract root causes (quantization, versions, OS, workloads).
+   - Flag claims >2 years old as `OUTDATED` without silently substituting stale information as current.
+4. **Environment-Aware Compatibility**:
+   - Evaluate candidate technologies against actual host hardware (Intel Core Ultra 5 125H, 15.7 GB RAM, Intel Arc GPU, Windows 11) into 5 explicit compatibility ratings (`VERIFIED_COMPATIBLE`, `LIKELY_COMPATIBLE`, `CONDITIONALLY_COMPATIBLE`, `INCOMPATIBLE`, `UNKNOWN`).
+5. **Rigorous Qualitative Tradeoff Comparisons & Decision Briefs**:
+   - Matrix comparison across explicit criteria without fake numerical precision.
+   - Standard 16-section Decision Brief separating Evidence, Analysis, and Recommendations.
+6. **Immutable Decision Records & Structured Reviews**:
+   - Store historical decisions with rationales, assumptions, and approvers.
+   - Support decision reviews against newer evidence (`MAINTAIN` vs `UPDATE`).
+7. **Governed Action Bridge**:
+   - Compile decisions into proposed Missions, Goals, Workflows, Skills, and Environment Changes behind mandatory human approval gates (`AWAITING_USER` / `PENDING_APPROVAL`).
+8. **Persistence Layer (Migration 032)**:
+   - 6 relational tables: `research_cases`, `research_candidates`, `research_comparisons`, `decision_records`, `decision_reviews`, and `decision_proposed_actions`.
+
+### Consequences
+- **Positive**: Auditable decision packages, zero hallucinated certainty, preserved uncertainty, and safe bridging from research directly to authorized execution.
+- **Negative**: Consequential actions are intentionally gated behind human confirmation, preventing silent autonomous modifications.
+
+---
+
+## ADR-033: Persistent Distributed Execution & 24/7 Operations Fabric (FP-19)
+
+### Status
+Accepted / Complete (FP-19)
+
+### Context
+HṚṢĪKEŚA required a durable, fault-tolerant execution substrate capable of running 24/7 unattended across heterogeneous compute environments (`LOCAL`, `LAN`, `REMOTE`, `CLOUD`, `HOSTED`) directly beneath existing orchestration systems (Missions, Workflows, Goals, Skills, Company OS) without risk of orphaned jobs, split-brain state corruption, or unconstrained cloud billing.
+
+### Decision
+1. **Low-Level Execution Substrate Architecture**:
+   - Operates as the underlying execution fabric beneath Missions (FP-14), Workflows (FP-11), Goals (FP-15), Skills (FP-20), and Company OS (FP-18).
+   - Manages placement, locks, heartbeats, checkpoints, and retries without re-implementing task decomposition or agent planning.
+2. **Distributed Leases & Monotonic Fencing Tokens**:
+   - Mutual exclusion distributed leases with strictly increasing 64-bit monotonic fencing tokens (`fenceToken = max(existing) + 1`).
+   - Rejects stale tokens on all state updates and checkpoint commits to eliminate split-brain and zombie execution loops.
+3. **Incremental Checkpointing & State Migration**:
+   - Persists step snapshots, memory context, runtime variables, and verification evidence.
+   - `JobMigrationPackage` transports complete state between workers across runtimes with zero loss of progress.
+4. **Multi-Queue Priority Scheduling & Hardware Constraints**:
+   - 5 priority queues (`CRITICAL`, `HIGH`, `NORMAL`, `LOW`, `BACKGROUND`).
+   - Enforces locality affinity, minimum CPU/RAM, and GPU backend compatibility (Vulkan/DirectML vs CUDA) with anti-starvation priority aging.
+5. **Autonomous Recovery & Dead-Letter Routing**:
+   - Detects stale workers via heartbeat daemon (10s intervals; 3 missed heartbeats marks worker `OFFLINE`).
+   - Automatically reclaims abandoned leases, re-enqueues jobs with exponential backoff and jitter, and routes exhausted jobs to `DEAD_LETTER`.
+6. **Strict Human Cloud Cost Governance**:
+   - Unattended 24/7 execution permitted on zero-incremental-cost runtimes (`LOCAL`, `LAN`, pre-paid `REMOTE`).
+   - Any attempt to provision or dispatch to paid cloud instances strictly requires explicit human operator authorization (`DENY_PAID_WITHOUT_APPROVAL`).
+7. **Zero Heavy External Orchestrators**:
+   - Pure Node.js/TypeScript and WAL-mode SQLite (`data/hrisekesa.db`) without Redis, Kafka, Celery, Temporal, or Kubernetes dependencies.
+8. **Persistence Layer (Migration 033)**:
+   - 9 relational SQLite tables: `execution_runtimes`, `execution_workers`, `execution_jobs`, `execution_leases`, `execution_checkpoints`, `execution_queues`, `cloud_providers`, `cloud_instances`, and `execution_traces`.
+
+### Consequences
+- **Positive**: Resilient 24/7 autonomous operations, zero data corruption from stale or zombie workers, seamless cross-node migration, and guaranteed financial safety against unauthorized cloud billing.
+- **Negative**: Distributed workers require network connectivity to the coordinator, and SQLite write concurrency requires careful transaction management under high job throughput.
 
 

@@ -7,8 +7,15 @@
 import { KnowledgeClaimRepository } from '../repositories/knowledge-claim.repository.js';
 import { EntityResolutionService } from './entity-resolution.service.js';
 import { KnowledgeValidationService } from './knowledge-validation.service.js';
+import { KnowledgeEntityRepository } from '../repositories/knowledge-entity.repository.js';
+import { KnowledgeFactRepository } from '../repositories/knowledge-fact.repository.js';
+import { KnowledgeRelationshipRepository } from '../repositories/knowledge-relationship.repository.js';
 import {
   KnowledgeClaim,
+  KnowledgeFact,
+  KnowledgeEntity,
+  KnowledgeRelationship,
+  KnowledgeScope,
   ProvenanceType,
   EntityType,
   RelationshipType,
@@ -35,12 +42,18 @@ export class KnowledgeExtractionService {
   private readonly resolutionService: EntityResolutionService;
   private readonly validationService: KnowledgeValidationService;
   private modelRouter?: any; // ModelRouter from Phase 18
+  private entityRepo?: KnowledgeEntityRepository;
+  private factRepo?: KnowledgeFactRepository;
+  private relRepo?: KnowledgeRelationshipRepository;
 
   constructor(
     claimRepoOrEntityRepo: any,
     resolutionService: EntityResolutionService,
     validationServiceOrLogger?: any,
-    modelRouter?: any
+    modelRouter?: any,
+    entityRepo?: KnowledgeEntityRepository,
+    factRepo?: KnowledgeFactRepository,
+    relRepo?: KnowledgeRelationshipRepository
   ) {
     this.claimRepo = (claimRepoOrEntityRepo?.createClaim ? claimRepoOrEntityRepo : {
       createClaim: (d: any) => ({ id: 'claim-' + Date.now(), ...d, createdAt: new Date().toISOString() })
@@ -51,6 +64,19 @@ export class KnowledgeExtractionService {
       {} as any
     ));
     this.modelRouter = modelRouter;
+    this.entityRepo = entityRepo;
+    this.factRepo = factRepo;
+    this.relRepo = relRepo;
+  }
+
+  public setGraphRepositories(
+    entityRepo: KnowledgeEntityRepository,
+    factRepo: KnowledgeFactRepository,
+    relRepo: KnowledgeRelationshipRepository
+  ): void {
+    this.entityRepo = entityRepo;
+    this.factRepo = factRepo;
+    this.relRepo = relRepo;
   }
 
   public getResolutionService(): EntityResolutionService {
@@ -109,7 +135,7 @@ export class KnowledgeExtractionService {
     }
 
     // Pattern 2: "X uses Y"
-    const usesRegex = /([A-Z][a-zA-Z0-9_\-\s]{2,25})\s+uses\s+([A-Z][a-zA-Z0-9_\-\s]{2,25})/g;
+    const usesRegex = /([\p{L}][\p{L}0-9_\-\s]{1,30}?)\s+uses\s+([\p{L}][\p{L}0-9_\-\s]{1,30}?)(?:[\s,.;]|$)/gu;
     let match: RegExpExecArray | null;
     while ((match = usesRegex.exec(sanitized)) !== null) {
       const sub = match[1].trim();
@@ -125,7 +151,7 @@ export class KnowledgeExtractionService {
     }
 
     // Pattern 3: "X depends on Y"
-    const depRegex = /([A-Z][a-zA-Z0-9_\-\s]{2,25})\s+depends\s+on\s+([A-Z][a-zA-Z0-9_\-\s]{2,25})/g;
+    const depRegex = /([\p{L}][\p{L}0-9_\-\s]{1,30}?)\s+depends\s+on\s+([\p{L}][\p{L}0-9_\-\s]{1,30}?)(?:[\s,.;]|$)/gu;
     while ((match = depRegex.exec(sanitized)) !== null) {
       const sub = match[1].trim();
       const obj = match[2].trim();
@@ -140,7 +166,7 @@ export class KnowledgeExtractionService {
     }
 
     // Pattern 4: "X created Y" / "X developed Y"
-    const createdRegex = /([A-Z][a-zA-Z0-9_\-\s]{2,25})\s+(?:created|developed|built)\s+([A-Z][a-zA-Z0-9_\-\s]{2,25})/g;
+    const createdRegex = /([\p{L}][\p{L}0-9_\-\s]{1,30}?)\s+(?:created|developed|built)\s+([\p{L}][\p{L}0-9_\-\s]{1,30}?)(?:[\s,.;]|$)/gu;
     while ((match = createdRegex.exec(sanitized)) !== null) {
       const sub = match[1].trim();
       const obj = match[2].trim();
@@ -258,5 +284,131 @@ Respond ONLY with valid JSON:
     }
 
     return deterministic;
+  }
+
+  /**
+   * Controlled Extraction Pipeline:
+   * Conversation/Text -> Candidate facts -> Entity resolution -> Relationship detection ->
+   * Confidence assessment -> Provenance classification -> Validation -> Graph persistence.
+   */
+  public async extractAndPersist(
+    textOrInput: string | {
+      content?: string;
+      text?: string;
+      scope?: KnowledgeScope;
+      provenance?: ProvenanceType;
+      sourceReference?: string;
+    },
+    options?: {
+      scope?: KnowledgeScope;
+      provenance?: ProvenanceType;
+      sourceReference?: string;
+    }
+  ): Promise<{
+    facts: KnowledgeFact[];
+    entities: KnowledgeEntity[];
+    relationships: KnowledgeRelationship[];
+    factsCreated: number;
+  }> {
+    const rawText = typeof textOrInput === 'string'
+      ? textOrInput
+      : (textOrInput?.content || textOrInput?.text || '');
+    const scope = (typeof textOrInput === 'object' && textOrInput?.scope) || options?.scope || 'GLOBAL';
+    const defaultProvenance = (typeof textOrInput === 'object' && textOrInput?.provenance) || options?.provenance || 'EXPLICIT';
+    const sourceReference = (typeof textOrInput === 'object' && textOrInput?.sourceReference) || options?.sourceReference || 'conversation';
+
+    // 1. Extract candidates (deterministic + model-assisted if available)
+    const extractionResult = await this.extractWithModel(rawText, defaultProvenance, sourceReference);
+
+    const createdFacts: KnowledgeFact[] = [];
+    const resolvedEntities: KnowledgeEntity[] = [];
+    const createdRelationships: KnowledgeRelationship[] = [];
+
+    if (!this.factRepo || !this.entityRepo) {
+      return { facts: createdFacts, entities: resolvedEntities, relationships: createdRelationships, factsCreated: 0 };
+    }
+
+    for (const cand of extractionResult.candidates) {
+      if (cand.confidence < 0.7) continue;
+
+      // Entity resolution for subject
+      const subRes = await this.resolutionService.resolveEntity(cand.subject, {
+        scope,
+        entityType: cand.subjectType || 'CONCEPT',
+        confidenceThreshold: 0.8,
+      });
+
+      let subEntity: KnowledgeEntity;
+      if (subRes.resolved && subRes.entity) {
+        subEntity = subRes.entity;
+      } else {
+        subEntity = this.entityRepo.createEntity({
+          canonicalName: cand.subject,
+          displayName: cand.subject,
+          entityType: cand.subjectType || (cand.subject.toLowerCase() === 'rushikesh' ? 'PERSON' : 'CONCEPT'),
+          scope: cand.subject.toLowerCase() === 'rushikesh' ? 'CREATOR' : scope,
+        });
+      }
+      resolvedEntities.push(subEntity);
+
+      // Entity resolution for object if relationship
+      let objEntity: KnowledgeEntity | undefined;
+      if (cand.relationshipType && this.relRepo) {
+        const objRes = await this.resolutionService.resolveEntity(cand.object, {
+          scope,
+          entityType: cand.objectType || 'CONCEPT',
+          confidenceThreshold: 0.8,
+        });
+        if (objRes.resolved && objRes.entity) {
+          objEntity = objRes.entity;
+        } else {
+          objEntity = this.entityRepo.createEntity({
+            canonicalName: cand.object,
+            displayName: cand.object,
+            entityType: cand.objectType || 'CONCEPT',
+            scope,
+          });
+        }
+        resolvedEntities.push(objEntity);
+
+        // Create relationship
+        const rel = this.relRepo.createRelationship({
+          sourceEntityId: subEntity.id,
+          relationshipType: cand.relationshipType,
+          targetEntityId: objEntity.id,
+          scope,
+          confidence: cand.confidence,
+        });
+        createdRelationships.push(rel);
+      }
+
+      // Classify provenance: EXPLICIT, DERIVED, INFERRED
+      let provenance: ProvenanceType = defaultProvenance;
+      if (cand.predicate === 'preference') {
+        provenance = 'EXPLICIT';
+      } else if (cand.relationshipType) {
+        provenance = 'DERIVED';
+      }
+
+      // Create fact
+      const fact = this.factRepo.createFact({
+        subjectEntityId: subEntity.id,
+        predicate: cand.predicate,
+        objectEntityId: objEntity?.id,
+        objectValue: cand.object,
+        confidence: cand.confidence,
+        status: 'ACTIVE',
+        scope: subEntity.scope,
+        provenance,
+      });
+      createdFacts.push(fact);
+    }
+
+    return {
+      facts: createdFacts,
+      entities: resolvedEntities,
+      relationships: createdRelationships,
+      factsCreated: createdFacts.length,
+    };
   }
 }

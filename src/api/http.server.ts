@@ -56,6 +56,24 @@ import { OpenAIProvider } from '../models/providers/openai.provider.js';
 import { AnthropicProvider } from '../models/providers/anthropic.provider.js';
 import { GeminiProvider } from '../models/providers/gemini.provider.js';
 import { latencyDiagnostics } from '../conversation/latency.tracker.js';
+import { IdeRoutes } from './routes/ide.routes.js';
+import type { IdeFabric } from '../ide/ide.fabric.js';
+import { EngineeringRoutes } from './routes/engineering.routes.js';
+import type { EngineeringFabric } from '../engineering/engineering.fabric.js';
+import { WorkflowRoutes } from './routes/workflow.routes.js';
+import type { WorkflowFabric } from '../workflows/workflow.fabric.js';
+import { AccountRoutes } from './routes/account.routes.js';
+import type { AccountFabric } from '../accounts/account.fabric.js';
+import { OperatorRoutes } from './routes/operator.routes.js';
+import type { ApplicationOperator } from '../operator/application.operator.js';
+import { MissionRoutes } from './routes/mission.routes.js';
+import type { UniversalAgenticMissionRuntime } from '../mission/mission.runtime.js';
+import { EcosystemRoutes } from './routes/ecosystem.routes.js';
+import type { UniversalEcosystemFabric } from '../ecosystem/ecosystem.fabric.js';
+import { CreationRoutes } from './routes/creation.routes.js';
+import type { CreationFabric } from '../creation/creation.fabric.js';
+import { DecisionRoutes } from './routes/decision.routes.js';
+import type { DecisionFabric } from '../decision/decision.fabric.js';
 
 export interface PersistenceContext {
   readonly db: DatabaseManager;
@@ -146,6 +164,7 @@ export interface PersistentOperationsContext {
 export interface CapabilitiesContext {
   readonly registry?: import('../capabilities/registry/capability.registry.js').CapabilityRegistry;
   readonly router?: import('../capabilities/routing/agent.capability.router.js').AgentCapabilityRouter;
+  readonly fabric?: import('../capabilities/fabric/universal.capability.fabric.js').UniversalCapabilityFabric;
 }
 
 export interface ResearchContext {
@@ -170,6 +189,9 @@ export interface KnowledgeContext {
   readonly contextAssembler: import('../knowledge/services/knowledge-context-assembler.js').KnowledgeContextAssembler;
   readonly consolidationService: import('../knowledge/services/knowledge-consolidation.service.js').KnowledgeConsolidationService;
   readonly timelineService: import('../knowledge/services/knowledge-timeline.service.js').KnowledgeTimelineService;
+  readonly mergeProposalRepo?: import('../knowledge/repositories/knowledge-merge-proposal.repository.js').KnowledgeMergeProposalRepository;
+  readonly researchBridge?: import('../knowledge/services/research-knowledge-bridge.service.js').ResearchKnowledgeBridgeService;
+  readonly decisionRepo?: import('../persistence/repositories/decision.repository.js').DecisionRepository;
 }
 
 export interface SkillsContext {
@@ -218,6 +240,7 @@ export interface SelfImprovementContext {
 
 export class HttpServer {
   private server: http.Server | null = null;
+  private readonly openSockets = new Set<import('node:net').Socket>();
   private readonly config: ServerConfig;
   private readonly identity: IdentityManager;
   private readonly lifecycle: LifecycleManager;
@@ -245,6 +268,29 @@ export class HttpServer {
   private readonly enterpriseEnvironment?: EnterpriseEnvironmentContext; // Phase 23
   private readonly multimodal?: MultimodalContext; // Phase 24
   private readonly selfImprovement?: SelfImprovementContext; // Phase 26
+  private cognitiveContext?: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine; // Track A / INT-007
+  private workingMemory?: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine; // Track A / INT-008
+  private resourceManager?: import('../resources/resource.manager.js').ResourceManager; // FP-03 Distributed Resource Fabric
+  private capabilityFabric?: import('../capabilities/fabric/universal.capability.fabric.js').UniversalCapabilityFabric; // FP-07 Universal Capability Fabric
+  private githubFabric?: import('../github/github.fabric.js').GitHubFabric; // FP-08 GitHub Intelligence & Acquisition Fabric
+  private ideFabric?: IdeFabric; // FP-09 Universal IDE & Development Workspace
+  private ideRoutes?: IdeRoutes;
+  private engineeringFabric?: EngineeringFabric; // FP-10 Autonomous Software Engineering
+  private engineeringRoutes?: EngineeringRoutes;
+  private workflowFabric?: WorkflowFabric; // FP-11 Universal Workflow & Automation Engine
+  private workflowRoutes?: WorkflowRoutes;
+  private accountFabric?: AccountFabric; // FP-12 Universal Service & Account Integration Fabric
+  private accountRoutes?: AccountRoutes;
+  private operator?: ApplicationOperator; // FP-13 Universal Digital Workspace & Application Operator
+  private operatorRoutes?: OperatorRoutes;
+  private missionRuntime?: UniversalAgenticMissionRuntime; // FP-14 Universal Agentic Mission & Workforce Runtime
+  private missionRoutes?: MissionRoutes;
+  private ecosystemFabric?: UniversalEcosystemFabric; // FP-15 Universal Application & Service Ecosystem
+  private ecosystemRoutes?: EcosystemRoutes;
+  private creationFabric?: CreationFabric; // FP-17 Universal Digital Creation & Media Studio
+  private creationRoutes?: CreationRoutes;
+  private decisionFabric?: DecisionFabric; // FP-18 Universal Real-World Research & Decision Intelligence Fabric
+  private decisionRoutes?: DecisionRoutes;
 
   constructor(
     config: ServerConfig,
@@ -302,6 +348,108 @@ export class HttpServer {
     this.enterpriseEnvironment = enterpriseEnvironment;
     this.multimodal = multimodal;
     this.selfImprovement = selfImprovement;
+    this.capabilityFabric = capabilities?.fabric;
+  }
+
+  public setCapabilityFabric(fabric: import('../capabilities/fabric/universal.capability.fabric.js').UniversalCapabilityFabric): void {
+    this.capabilityFabric = fabric;
+  }
+
+  public setCognitiveContextEngine(engine: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine): void {
+    this.cognitiveContext = engine;
+  }
+
+  public setWorkingMemoryEngine(engine: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine): void {
+    this.workingMemory = engine;
+  }
+
+  public setResourceManager(manager: import('../resources/resource.manager.js').ResourceManager): void {
+    this.resourceManager = manager;
+  }
+
+  public setGitHubFabric(fabric: import('../github/github.fabric.js').GitHubFabric): void {
+    this.githubFabric = fabric;
+  }
+
+  public setIdeFabric(fabric: IdeFabric): void {
+    this.ideFabric = fabric;
+    this.ideRoutes = new IdeRoutes(fabric);
+  }
+
+  public getIdeFabric(): IdeFabric | undefined {
+    return this.ideFabric;
+  }
+
+  public setEngineeringFabric(fabric: EngineeringFabric): void {
+    this.engineeringFabric = fabric;
+    this.engineeringRoutes = new EngineeringRoutes(fabric);
+  }
+
+  public getEngineeringFabric(): EngineeringFabric | undefined {
+    return this.engineeringFabric;
+  }
+
+  public setWorkflowFabric(fabric: WorkflowFabric): void {
+    this.workflowFabric = fabric;
+    this.workflowRoutes = new WorkflowRoutes(fabric);
+  }
+
+  public getWorkflowFabric(): WorkflowFabric | undefined {
+    return this.workflowFabric;
+  }
+
+  public setAccountFabric(fabric: AccountFabric): void {
+    this.accountFabric = fabric;
+    this.accountRoutes = new AccountRoutes(fabric, this.logger, this.eventBus);
+  }
+
+  public getAccountFabric(): AccountFabric | undefined {
+    return this.accountFabric;
+  }
+
+  public setOperator(operator: ApplicationOperator): void {
+    this.operator = operator;
+    this.operatorRoutes = new OperatorRoutes(operator, this.logger, this.eventBus);
+  }
+
+  public getOperator(): ApplicationOperator | undefined {
+    return this.operator;
+  }
+
+  public setMissionRuntime(runtime: UniversalAgenticMissionRuntime): void {
+    this.missionRuntime = runtime;
+    this.missionRoutes = new MissionRoutes(runtime, this.logger, this.eventBus);
+  }
+
+  public getMissionRuntime(): UniversalAgenticMissionRuntime | undefined {
+    return this.missionRuntime;
+  }
+
+  public setEcosystemFabric(fabric: UniversalEcosystemFabric): void {
+    this.ecosystemFabric = fabric;
+    this.ecosystemRoutes = new EcosystemRoutes(fabric, this.logger, this.eventBus);
+  }
+
+  public getEcosystemFabric(): UniversalEcosystemFabric | undefined {
+    return this.ecosystemFabric;
+  }
+
+  public setCreationFabric(fabric: CreationFabric): void {
+    this.creationFabric = fabric;
+    this.creationRoutes = new CreationRoutes(fabric, this.eventBus);
+  }
+
+  public getCreationFabric(): CreationFabric | undefined {
+    return this.creationFabric;
+  }
+
+  public setDecisionFabric(fabric: DecisionFabric): void {
+    this.decisionFabric = fabric;
+    this.decisionRoutes = new DecisionRoutes(fabric, this.eventBus);
+  }
+
+  public getDecisionFabric(): DecisionFabric | undefined {
+    return this.decisionFabric;
   }
 
   public async start(): Promise<void> {
@@ -310,6 +458,13 @@ export class HttpServer {
         this.handleRequest(req, res).catch((err) => {
           this.logger?.error('Unhandled request exception', err);
           this.sendJson(res, 500, { error: 'Internal server error', details: String(err) });
+        });
+      });
+
+      this.server.on('connection', (socket) => {
+        this.openSockets.add(socket);
+        socket.once('close', () => {
+          this.openSockets.delete(socket);
         });
       });
 
@@ -327,6 +482,15 @@ export class HttpServer {
 
   public async stop(): Promise<void> {
     if (!this.server) return;
+
+    for (const socket of this.openSockets) {
+      try {
+        socket.destroy();
+      } catch {
+        // Ignore
+      }
+    }
+    this.openSockets.clear();
 
     return new Promise((resolve, reject) => {
       try {
@@ -361,6 +525,51 @@ export class HttpServer {
     if (method === 'OPTIONS') {
       res.writeHead(204);
       res.end();
+      return;
+    }
+
+    // FP-18 Universal Real-World Research & Decision Intelligence Fabric
+    if (this.decisionRoutes && (await this.decisionRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-17 Universal Digital Creation & Media Studio Subsystem
+    if (this.creationRoutes && (await this.creationRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-15 Universal Application & Service Ecosystem Subsystem
+    if (this.ecosystemRoutes && (await this.ecosystemRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-14 Universal Agentic Mission & Workforce Runtime Subsystem
+    if (this.missionRoutes && (await this.missionRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-13 Digital Workspace & Application Operator Subsystem
+    if (this.operatorRoutes && (await this.operatorRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-12 Account Subsystem
+    if (this.accountRoutes && (await this.accountRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-11 Workflow Subsystem
+    if (this.workflowRoutes && (await this.workflowRoutes.handle(req, res))) {
+      return;
+    }
+
+    // FP-10 Autonomous Engineering Subsystem
+    if (this.engineeringRoutes && (await this.engineeringRoutes.handleRequest(req, res))) {
+      return;
+    }
+
+    // FP-09 IDE Subsystem
+    if (this.ideRoutes && (await this.ideRoutes.handleRequest(req, res))) {
       return;
     }
 
@@ -703,6 +912,9 @@ export class HttpServer {
         const sessionId = typeof body.sessionId === 'string' ? body.sessionId.trim() : undefined;
         const preferredModel = typeof body.preferredModel === 'string' ? body.preferredModel.trim() : undefined;
         const preferredProvider = typeof body.preferredProvider === 'string' ? body.preferredProvider.trim() : undefined;
+        const responseMode = (typeof body.responseMode === 'string' && ['CONCISE', 'NORMAL', 'DETAILED', 'DEEP'].includes(body.responseMode.toUpperCase()))
+          ? body.responseMode.toUpperCase() as any
+          : undefined;
         const isStreaming = body.stream === true || req.headers.accept?.includes('text/event-stream');
 
         if (isStreaming) {
@@ -726,7 +938,8 @@ export class HttpServer {
             sessionId,
             preferredModel,
             preferredProvider,
-            onToken
+            onToken,
+            responseMode
           );
 
           try {
@@ -740,7 +953,9 @@ export class HttpServer {
           body.message.trim(),
           sessionId,
           preferredModel,
-          preferredProvider
+          preferredProvider,
+          undefined,
+          responseMode
         );
 
         this.sendJson(res, 200, {
@@ -751,6 +966,8 @@ export class HttpServer {
           provider: response.provider,
           timestamp: response.timestamp,
           durationMs: response.durationMs,
+          intentMode: response.intentMode,
+          responseMode: response.responseMode,
           toolCallsExecuted: response.toolCallsExecuted,
           metrics: response.metrics
         });
@@ -2301,7 +2518,21 @@ Maintain your authentic domain focus.`;
           'skill.execution.completed',
           'skill.execution.failed',
           'skill.approval.required',
-          'skill.improvement.proposed'
+          'skill.improvement.proposed',
+          // FP-03 Distributed Resource Fabric events
+          'worker.registered',
+          'worker.online',
+          'worker.offline',
+          'worker.health_changed',
+          'worker.resource_changed',
+          'task.placed',
+          'task.dispatched',
+          'task.started',
+          'task.progress',
+          'task.completed',
+          'task.failed',
+          'task.requeued',
+          'task.cancelled',
         ];
 
         for (const name of eventNames) {
@@ -3686,102 +3917,341 @@ Maintain your authentic domain focus.`;
     // PHASE 16 — CAPABILITY REGISTRY & ROUTING
     // ==========================================
 
-    // GET /capabilities/health/all — Check all capabilities health
-    if (pathname === '/capabilities/health/all' && method === 'GET') {
-      if (!this.capabilities?.registry) {
-        this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
+    // ==========================================
+    // FP-07 — UNIVERSAL CAPABILITY & CONNECTOR FABRIC
+    // ==========================================
+
+    // GET /capabilities/events — Real-time Capability Events SSE Stream
+    if (pathname === '/capabilities/events' && method === 'GET') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+      });
+
+      const sendEvent = (eventType: string, data: unknown) => {
+        try {
+          res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
+        } catch {
+          // Client disconnected
+        }
+      };
+
+      sendEvent('connected', {
+        status: 'connected',
+        stream: 'capabilities',
+        timestamp: new Date().toISOString(),
+      });
+
+      const unbinders: Array<() => void> = [];
+      if (this.eventBus) {
+        const capabilityEvents = [
+          'capability.discovered',
+          'capability.registered',
+          'capability.authenticated',
+          'capability.health_changed',
+          'capability.invoked',
+          'capability.verified',
+          'capability.failed',
+          'capability.revoked',
+        ];
+        for (const evName of capabilityEvents) {
+          const unbind = this.eventBus.on(evName as any, (data) => {
+            sendEvent(evName, data);
+          });
+          unbinders.push(unbind);
+        }
+      }
+
+      req.on('close', () => {
+        for (const unbind of unbinders) unbind();
+      });
+      return;
+    }
+
+    // GET /capabilities/search — Search capabilities
+    if (pathname === '/capabilities/search' && method === 'GET') {
+      const q = url.searchParams.get('q') || url.searchParams.get('query') || '';
+      if (this.capabilityFabric) {
+        const results = this.capabilityFabric.searchCapabilities(q);
+        this.sendJson(res, 200, { success: true, count: results.length, capabilities: results });
         return;
       }
-      try {
-        const healthMap = await this.capabilities.registry.checkAllHealth();
-        this.sendJson(res, 200, { success: true, count: Object.keys(healthMap).length, health: healthMap });
-      } catch (err) {
-        this.sendJson(res, 500, {
-          error: 'Failed to check capability health',
-          details: err instanceof Error ? err.message : String(err)
-        });
+      if (this.capabilities?.registry) {
+        const all = this.capabilities.registry.getAll();
+        const filtered = all.filter((c) => c.name.toLowerCase().includes(q.toLowerCase()) || c.description.toLowerCase().includes(q.toLowerCase()));
+        this.sendJson(res, 200, { success: true, count: filtered.length, capabilities: filtered });
+        return;
       }
+      this.sendJson(res, 503, { error: 'Capability Fabric is not enabled.' });
+      return;
+    }
+
+    // GET /capabilities/health/all — Check all capabilities health
+    if (pathname === '/capabilities/health/all' && method === 'GET') {
+      if (this.capabilityFabric) {
+        const all = this.capabilityFabric.listCapabilities();
+        const healthMap: Record<string, unknown> = {};
+        for (const cap of all) {
+          healthMap[cap.id] = await this.capabilityFabric.checkHealth(cap.id);
+        }
+        this.sendJson(res, 200, { success: true, count: Object.keys(healthMap).length, health: healthMap });
+        return;
+      }
+      if (this.capabilities?.registry) {
+        try {
+          const healthMap = await this.capabilities.registry.checkAllHealth();
+          this.sendJson(res, 200, { success: true, count: Object.keys(healthMap).length, health: healthMap });
+        } catch (err) {
+          this.sendJson(res, 500, { error: 'Failed to check capability health', details: String(err) });
+        }
+        return;
+      }
+      this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
       return;
     }
 
     // GET /capabilities — List all registered capabilities
     if (pathname === '/capabilities' && method === 'GET') {
-      if (!this.capabilities?.registry) {
-        this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
+      if (this.capabilityFabric) {
+        const category = (url.searchParams.get('category') as any) || undefined;
+        const protocol = (url.searchParams.get('protocol') as any) || undefined;
+        const status = (url.searchParams.get('status') as any) || undefined;
+        const searchQuery = url.searchParams.get('searchQuery') || undefined;
+
+        const capabilities = this.capabilityFabric.listCapabilities({ category, protocol, status, searchQuery });
+        this.sendJson(res, 200, { success: true, count: capabilities.length, capabilities });
+        return;
+      }
+      if (this.capabilities?.registry) {
+        try {
+          const capabilities = this.capabilities.registry.getAll();
+          this.sendJson(res, 200, { success: true, count: capabilities.length, capabilities });
+        } catch (err) {
+          this.sendJson(res, 500, { error: 'Failed to list capabilities', details: String(err) });
+        }
+        return;
+      }
+      this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
+      return;
+    }
+
+    // POST /capabilities/invoke — Execute via Universal Invocation Pipeline
+    if (pathname === '/capabilities/invoke' && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
         return;
       }
       try {
-        const capabilities = this.capabilities.registry.getAll();
-        this.sendJson(res, 200, { success: true, count: capabilities.length, capabilities });
-      } catch (err) {
-        this.sendJson(res, 500, {
-          error: 'Failed to list capabilities',
-          details: err instanceof Error ? err.message : String(err)
+        const body = (await this.readJsonBody(req).catch(() => ({}))) as Record<string, any>;
+        const result = await this.capabilityFabric.invoke({
+          invocationId: body.invocationId || randomUUID(),
+          capabilityId: String(body.capabilityId || ''),
+          operation: String(body.operation || 'run'),
+          inputs: body.inputs || {},
+          actor: String(body.actor || 'REST_CLIENT'),
+          companyId: body.companyId ? String(body.companyId) : undefined,
+          projectId: body.projectId ? String(body.projectId) : undefined,
+          agentId: body.agentId ? String(body.agentId) : undefined,
+          privacyClass: body.privacyClass || 'PRIVATE',
+          requestedAt: new Date().toISOString(),
+          timeoutMs: typeof body.timeoutMs === 'number' ? body.timeoutMs : undefined,
         });
+        const httpStatus = result.status === 'SUCCESS' ? 200 : result.status === 'BLOCKED' || result.status === 'DENIED' ? 403 : 500;
+        this.sendJson(res, httpStatus, { success: result.status === 'SUCCESS', result });
+      } catch (err) {
+        this.sendJson(res, 400, { error: 'Capability invocation failed', details: String(err) });
       }
+      return;
+    }
+
+    // POST /capabilities/match — Match intent to capability
+    if (pathname === '/capabilities/match' && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      try {
+        const body = (await this.readJsonBody(req).catch(() => ({}))) as Record<string, any>;
+        const matchResult = this.capabilityFabric.match(String(body.intent || ''), {
+          privacyClass: body.privacyClass,
+          companyId: body.companyId,
+          projectId: body.projectId,
+        });
+        this.sendJson(res, 200, { success: true, match: matchResult });
+      } catch (err) {
+        this.sendJson(res, 400, { error: 'Capability matching failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /capabilities/:id/verify — Verify capability
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/verify') && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      try {
+        const verification = await this.capabilityFabric.verify(capabilityId);
+        this.sendJson(res, 200, { success: true, capabilityId, verification });
+      } catch (err) {
+        this.sendJson(res, 400, { error: 'Verification failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /capabilities/:id/enable — Enable capability
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/enable') && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      this.capabilityFabric.enableCapability(capabilityId);
+      this.sendJson(res, 200, { success: true, capabilityId, status: 'AVAILABLE' });
+      return;
+    }
+
+    // POST /capabilities/:id/disable — Disable capability
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/disable') && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      this.capabilityFabric.disableCapability(capabilityId);
+      this.sendJson(res, 200, { success: true, capabilityId, status: 'DISABLED' });
+      return;
+    }
+
+    // POST /capabilities/:id/revoke — Revoke capability
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/revoke') && method === 'POST') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      this.capabilityFabric.revokeCapability(capabilityId);
+      this.sendJson(res, 200, { success: true, capabilityId, status: 'REVOKED' });
+      return;
+    }
+
+    // GET /capabilities/:id/dependencies — Get capability dependencies
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/dependencies') && method === 'GET') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      const dependencies = this.capabilityFabric.getDependencies(capabilityId);
+      this.sendJson(res, 200, { success: true, capabilityId, dependencies });
+      return;
+    }
+
+    // GET /capabilities/:id/invocations — Get capability invocation audit trail
+    if (pathname.startsWith('/capabilities/') && pathname.endsWith('/invocations') && method === 'GET') {
+      if (!this.capabilityFabric) {
+        this.sendJson(res, 503, { error: 'Universal Capability Fabric is not enabled.' });
+        return;
+      }
+      const capabilityId = pathname.split('/')[2];
+      const invocations = this.capabilityFabric.getInvocations(capabilityId, 50);
+      this.sendJson(res, 200, { success: true, capabilityId, count: invocations.length, invocations });
       return;
     }
 
     // GET /capabilities/:id/health — Check health of a specific capability
     if (pathname.startsWith('/capabilities/') && pathname.endsWith('/health') && method === 'GET') {
-      if (!this.capabilities?.registry) {
-        this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
+      const capabilityId = pathname.split('/')[2];
+      if (this.capabilityFabric) {
+        const health = await this.capabilityFabric.checkHealth(capabilityId);
+        this.sendJson(res, 200, { success: true, capabilityId, health });
         return;
       }
-      const capabilityId = pathname.split('/')[2];
-      try {
-        const health = await this.capabilities.registry.checkHealth(capabilityId);
-        this.sendJson(res, 200, { success: true, capabilityId, health });
-      } catch (err) {
-        this.sendJson(res, 400, {
-          error: 'Failed to check capability health',
-          details: err instanceof Error ? err.message : String(err)
-        });
+      if (this.capabilities?.registry) {
+        try {
+          const health = await this.capabilities.registry.checkHealth(capabilityId);
+          this.sendJson(res, 200, { success: true, capabilityId, health });
+        } catch (err) {
+          this.sendJson(res, 400, { error: 'Failed to check capability health', details: String(err) });
+        }
+        return;
       }
+      this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
       return;
     }
 
     // GET /capabilities/:id — Get specific capability metadata
     if (pathname.startsWith('/capabilities/') && method === 'GET') {
-      if (!this.capabilities?.registry) {
-        this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
-        return;
-      }
       const capabilityId = pathname.split('/')[2];
-      const cap = this.capabilities.registry.get(capabilityId);
-      if (!cap) {
-        this.sendJson(res, 404, { error: `Capability '${capabilityId}' not found.` });
+      if (this.capabilityFabric) {
+        const cap = this.capabilityFabric.getCapability(capabilityId);
+        if (!cap) {
+          this.sendJson(res, 404, { error: `Capability '${capabilityId}' not found.` });
+          return;
+        }
+        this.sendJson(res, 200, { success: true, capability: cap });
         return;
       }
-      this.sendJson(res, 200, { success: true, capability: cap });
+      if (this.capabilities?.registry) {
+        const cap = this.capabilities.registry.get(capabilityId);
+        if (!cap) {
+          this.sendJson(res, 404, { error: `Capability '${capabilityId}' not found.` });
+          return;
+        }
+        this.sendJson(res, 200, { success: true, capability: cap });
+        return;
+      }
+      this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
       return;
     }
 
-    // POST /capabilities/execute — Execute capability request
+    // POST /capabilities/execute — Execute capability request (Legacy compatibility)
     if (pathname === '/capabilities/execute' && method === 'POST') {
-      if (!this.capabilities?.registry) {
-        this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
+      if (this.capabilityFabric) {
+        try {
+          const body = (await this.readJsonBody(req).catch(() => ({}))) as Record<string, any>;
+          const result = await this.capabilityFabric.invoke({
+            invocationId: randomUUID(),
+            capabilityId: String(body.capabilityId || ''),
+            operation: String(body.action || 'run'),
+            inputs: body.parameters || {},
+            actor: String(body.callerAgentId || 'LEGACY_API'),
+            companyId: body.companyId ? String(body.companyId) : undefined,
+            projectId: body.projectId ? String(body.projectId) : undefined,
+            missionId: body.missionId ? String(body.missionId) : undefined,
+            privacyClass: 'PRIVATE',
+            requestedAt: new Date().toISOString(),
+          });
+          this.sendJson(res, result.status === 'SUCCESS' ? 200 : 400, { success: result.status === 'SUCCESS', result });
+          return;
+        } catch (err) {
+          this.sendJson(res, 400, { error: 'Failed to execute capability', details: String(err) });
+          return;
+        }
+      }
+      if (this.capabilities?.registry) {
+        try {
+          const rawBody = await this.readJsonBody(req).catch(() => ({}));
+          const body = rawBody as Record<string, any>;
+          const result = await this.capabilities.registry.execute({
+            capabilityId: String(body.capabilityId || ''),
+            action: String(body.action || ''),
+            parameters: body.parameters || {},
+            callerAgentId: body.callerAgentId ? String(body.callerAgentId) : undefined,
+            companyId: body.companyId ? String(body.companyId) : undefined,
+            projectId: body.projectId ? String(body.projectId) : undefined,
+            missionId: body.missionId ? String(body.missionId) : undefined,
+          });
+          this.sendJson(res, result.success ? 200 : 400, { success: result.success, result });
+        } catch (err) {
+          this.sendJson(res, 400, { error: 'Failed to execute capability', details: String(err) });
+        }
         return;
       }
-      try {
-        const rawBody = await this.readJsonBody(req).catch(() => ({}));
-        const body = rawBody as Record<string, any>;
-        const result = await this.capabilities.registry.execute({
-          capabilityId: String(body.capabilityId || ''),
-          action: String(body.action || ''),
-          parameters: body.parameters || {},
-          callerAgentId: body.callerAgentId ? String(body.callerAgentId) : undefined,
-          companyId: body.companyId ? String(body.companyId) : undefined,
-          projectId: body.projectId ? String(body.projectId) : undefined,
-          missionId: body.missionId ? String(body.missionId) : undefined,
-        });
-        this.sendJson(res, result.success ? 200 : 400, { success: result.success, result });
-      } catch (err) {
-        this.sendJson(res, 400, {
-          error: 'Failed to execute capability',
-          details: err instanceof Error ? err.message : String(err)
-        });
-      }
+      this.sendJson(res, 503, { error: 'Capability Registry is not enabled.' });
       return;
     }
 
@@ -4067,6 +4537,17 @@ Maintain your authentic domain focus.`;
         }
         return;
       }
+    }
+
+    // GET /knowledge/entities/:id/neighbors
+    if (pathname.startsWith('/knowledge/entities/') && pathname.endsWith('/neighbors') && method === 'GET' && this.knowledge) {
+      const parts = pathname.split('/');
+      const entityId = parts[3];
+      const limit = Number(url.searchParams.get('limit')) || 25;
+      const maxDepth = Number(url.searchParams.get('depth')) || 1;
+      const neighbors = this.knowledge.graphService.findNeighbors(entityId, { limit, maxDepth });
+      this.sendJson(res, 200, { success: true, entityId, count: neighbors.length, neighbors });
+      return;
     }
 
     // GET /knowledge/entities/:id/relationships
@@ -4368,6 +4849,75 @@ Maintain your authentic domain focus.`;
         this.sendJson(res, 200, { success: true, report });
       } catch (err) {
         this.sendJson(res, 500, { error: 'Consolidation failed', details: String(err) });
+      }
+      return;
+    }
+
+    // GET /knowledge/evidence
+    if (pathname === '/knowledge/evidence' && method === 'GET' && this.knowledge) {
+      const factId = url.searchParams.get('factId');
+      const studyId = url.searchParams.get('studyId') || undefined;
+      const limit = Number(url.searchParams.get('limit')) || 100;
+      const offset = Number(url.searchParams.get('offset')) || 0;
+      let evidenceList: any[] = [];
+      if (factId) {
+        evidenceList = this.knowledge.evidenceRepo.findEvidenceForFact(factId);
+      } else {
+        evidenceList = this.knowledge.evidenceRepo.listEvidence({ studyId, limit, offset });
+      }
+      this.sendJson(res, 200, { success: true, count: evidenceList.length, evidence: evidenceList });
+      return;
+    }
+
+    // GET /knowledge/proposals
+    if (pathname === '/knowledge/proposals' && method === 'GET' && this.knowledge?.mergeProposalRepo) {
+      const status = (url.searchParams.get('status') as any) || undefined;
+      const limit = Number(url.searchParams.get('limit')) || 50;
+      const proposals = this.knowledge.mergeProposalRepo.listProposals({ status, limit });
+      this.sendJson(res, 200, { success: true, count: proposals.length, proposals });
+      return;
+    }
+
+    // POST /knowledge/proposals/:id/resolve
+    if (pathname.startsWith('/knowledge/proposals/') && pathname.endsWith('/resolve') && method === 'POST' && this.knowledge?.resolutionService) {
+      const parts = pathname.split('/');
+      const proposalId = parts[3];
+      try {
+        const body = (await this.readJsonBody(req)) as any;
+        const status = body.status === 'APPROVED' ? 'APPROVED' : 'REJECTED';
+        const resolvedBy = body.resolvedBy || 'USER';
+        const result = await this.knowledge.resolutionService.resolveMergeProposal(proposalId, status, resolvedBy);
+        this.sendJson(res, 200, { success: true, result });
+      } catch (err: any) {
+        this.sendJson(res, 400, { error: 'Failed to resolve proposal', details: String(err?.message || err) });
+      }
+      return;
+    }
+
+    // GET /knowledge/decisions
+    if (pathname === '/knowledge/decisions' && method === 'GET' && this.knowledge) {
+      const companyId = url.searchParams.get('companyId') || undefined;
+      const projectId = url.searchParams.get('projectId') || undefined;
+      const status = (url.searchParams.get('status') as any) || undefined;
+      let decisions: any[] = [];
+      if (this.knowledge.decisionRepo) {
+        decisions = this.knowledge.decisionRepo.list({ companyId, projectId, status, limit: 100 });
+      }
+      this.sendJson(res, 200, { success: true, count: decisions.length, decisions });
+      return;
+    }
+
+    // POST /knowledge/ingest/research
+    if (pathname === '/knowledge/ingest/research' && method === 'POST' && this.knowledge?.researchBridge) {
+      try {
+        const body = (await this.readJsonBody(req)) as any;
+        const report = await this.knowledge.researchBridge.ingestResearchStudy(body);
+        this.sendJson(res, 200, { success: true, report });
+      } catch (err: any) {
+        this.sendJson(res, 400, {
+          error: 'Failed to ingest research study into knowledge graph',
+          details: String(err?.message || err),
+        });
       }
       return;
     }
@@ -6153,6 +6703,702 @@ Maintain your authentic domain focus.`;
       }
     }
 
+    // Track A / INT-007: Cognitive Context Engine APIs
+    if (this.cognitiveContext) {
+      // GET /context/trace/:requestId
+      if (pathname.startsWith('/context/trace/') && method === 'GET') {
+        const reqId = pathname.slice('/context/trace/'.length);
+        const trace = this.cognitiveContext.getTrace(reqId);
+        if (!trace) {
+          this.sendJson(res, 404, { success: false, error: 'Context trace not found', requestId: reqId });
+        } else {
+          this.sendJson(res, 200, { success: true, trace });
+        }
+        return;
+      }
+
+      // GET /context/traces
+      if (pathname === '/context/traces' && method === 'GET') {
+        const traces = this.cognitiveContext.listTraces(50);
+        this.sendJson(res, 200, { success: true, count: traces.length, traces });
+        return;
+      }
+
+      // POST /context/assemble
+      if (pathname === '/context/assemble' && method === 'POST') {
+        try {
+          const body = await this.readJsonBody(req);
+          const result = await this.cognitiveContext.assembleCognitiveContext({
+            userMessage: (body.userMessage as string) || (body.query as string) || '',
+            projectId: body.projectId as string,
+            companyId: body.companyId as string,
+            agentId: body.agentId as string,
+            goalId: body.goalId as string,
+            missionId: body.missionId as string,
+            taskId: body.taskId as string,
+            intent: body.intent as any,
+            requestedDepth: body.requestedDepth as any,
+            privacyLevel: body.privacyLevel as any,
+            temporalScope: body.temporalScope as any,
+            referenceTime: body.referenceTime as any,
+            modelContextBudget: body.modelContextBudget as any,
+          });
+          this.sendJson(res, 200, { success: true, result });
+        } catch (err: any) {
+          this.sendJson(res, 400, { success: false, error: err.message });
+        }
+        return;
+      }
+    }
+
+    // Track A / INT-008: Persistent Working Memory & Continuity APIs
+    if (this.workingMemory) {
+      const parsedUrl = new URL(req.url || '/', `http://${this.config.host}:${this.config.port}`);
+      const sessionIdParam = parsedUrl.searchParams.get('sessionId') || 'default';
+
+      // GET /working-memory
+      if (pathname === '/working-memory' && method === 'GET') {
+        const activeThread = this.workingMemory.threadManager.getActiveThread(sessionIdParam);
+        const state = this.workingMemory.continuityTracker.getContinuityState(sessionIdParam, activeThread ?? undefined);
+        const preview = this.workingMemory.assembleWorkingContext(sessionIdParam);
+        this.sendJson(res, 200, {
+          success: true,
+          sessionId: sessionIdParam,
+          activeThread,
+          activeProject: state.activeProject,
+          activeCompany: state.activeCompany,
+          activeTask: state.activeTask,
+          workingItemsCount: state.workingItems.length,
+          workingItems: state.workingItems,
+          pendingItemsCount: state.pendingItems.length,
+          pendingItems: state.pendingItems,
+          blockers: state.blockers,
+          nextSteps: state.nextSteps,
+          continuityContext: preview,
+        });
+        return;
+      }
+
+      // GET /working-memory/active
+      if (pathname === '/working-memory/active' && method === 'GET') {
+        const activeThread = this.workingMemory.threadManager.getActiveThread(sessionIdParam);
+        const state = this.workingMemory.continuityTracker.getContinuityState(sessionIdParam, activeThread ?? undefined);
+        this.sendJson(res, 200, {
+          success: true,
+          activeThread,
+          activeProject: state.activeProject,
+          activeCompany: state.activeCompany,
+          activeGoal: state.activeGoal,
+          activeMission: state.activeMission,
+          activeTask: state.activeTask,
+          blockers: state.blockers.map((b) => b.content),
+          nextSteps: state.nextSteps.map((n) => n.content),
+        });
+        return;
+      }
+
+      // GET /working-memory/threads
+      if (pathname === '/working-memory/threads' && method === 'GET') {
+        const statusParam = parsedUrl.searchParams.get('status') as any;
+        const threads = this.workingMemory.threadManager.listThreadsForSession(sessionIdParam, statusParam);
+        this.sendJson(res, 200, {
+          success: true,
+          sessionId: sessionIdParam,
+          count: threads.length,
+          threads,
+        });
+        return;
+      }
+
+      // GET /working-memory/threads/:id
+      if (pathname.startsWith('/working-memory/threads/') && method === 'GET') {
+        const threadId = pathname.slice('/working-memory/threads/'.length);
+        const thread = this.workingMemory.threadManager.getThreadById(threadId);
+        if (!thread) {
+          this.sendJson(res, 404, { success: false, error: 'Thread not found', threadId });
+        } else {
+          this.sendJson(res, 200, { success: true, thread });
+        }
+        return;
+      }
+
+      // GET /working-memory/pending
+      if (pathname === '/working-memory/pending' && method === 'GET') {
+        const pending = this.workingMemory.pendingRepo.listOpenBySession(sessionIdParam, 50);
+        this.sendJson(res, 200, {
+          success: true,
+          sessionId: sessionIdParam,
+          count: pending.length,
+          pending,
+        });
+        return;
+      }
+
+      // GET /working-memory/checkpoints
+      if (pathname === '/working-memory/checkpoints' && method === 'GET') {
+        const checkpoints = this.workingMemory.checkpointManager.listCheckpoints(sessionIdParam);
+        this.sendJson(res, 200, {
+          success: true,
+          sessionId: sessionIdParam,
+          count: checkpoints.length,
+          checkpoints,
+        });
+        return;
+      }
+
+      // POST /working-memory/checkpoints/:id/restore
+      if (pathname.startsWith('/working-memory/checkpoints/') && pathname.endsWith('/restore') && method === 'POST') {
+        const checkpointId = pathname.replace('/working-memory/checkpoints/', '').replace('/restore', '').trim();
+        const restored = this.workingMemory.checkpointManager.restoreCheckpoint(checkpointId, sessionIdParam);
+        if (!restored.success) {
+          this.sendJson(res, 404, { success: false, error: 'Checkpoint not found', checkpointId });
+        } else {
+          this.sendJson(res, 200, { success: true, restored });
+        }
+        return;
+      }
+    }
+
+    // ==========================================
+    // FP-03: DISTRIBUTED RESOURCE FABRIC (Workers & Compute Plane)
+    // ==========================================
+
+    if (this.resourceManager) {
+      // GET /resources/overview
+      if (pathname === '/resources/overview' && method === 'GET') {
+        const overview = this.resourceManager.getFabricOverview();
+        this.sendJson(res, 200, overview);
+        return;
+      }
+
+      // GET /resources/workers
+      if (pathname === '/resources/workers' && method === 'GET') {
+        const workers = this.resourceManager.registry.getAllWorkers();
+        this.sendJson(res, 200, { workers, total: workers.length });
+        return;
+      }
+
+      // POST /resources/workers/pair (Generates pairing enrollment token)
+      if (pathname === '/resources/workers/pair' && method === 'POST') {
+        const body = await this.readJsonBody(req);
+        const name = (body.name as string) || `lan_worker_${Date.now().toString(36)}`;
+        const ttlSeconds = (body.ttlSeconds as number) || 600;
+        const result = this.resourceManager.generateEnrollmentToken(name, ttlSeconds);
+        this.sendJson(res, 201, {
+          success: true,
+          name,
+          token: result.token,
+          expiresAt: result.expiresAt,
+          instructions: 'Pass this token in enrollment request to authenticate worker node.'
+        });
+        return;
+      }
+
+      // POST /resources/workers/enroll (Registers LAN worker presenting pairing token)
+      if (pathname === '/resources/workers/enroll' && method === 'POST') {
+        const body = await this.readJsonBody(req);
+        const presentedToken = body.token as string;
+        const workerData = body.worker as any;
+        if (!presentedToken || !workerData || !workerData.id) {
+          this.sendJson(res, 400, { error: 'Missing token or worker definition.' });
+          return;
+        }
+        const enrollResult = this.resourceManager.authenticateAndRegisterWorker(workerData, presentedToken);
+        if (!enrollResult.success) {
+          this.sendJson(res, 401, { error: enrollResult.error });
+          return;
+        }
+        this.sendJson(res, 200, { success: true, workerId: workerData.id, status: 'ENROLLED' });
+        return;
+      }
+
+      // POST /resources/workers/:id/revoke
+      if (pathname.startsWith('/resources/workers/') && pathname.endsWith('/revoke') && method === 'POST') {
+        const workerId = pathname.replace('/resources/workers/', '').replace('/revoke', '').trim();
+        this.resourceManager.revokeWorker(workerId);
+        this.sendJson(res, 200, { success: true, workerId, status: 'REVOKED' });
+        return;
+      }
+
+      // POST /resources/workers/:id/drain
+      if (pathname.startsWith('/resources/workers/') && pathname.endsWith('/drain') && method === 'POST') {
+        const workerId = pathname.replace('/resources/workers/', '').replace('/drain', '').trim();
+        this.resourceManager.drainWorker(workerId);
+        this.sendJson(res, 200, { success: true, workerId, status: 'DRAINING' });
+        return;
+      }
+
+      // POST /resources/workers/:id/resume
+      if (pathname.startsWith('/resources/workers/') && pathname.endsWith('/resume') && method === 'POST') {
+        const workerId = pathname.replace('/resources/workers/', '').replace('/resume', '').trim();
+        this.resourceManager.resumeWorker(workerId);
+        this.sendJson(res, 200, { success: true, workerId, status: 'ONLINE' });
+        return;
+      }
+
+      // GET /resources/workers/:id/capabilities
+      if (pathname.startsWith('/resources/workers/') && pathname.endsWith('/capabilities') && method === 'GET') {
+        const workerId = pathname.replace('/resources/workers/', '').replace('/capabilities', '').trim();
+        const worker = this.resourceManager.registry.getWorker(workerId);
+        if (!worker) {
+          this.sendJson(res, 404, { error: `Worker '${workerId}' not found.` });
+          return;
+        }
+        this.sendJson(res, 200, { workerId, capabilities: worker.capabilities });
+        return;
+      }
+
+      // GET /resources/workers/:id/health
+      if (pathname.startsWith('/resources/workers/') && pathname.endsWith('/health') && method === 'GET') {
+        const workerId = pathname.replace('/resources/workers/', '').replace('/health', '').trim();
+        const worker = this.resourceManager.registry.getWorker(workerId);
+        if (!worker) {
+          this.sendJson(res, 404, { error: `Worker '${workerId}' not found.` });
+          return;
+        }
+        const snapshots = this.resourceManager.registry.getLatestSnapshots(workerId, 5);
+        this.sendJson(res, 200, {
+          workerId,
+          status: worker.status,
+          trustLevel: worker.trustLevel,
+          lastHeartbeat: worker.lastHeartbeat,
+          loadScore: worker.loadScore,
+          latestSnapshots: snapshots
+        });
+        return;
+      }
+
+      // GET /resources/workers/:id
+      if (pathname.startsWith('/resources/workers/') && method === 'GET') {
+        const workerId = pathname.replace('/resources/workers/', '').trim();
+        const worker = this.resourceManager.registry.getWorker(workerId);
+        if (!worker) {
+          this.sendJson(res, 404, { error: `Worker '${workerId}' not found.` });
+          return;
+        }
+        const snapshots = this.resourceManager.registry.getLatestSnapshots(workerId, 5);
+        const tasks = this.resourceManager.registry.getTasksByWorker(workerId, 10);
+        this.sendJson(res, 200, { worker, latestSnapshots: snapshots, recentTasks: tasks });
+        return;
+      }
+
+      // GET /resources/tasks
+      if (pathname === '/resources/tasks' && method === 'GET') {
+        const queued = this.resourceManager.registry.getQueuedTasks();
+        this.sendJson(res, 200, { tasks: queued, total: queued.length });
+        return;
+      }
+
+      // POST /resources/tasks (Submit task for placement & dispatch)
+      if (pathname === '/resources/tasks' && method === 'POST') {
+        const body = await this.readJsonBody(req);
+        const taskType = body.taskType as string;
+        if (!taskType) {
+          this.sendJson(res, 400, { error: 'Missing required field: taskType' });
+          return;
+        }
+        const submitResult = await this.resourceManager.submitTask({
+          id: body.id as string,
+          taskType,
+          priority: body.priority as number,
+          privacyLevel: body.privacyLevel as any,
+          requiredCapabilities: body.requiredCapabilities as string[],
+          resourceRequirements: body.resourceRequirements as any,
+          preferredWorkerId: body.preferredWorkerId as string,
+          idempotencyKey: body.idempotencyKey as string,
+          inputPayload: body.inputPayload as Record<string, unknown>,
+          timeoutMs: body.timeoutMs as number
+        });
+        this.sendJson(res, submitResult.success ? 200 : 500, submitResult);
+        return;
+      }
+
+      // POST /resources/tasks/:id/cancel
+      if (pathname.startsWith('/resources/tasks/') && pathname.endsWith('/cancel') && method === 'POST') {
+        const taskId = pathname.replace('/resources/tasks/', '').replace('/cancel', '').trim();
+        const cancelled = this.resourceManager.cancelTask(taskId, 'Cancelled via API');
+        this.sendJson(res, 200, { success: cancelled, taskId });
+        return;
+      }
+
+      // GET /resources/tasks/:id
+      if (pathname.startsWith('/resources/tasks/') && method === 'GET') {
+        const taskId = pathname.replace('/resources/tasks/', '').trim();
+        const task = this.resourceManager.registry.getTask(taskId);
+        if (!task) {
+          this.sendJson(res, 404, { error: `Task '${taskId}' not found.` });
+          return;
+        }
+        this.sendJson(res, 200, { task });
+        return;
+      }
+    }
+
+    // FP-08: GitHub & Open-Source Intelligence / Acquisition Fabric Routes
+    if (this.githubFabric && pathname.startsWith('/github')) {
+      // GET /github/events — Real-time GitHub intelligence events SSE stream
+      if (pathname === '/github/events' && method === 'GET') {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+        });
+
+        const sendEvent = (eventType: string, data: unknown) => {
+          try {
+            res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
+          } catch {
+            // Client disconnected
+          }
+        };
+
+        sendEvent('connected', {
+          status: 'connected',
+          stream: 'github',
+          timestamp: new Date().toISOString(),
+        });
+
+        const unbinders: Array<() => void> = [];
+        if (this.eventBus) {
+          const githubEvents = [
+            'github.search.started',
+            'github.search.completed',
+            'github.repository.discovered',
+            'github.repository.analysis_started',
+            'github.repository.analysis_completed',
+            'github.acquisition.started',
+            'github.acquisition.completed',
+            'github.build.started',
+            'github.build.completed',
+            'github.test.started',
+            'github.test.completed',
+            'github.integration.proposed',
+            'github.integration.approved',
+            'github.integration.rejected',
+          ];
+
+          for (const evt of githubEvents) {
+            const unbind = this.eventBus.on(evt as any, (data: any) => {
+              sendEvent(evt, data);
+            });
+            unbinders.push(unbind);
+          }
+        }
+
+        const heartbeat = setInterval(() => {
+          try {
+            res.write(': keepalive\n\n');
+          } catch {
+            clearInterval(heartbeat);
+          }
+        }, 15000);
+
+        req.on('close', () => {
+          clearInterval(heartbeat);
+          for (const u of unbinders) {
+            try { u(); } catch {}
+          }
+        });
+        return;
+      }
+
+      // GET /github/ratelimit
+      if (pathname === '/github/ratelimit' && method === 'GET') {
+        const rateLimit = this.githubFabric.getRateLimit();
+        this.sendJson(res, 200, rateLimit);
+        return;
+      }
+
+      // GET /github/search
+      if (pathname === '/github/search' && method === 'GET') {
+        const q = url.searchParams.get('q') || url.searchParams.get('query') || '';
+        const capabilityNeed = url.searchParams.get('capabilityNeed') || undefined;
+        const language = url.searchParams.get('language') || undefined;
+        const license = url.searchParams.get('license') || undefined;
+        const minStarsStr = url.searchParams.get('minStars');
+        const minStars = minStarsStr ? parseInt(minStarsStr, 10) : undefined;
+        const limitStr = url.searchParams.get('limit');
+        const limit = limitStr ? parseInt(limitStr, 10) : 10;
+        const keywordsParam = url.searchParams.get('keywords');
+        const keywords = keywordsParam ? keywordsParam.split(',').map((k) => k.trim()) : undefined;
+
+        try {
+          const results = await this.githubFabric.search({
+            query: q,
+            capabilityNeed,
+            language,
+            license,
+            minStars,
+            limit,
+            keywords,
+          });
+          this.sendJson(res, 200, { query: q, count: results.length, repositories: results });
+        } catch (err: any) {
+          this.sendJson(res, 500, { error: err.message });
+        }
+        return;
+      }
+
+      // GET /github/repositories (list discovered & cached)
+      if (pathname === '/github/repositories' && method === 'GET') {
+        const limitStr = url.searchParams.get('limit');
+        const limit = limitStr ? parseInt(limitStr, 10) : 50;
+        const repos = this.githubFabric.listRepositories(limit);
+        this.sendJson(res, 200, { count: repos.length, repositories: repos });
+        return;
+      }
+
+      // GET /github/acquisitions
+      if (pathname === '/github/acquisitions' && method === 'GET') {
+        const limitStr = url.searchParams.get('limit');
+        const limit = limitStr ? parseInt(limitStr, 10) : 50;
+        const acqs = this.githubFabric.listAcquisitions(limit);
+        this.sendJson(res, 200, { count: acqs.length, acquisitions: acqs });
+        return;
+      }
+
+      // GET /github/provenance
+      if (pathname === '/github/provenance' && method === 'GET') {
+        const limitStr = url.searchParams.get('limit');
+        const limit = limitStr ? parseInt(limitStr, 10) : 50;
+        const prov = this.githubFabric.listProvenance(limit);
+        this.sendJson(res, 200, { count: prov.length, provenance: prov });
+        return;
+      }
+
+      // GET /github/proposals
+      if (pathname === '/github/proposals' && method === 'GET') {
+        const repoId = url.searchParams.get('repositoryId') || undefined;
+        const proposals = this.githubFabric.listProposals(repoId);
+        this.sendJson(res, 200, { count: proposals.length, proposals });
+        return;
+      }
+
+      // POST /github/proposals/:id/approve
+      if (pathname.startsWith('/github/proposals/') && pathname.endsWith('/approve') && method === 'POST') {
+        const proposalId = pathname.replace('/github/proposals/', '').replace('/approve', '').trim();
+        const body = await this.readJsonBody(req);
+        const decidedBy = (body.decidedBy as string) || 'RUSHIKESH';
+        const reason = body.reason as string | undefined;
+        try {
+          const approved = this.githubFabric.approveProposal(proposalId, decidedBy, reason);
+          let registeredCapability;
+          try {
+            registeredCapability = this.githubFabric.registerCapability(proposalId);
+          } catch (regErr: any) {
+            this.logger?.warn(`Auto-registration for proposal ${proposalId} encountered: ${regErr.message}`);
+          }
+          this.sendJson(res, 200, { success: true, proposal: approved, registeredCapability });
+        } catch (err: any) {
+          this.sendJson(res, 400, { error: err.message });
+        }
+        return;
+      }
+
+      // POST /github/proposals/:id/reject
+      if (pathname.startsWith('/github/proposals/') && pathname.endsWith('/reject') && method === 'POST') {
+        const proposalId = pathname.replace('/github/proposals/', '').replace('/reject', '').trim();
+        const body = await this.readJsonBody(req);
+        const reason = (body.reason as string) || 'Rejected by operator';
+        try {
+          const rejected = this.githubFabric.rejectProposal(proposalId, reason);
+          this.sendJson(res, 200, { success: true, proposal: rejected });
+        } catch (err: any) {
+          this.sendJson(res, 400, { error: err.message });
+        }
+        return;
+      }
+
+      // Repository parameterized routes: /github/repositories/:owner/:repo[/subpath]
+      const repoMatch = pathname.match(/^\/github\/repositories\/([^\/]+)\/([^\/]+)(?:\/(.*))?$/);
+      if (repoMatch) {
+        const owner = decodeURIComponent(repoMatch[1]);
+        const repo = decodeURIComponent(repoMatch[2]);
+        const subpath = repoMatch[3] || '';
+        const repoId = `github_${owner}_${repo}`;
+
+        // GET /github/repositories/:owner/:repo
+        if (subpath === '' && method === 'GET') {
+          try {
+            const data = await this.githubFabric.getRepository(owner, repo);
+            this.sendJson(res, 200, { repository: data });
+          } catch (err: any) {
+            this.sendJson(res, 404, { error: err.message });
+          }
+          return;
+        }
+
+        // GET /github/repositories/:owner/:repo/license
+        if (subpath === 'license' && method === 'GET') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo);
+            this.sendJson(res, 200, {
+              repository: analysis.repository,
+              license: analysis.intelligence.license,
+            });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // GET /github/repositories/:owner/:repo/dependencies
+        if (subpath === 'dependencies' && method === 'GET') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo);
+            this.sendJson(res, 200, {
+              repository: analysis.repository,
+              dependencies: analysis.dependencies,
+              dependencyCount: analysis.intelligence.dependencies?.count ?? analysis.dependencies.length,
+              risk: analysis.intelligence.dependencies?.riskLevel ?? 'LOW',
+            });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // GET /github/repositories/:owner/:repo/security
+        if (subpath === 'security' && method === 'GET') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo);
+            this.sendJson(res, 200, {
+              repository: analysis.repository,
+              securityScore: analysis.intelligence.security?.overallRisk ?? 'LOW',
+              findings: analysis.securityFindings,
+            });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // GET /github/repositories/:owner/:repo/releases
+        if (subpath === 'releases' && method === 'GET') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo);
+            this.sendJson(res, 200, {
+              repository: analysis.repository,
+              activity: analysis.intelligence.activity,
+              releases: analysis.intelligence.activity.releases || [],
+            });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // GET /github/repositories/:owner/:repo/analysis
+        if (subpath === 'analysis' && method === 'GET') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo);
+            this.sendJson(res, 200, analysis);
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // POST /github/repositories/:owner/:repo/analyze
+        if (subpath === 'analyze' && method === 'POST') {
+          try {
+            const analysis = await this.githubFabric.analyzeRepository(owner, repo, { forceRemote: true });
+            this.sendJson(res, 200, analysis);
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // POST /github/repositories/:owner/:repo/acquire
+        if (subpath === 'acquire' && method === 'POST') {
+          try {
+            const body = await this.readJsonBody(req);
+            const acq = await this.githubFabric.acquireRepository(owner, repo, {
+              branch: body.branch as string,
+              shallow: body.shallow !== false,
+            });
+            this.sendJson(res, 200, { success: true, acquisition: acq });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // POST /github/repositories/:owner/:repo/build
+        if (subpath === 'build' && method === 'POST') {
+          try {
+            const body = await this.readJsonBody(req);
+            const command = (body.command as string) || 'npm run build';
+            const timeoutMs = (body.timeoutMs as number) || 60000;
+            const result = await this.githubFabric.build(repoId, command, timeoutMs);
+            this.sendJson(res, result.success ? 200 : 500, result);
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // POST /github/repositories/:owner/:repo/test
+        if (subpath === 'test' && method === 'POST') {
+          try {
+            const body = await this.readJsonBody(req);
+            const command = (body.command as string) || 'npm test';
+            const timeoutMs = (body.timeoutMs as number) || 60000;
+            const result = await this.githubFabric.test(repoId, command, timeoutMs);
+            this.sendJson(res, result.success ? 200 : 500, result);
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // POST /github/repositories/:owner/:repo/propose-integration
+        if (subpath === 'propose-integration' && method === 'POST') {
+          try {
+            const body = await this.readJsonBody(req);
+            const proposal = this.githubFabric.proposeIntegration(repoId, body);
+            this.sendJson(res, 200, { success: true, proposal });
+          } catch (err: any) {
+            this.sendJson(res, 500, { error: err.message });
+          }
+          return;
+        }
+      }
+    }
+
+    // FP-09: Universal IDE & Workspace Endpoints
+    if (this.ideRoutes && pathname.startsWith('/api/ide')) {
+      const handled = await this.ideRoutes.handleRequest(req, res);
+      if (handled) return;
+    }
+
+    // FP-10: Autonomous Software Engineering & Agentic Coding Endpoints
+    if (this.engineeringRoutes && (pathname.startsWith('/api/engineering') || pathname.startsWith('/engineering'))) {
+      const handled = await this.engineeringRoutes.handleRequest(req, res);
+      if (handled) return;
+    }
+
+    // FP-11: Native Universal Workflow & Automation Endpoints
+    if (this.workflowRoutes && (
+      pathname.startsWith('/api/workflows') || pathname.startsWith('/workflows') ||
+      pathname.startsWith('/api/workflow-runs') || pathname.startsWith('/workflow-runs') ||
+      pathname.startsWith('/api/workflow-approvals') || pathname.startsWith('/workflow-approvals')
+    )) {
+      const handled = await this.workflowRoutes.handleRequest(req, res);
+      if (handled) return;
+    }
+
+    // FP-12: Universal Service & Account Integration Fabric Endpoints
+    if (this.accountRoutes && (
+      pathname.startsWith('/api/accounts') || pathname.startsWith('/accounts') ||
+      pathname.startsWith('/api/providers') || pathname.startsWith('/providers')
+    )) {
+      const handled = await this.accountRoutes.handleRequest(req, res);
+      if (handled) return;
+    }
+
     // Static SPA Asset Serving
     if (method === 'GET' && this.serveStatic(res, pathname)) {
       return;
@@ -6290,7 +7536,14 @@ Maintain your authentic domain focus.`;
       '/audit',
       '/self',
       '/self-improvement',
-      '/settings'
+      '/settings',
+      '/github',
+      '/github-intelligence',
+      '/ide',
+      '/workspace',
+      '/workflows',
+      '/workflow-builder',
+      '/workflow-runs'
     ];
 
     let targetPath = path.join(distDir, pathname === '/' ? 'index.html' : pathname.replace(/^\//, ''));

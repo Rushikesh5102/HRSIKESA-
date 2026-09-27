@@ -5,6 +5,7 @@
  */
 
 import { SkillDefinition } from '../interfaces/skill.types.js';
+import { ENGINEERING_SKILLS } from '../../engineering/skills/engineering.skills.js';
 
 export const BUILTIN_SKILLS: SkillDefinition[] = [
   // 1. inspect-project
@@ -540,4 +541,1140 @@ export const BUILTIN_SKILLS: SkillDefinition[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+
+  // INT-005 Built-in Research Skills
+  // 9. research-topic
+  {
+    id: 'builtin-research-topic',
+    name: 'research-topic',
+    displayName: 'Research Topic Intelligence',
+    description: 'Investigates a topic across multi-source web intelligence, extracts claims, and produces bounded synthesis.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['research topic', 'investigate topic', 'gather intelligence on', 'deep research'],
+    requiredCapabilities: ['web.research', 'source.extraction', 'evidence.synthesis'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string' },
+        depth: { type: 'string', enum: ['QUICK', 'NORMAL', 'DEEP', 'COMPREHENSIVE'], default: 'NORMAL' },
+      },
+      required: ['topic'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        studyId: { type: 'string' },
+        synthesis: { type: 'string' },
+        sourcesCount: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'execute_research',
+        name: 'Execute Multi-Source Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.topic}}', depth: '{{inputs.depth}}' },
+        timeoutMs: 120000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 10. compare-sources
+  {
+    id: 'builtin-compare-sources',
+    name: 'compare-sources',
+    displayName: 'Compare Sources & Discrepancies',
+    description: 'Cross-analyzes multiple sources on a topic to highlight corroborations, contradictions, and version differences.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['compare sources', 'cross source analysis', 'compare evidence', 'source discrepancy check'],
+    requiredCapabilities: ['web.research', 'source.extraction'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string' },
+      },
+      required: ['topic'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        synthesis: { type: 'string' },
+        contradictionsFound: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'compare_execution',
+        name: 'Execute Comparison Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.topic}}', researchType: 'COMPARISON', depth: 'NORMAL' },
+        timeoutMs: 120000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 11. verify-claim
+  {
+    id: 'builtin-verify-claim',
+    name: 'verify-claim',
+    displayName: 'Verify Claim Factuality',
+    description: 'Investigates a specific factual claim against reliable web sources to corroborate or refute it.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['verify claim', 'fact check', 'verify whether true', 'check factuality'],
+    requiredCapabilities: ['web.research'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        claim: { type: 'string' },
+      },
+      required: ['claim'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        verified: { type: 'boolean' },
+        synthesis: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'verify_execution',
+        name: 'Execute Claim Verification Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.claim}}', researchType: 'VERIFICATION', depth: 'NORMAL' },
+        timeoutMs: 120000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 12. investigate-company
+  {
+    id: 'builtin-investigate-company',
+    name: 'investigate-company',
+    displayName: 'Investigate Company Intelligence',
+    description: 'Gathers corporate intelligence, leadership, products, funding, and market positioning for a company.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['investigate company', 'company intelligence', 'startup research', 'corporate background'],
+    requiredCapabilities: ['web.research'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        company: { type: 'string' },
+      },
+      required: ['company'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        synthesis: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'company_execution',
+        name: 'Execute Company Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.company}}', researchType: 'COMPANY_RESEARCH', depth: 'NORMAL' },
+        timeoutMs: 120000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 13. technical-research
+  {
+    id: 'builtin-technical-research',
+    name: 'technical-research',
+    displayName: 'Deep Technical Architecture Research',
+    description: 'Investigates technical specifications, architectural patterns, benchmarks, and protocols.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['technical research', 'architecture investigation', 'protocol specs', 'technical deep dive'],
+    requiredCapabilities: ['web.research'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string' },
+      },
+      required: ['topic'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        synthesis: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'tech_execution',
+        name: 'Execute Technical Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.topic}}', researchType: 'TECHNICAL_RESEARCH', depth: 'DEEP' },
+        timeoutMs: 180000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 14. open-source-research
+  {
+    id: 'builtin-open-source-research',
+    name: 'open-source-research',
+    displayName: 'Open Source Ecosystem Research',
+    description: 'Identifies, evaluates, and compares open-source repositories, libraries, licenses, and maintainer activity.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_1',
+    triggerPhrases: ['open source research', 'find github repositories', 'open source alternative', 'oss library research'],
+    requiredCapabilities: ['web.research'],
+    requiredTools: ['research.execute'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+      },
+      required: ['query'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        synthesis: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'oss_execution',
+        name: 'Execute Open Source Ecosystem Research',
+        stepType: 'TOOL',
+        tool: 'research.execute',
+        dependencies: [],
+        inputs: { topic: '{{inputs.query}}', researchType: 'OPEN_SOURCE_RESEARCH', depth: 'NORMAL' },
+        timeoutMs: 120000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 1,
+      requiredCapabilities: ['web.research'],
+      requiredTools: ['research.execute'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 15. knowledge-search
+  {
+    id: 'builtin-knowledge-search',
+    name: 'knowledge-search',
+    displayName: 'Search Sovereign Knowledge Graph',
+    description: 'Searches entities, concepts, relationships, and structured facts in the sovereign Knowledge Graph.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['search knowledge', 'find in knowledge graph', 'query knowledge base', 'knowledge search'],
+    requiredCapabilities: ['knowledge.query'],
+    requiredTools: ['knowledge.search'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+      },
+      required: ['query'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        entities: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'search_entities',
+        name: 'Query Knowledge Entities',
+        stepType: 'TOOL',
+        tool: 'knowledge.search',
+        dependencies: [],
+        inputs: { query: '{{inputs.query}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.query'],
+      requiredTools: ['knowledge.search'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 16. entity-resolve
+  {
+    id: 'builtin-entity-resolve',
+    name: 'entity-resolve',
+    displayName: 'Resolve Knowledge Entity & Aliases',
+    description: 'Resolves ambiguous entity names, script variants, and aliases to canonical knowledge entities.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['resolve entity', 'lookup alias', 'canonical entity', 'entity lookup'],
+    requiredCapabilities: ['knowledge.lookup'],
+    requiredTools: ['knowledge.entity.lookup'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        entityIdOrName: { type: 'string' },
+      },
+      required: ['entityIdOrName'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        entity: { type: 'object' },
+        neighbors: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'resolve_lookup',
+        name: 'Resolve Entity Details',
+        stepType: 'TOOL',
+        tool: 'knowledge.entity.lookup',
+        dependencies: [],
+        inputs: { entityIdOrName: '{{inputs.entityIdOrName}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.lookup'],
+      requiredTools: ['knowledge.entity.lookup'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 17. fact-verify
+  {
+    id: 'builtin-fact-verify',
+    name: 'fact-verify',
+    displayName: 'Verify Evidence-Backed Facts',
+    description: 'Queries verified, evidence-backed facts from the sovereign Knowledge Graph.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['verify fact', 'check knowledge fact', 'query verified fact', 'fact check graph'],
+    requiredCapabilities: ['knowledge.facts'],
+    requiredTools: ['knowledge.fact.query'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        predicate: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        facts: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'query_facts',
+        name: 'Query Verified Facts',
+        stepType: 'TOOL',
+        tool: 'knowledge.fact.query',
+        dependencies: [],
+        inputs: { predicate: '{{inputs.predicate}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.facts'],
+      requiredTools: ['knowledge.fact.query'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 18. decision-recall
+  {
+    id: 'builtin-decision-recall',
+    name: 'decision-recall',
+    displayName: 'Recall Architectural & Strategic Decisions',
+    description: 'Recalls decisions, rationale, alternatives considered, scope, and provenance.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['recall decision', 'why did we choose', 'architectural decisions', 'decision rationale'],
+    requiredCapabilities: ['knowledge.facts'],
+    requiredTools: ['knowledge.fact.query'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        predicate: { type: 'string', default: 'decision' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        facts: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'query_decisions',
+        name: 'Query Decision Facts',
+        stepType: 'TOOL',
+        tool: 'knowledge.fact.query',
+        dependencies: [],
+        inputs: { predicate: '{{inputs.predicate}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.facts'],
+      requiredTools: ['knowledge.fact.query'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 19. project-knowledge-search
+  {
+    id: 'builtin-project-knowledge-search',
+    name: 'project-knowledge-search',
+    displayName: 'Project Knowledge Isolation Search',
+    description: 'Performs isolated knowledge retrieval scoped to a specific project.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'PROJECT',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['project knowledge', 'search project graph', 'project dependencies', 'project tech stack'],
+    requiredCapabilities: ['knowledge.query'],
+    requiredTools: ['knowledge.search'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+      },
+      required: ['query'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        entities: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'search_project_entities',
+        name: 'Search Project Entities',
+        stepType: 'TOOL',
+        tool: 'knowledge.search',
+        dependencies: [],
+        inputs: { query: '{{inputs.query}}', scope: 'PROJECT' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.query'],
+      requiredTools: ['knowledge.search'],
+      requiresHumanApproval: false,
+      allowedScopes: ['PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 20. research-knowledge-link
+  {
+    id: 'builtin-research-knowledge-link',
+    name: 'research-knowledge-link',
+    displayName: 'Research Knowledge Linkage',
+    description: 'Queries facts and evidence linked to completed research studies.',
+    category: 'DATA',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['research knowledge link', 'study evidence', 'facts from research', 'citations graph'],
+    requiredCapabilities: ['knowledge.facts'],
+    requiredTools: ['knowledge.fact.query'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        subjectEntityId: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        facts: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'query_research_facts',
+        name: 'Query Research Facts',
+        stepType: 'TOOL',
+        tool: 'knowledge.fact.query',
+        dependencies: [],
+        inputs: { subjectEntityId: '{{inputs.subjectEntityId}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['knowledge.facts'],
+      requiredTools: ['knowledge.fact.query'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 21. context-search
+  {
+    id: 'builtin-context-search',
+    name: 'context-search',
+    displayName: 'Cognitive Context Search',
+    description: 'Searches across unified memory, decisions, and knowledge graph using the cognitive ranker.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['context search', 'search context', 'cognitive search', 'find relevant context'],
+    requiredCapabilities: ['context.search'],
+    requiredTools: ['context.search'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+        limit: { type: 'number', default: 10 },
+      },
+      required: ['query'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        items: { type: 'array' },
+        totalFound: { type: 'number' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'search_context',
+        name: 'Search Cognitive Context',
+        stepType: 'TOOL',
+        tool: 'context.search',
+        dependencies: [],
+        inputs: { query: '{{inputs.query}}', limit: '{{inputs.limit}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.search'],
+      requiredTools: ['context.search'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY', 'CREATOR'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 22. decision-context
+  {
+    id: 'builtin-decision-context',
+    name: 'decision-context',
+    displayName: 'Decision & Architecture Context',
+    description: 'Retrieves architectural decisions, rationale, alternatives, and superseded states for a project.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'PROJECT',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['decision context', 'why did we choose', 'architecture decision', 'decision rationale'],
+    requiredCapabilities: ['context.inspect'],
+    requiredTools: ['context.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+        projectId: { type: 'string' },
+      },
+      required: ['userMessage'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        selectedCandidates: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'inspect_decision_context',
+        name: 'Inspect Decision Context',
+        stepType: 'TOOL',
+        tool: 'context.inspect',
+        dependencies: [],
+        inputs: { userMessage: '{{inputs.userMessage}}', projectId: '{{inputs.projectId}}', intent: 'DECISION_QUERY' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.inspect'],
+      requiredTools: ['context.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['PROJECT', 'GLOBAL'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 23. project-context
+  {
+    id: 'builtin-project-context',
+    name: 'project-context',
+    displayName: 'Project Scoped Context',
+    description: 'Assembles project-isolated context preventing cross-project knowledge leakage.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'PROJECT',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['project context', 'project details', 'project knowledge', 'isolated project context'],
+    requiredCapabilities: ['context.inspect'],
+    requiredTools: ['context.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+        projectId: { type: 'string' },
+      },
+      required: ['userMessage', 'projectId'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        selectedCandidates: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'assemble_project_context',
+        name: 'Assemble Project Context',
+        stepType: 'TOOL',
+        tool: 'context.inspect',
+        dependencies: [],
+        inputs: { userMessage: '{{inputs.userMessage}}', projectId: '{{inputs.projectId}}', intent: 'PROJECT_QUERY' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.inspect'],
+      requiredTools: ['context.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 24. company-context
+  {
+    id: 'builtin-company-context',
+    name: 'company-context',
+    displayName: 'Company Scoped Context',
+    description: 'Retrieves company-scoped operational context, departments, goals, and metrics.',
+    category: 'BUSINESS',
+    owner: 'SYSTEM',
+    scope: 'COMPANY',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['company context', 'company details', 'company operational context'],
+    requiredCapabilities: ['context.inspect'],
+    requiredTools: ['context.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+        companyId: { type: 'string' },
+      },
+      required: ['userMessage', 'companyId'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        selectedCandidates: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'assemble_company_context',
+        name: 'Assemble Company Context',
+        stepType: 'TOOL',
+        tool: 'context.inspect',
+        dependencies: [],
+        inputs: { userMessage: '{{inputs.userMessage}}', companyId: '{{inputs.companyId}}', intent: 'COMPANY_QUERY' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.inspect'],
+      requiredTools: ['context.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['COMPANY'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 25. evidence-context
+  {
+    id: 'builtin-evidence-context',
+    name: 'evidence-context',
+    displayName: 'Evidence & Research Context',
+    description: 'Retrieves verified research claims, citations, and evidence for technical or factual inquiries.',
+    category: 'RESEARCH',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['evidence context', 'research evidence', 'verified claims', 'citations context'],
+    requiredCapabilities: ['context.inspect'],
+    requiredTools: ['context.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+      },
+      required: ['userMessage'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        selectedCandidates: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'assemble_evidence_context',
+        name: 'Assemble Evidence Context',
+        stepType: 'TOOL',
+        tool: 'context.inspect',
+        dependencies: [],
+        inputs: { userMessage: '{{inputs.userMessage}}', intent: 'RESEARCH_QUERY' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.inspect'],
+      requiredTools: ['context.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 26. knowledge-context
+  {
+    id: 'builtin-knowledge-context',
+    name: 'knowledge-context',
+    displayName: 'Knowledge Graph Context',
+    description: 'Traverses entity relationships and verified facts within bounded distance for contextual enrichment.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['knowledge context', 'graph context', 'entity facts context', 'relationship context'],
+    requiredCapabilities: ['context.inspect'],
+    requiredTools: ['context.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+      },
+      required: ['userMessage'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        selectedCandidates: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'assemble_knowledge_context',
+        name: 'Assemble Knowledge Context',
+        stepType: 'TOOL',
+        tool: 'context.inspect',
+        dependencies: [],
+        inputs: { userMessage: '{{inputs.userMessage}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['context.inspect'],
+      requiredTools: ['context.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY', 'CREATOR'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 27. working-context
+  {
+    id: 'builtin-working-context',
+    name: 'working-context',
+    displayName: 'Inspect Working Context',
+    description: 'Inspects and assembles active working memory, current task, blockers, and continuity state.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['working context', 'active continuity', 'current working memory', 'show working context'],
+    requiredCapabilities: ['working_memory.inspect'],
+    requiredTools: ['working_memory.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        activeProject: { type: 'string' },
+        activeTask: { type: 'string' },
+        blockers: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'inspect_working_memory',
+        name: 'Inspect Working Memory State',
+        stepType: 'TOOL',
+        tool: 'working_memory.inspect',
+        dependencies: [],
+        inputs: { sessionId: '{{inputs.sessionId}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['working_memory.inspect'],
+      requiredTools: ['working_memory.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'COMPANY', 'SESSION'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 28. resume-task
+  {
+    id: 'builtin-resume-task',
+    name: 'resume-task',
+    displayName: 'Resume Conversational Task',
+    description: 'Recovers unfinished task, active blocker, and next recommended step from active working memory.',
+    category: 'WORKFLOW',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['resume task', 'continue previous work', 'pick up task', 'what was i working on'],
+    requiredCapabilities: ['working_memory.inspect'],
+    requiredTools: ['working_memory.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        activeTask: { type: 'string' },
+        blockers: { type: 'array' },
+        nextSteps: { type: 'array' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'inspect_task_continuation',
+        name: 'Inspect Task State',
+        stepType: 'TOOL',
+        tool: 'working_memory.inspect',
+        dependencies: [],
+        inputs: { sessionId: '{{inputs.sessionId}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['working_memory.inspect'],
+      requiredTools: ['working_memory.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'SESSION'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 29. conversation-checkpoint
+  {
+    id: 'builtin-conversation-checkpoint',
+    name: 'conversation-checkpoint',
+    displayName: 'Inspect Conversation Checkpoints',
+    description: 'Inspects and lists conversation checkpoints for multi-session resumption and restart recovery.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['inspect checkpoint', 'list checkpoints', 'view checkpoints', 'checkpoints'],
+    requiredCapabilities: ['working_memory.checkpoint'],
+    requiredTools: ['working_memory.checkpoint'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+        action: { type: 'string', default: 'INSPECT_LATEST' },
+      },
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        checkpoint: { type: 'object' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'inspect_checkpoint',
+        name: 'Inspect Checkpoint',
+        stepType: 'TOOL',
+        tool: 'working_memory.checkpoint',
+        dependencies: [],
+        inputs: { sessionId: '{{inputs.sessionId}}', action: '{{inputs.action}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['working_memory.checkpoint'],
+      requiredTools: ['working_memory.checkpoint'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'SESSION'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
+  // 30. resolve-reference
+  {
+    id: 'builtin-resolve-reference',
+    name: 'resolve-reference',
+    displayName: 'Resolve Conversational Reference',
+    description: 'Resolves anaphoric expressions and pronouns to active working memory concepts with ambiguity detection.',
+    category: 'INTELLIGENCE',
+    owner: 'SYSTEM',
+    scope: 'GLOBAL',
+    status: 'ACTIVE',
+    version: '1.0.0',
+    riskLevel: 'TIER_0',
+    triggerPhrases: ['resolve reference', 'what does it refer to', 'resolve pronoun', 'disambiguate reference'],
+    requiredCapabilities: ['working_memory.inspect'],
+    requiredTools: ['working_memory.inspect'],
+    inputsSchema: {
+      type: 'object',
+      properties: {
+        userMessage: { type: 'string' },
+        sessionId: { type: 'string' },
+      },
+      required: ['userMessage'],
+    },
+    outputsSchema: {
+      type: 'object',
+      properties: {
+        resolved: { type: 'boolean' },
+        concept: { type: 'string' },
+      },
+    },
+    steps: [
+      {
+        stepIndex: 0,
+        stepId: 'inspect_for_reference',
+        name: 'Inspect Working State for Resolution',
+        stepType: 'TOOL',
+        tool: 'working_memory.inspect',
+        dependencies: [],
+        inputs: { sessionId: '{{inputs.sessionId}}' },
+        timeoutMs: 15000,
+      },
+    ],
+    permissions: {
+      maxDangerTier: 0,
+      requiredCapabilities: ['working_memory.inspect'],
+      requiredTools: ['working_memory.inspect'],
+      requiresHumanApproval: false,
+      allowedScopes: ['GLOBAL', 'PROJECT', 'SESSION'],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  ...ENGINEERING_SKILLS,
 ];

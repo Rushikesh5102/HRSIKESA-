@@ -394,6 +394,43 @@ body {
   white-space: nowrap;
 }
 
+/* Sacred Brand Feather & Emblem System */
+.indian-emblem {
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.indian-emblem:hover .brand-emblem-badge {
+  transform: scale(1.06);
+  box-shadow: 0 0 18px rgba(212, 168, 55, 0.55), 0 3px 12px rgba(0, 0, 0, 0.85), inset 0 0 6px rgba(18, 10, 4, 0.35) !important;
+}
+
+.indian-emblem:hover .brand-emblem-badge img {
+  transform: scale(1.05) rotate(1deg);
+}
+
+.brand-emblem-badge {
+  will-change: transform, box-shadow;
+  box-sizing: border-box;
+}
+
+.brand-emblem-badge img {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes brandPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(212, 168, 55, 0.4)) drop-shadow(0 0 16px rgba(0, 196, 168, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(212, 168, 55, 0.65)) drop-shadow(0 0 22px rgba(0, 196, 168, 0.35));
+  }
+}
+
+.brand-feather-pulse {
+  animation: brandPulse 3.5s ease-in-out infinite;
+}
+
 .nav-item {
   display: flex;
   align-items: center;

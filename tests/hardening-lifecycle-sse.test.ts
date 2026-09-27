@@ -43,6 +43,7 @@ describe('Phase 11.5 Hardening & Lifecycle Regression Subsystem', () => {
       HRISEKESA_LOG_LEVEL: 'warn',
       HRISEKESA_VOICE_TTS: 'sapi',
       HRISEKESA_VOICE_STT: 'windows',
+      HRISEKESA_DB_PATH: ':memory:',
     });
 
     await kernel.start();

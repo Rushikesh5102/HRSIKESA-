@@ -87,7 +87,16 @@ export * from './tools/builtin/computer/index.js';
 // Phase 8: Voice Subsystem exports
 export * from './voice/index.js';
 
+// FP-01: Foundation Performance & Hardware-Agnostic Inference exports
+export * from './inference/index.js';
+export * from './conversation/chat.namer.js';
+export * from './conversation/cancellation.manager.js';
+export * from './conversation/execution.policy.js';
+export * from './core/offline/offline.manager.js';
+
 export * from './runtime/kernel.js';
+export * from './workflows/index.js';
+export * from './creation/index.js';
 
 // Auto-start when executed directly
 const isMainModule = process.argv[1] && (

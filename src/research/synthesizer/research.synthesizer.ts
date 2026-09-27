@@ -73,6 +73,23 @@ export class ResearchSynthesizer {
   }
 
   /**
+   * Generates a deterministic citation map from a collection of sources.
+   */
+  public generateCitationMap(sources: IResearchSource[]): ResearchCitation[] {
+    return sources.map((s, idx) => ({
+      index: idx + 1,
+      sourceId: s.id,
+      sourceTitle: s.title || s.url,
+      publisher: s.publisher || s.domain,
+      domain: s.domain,
+      url: s.url,
+      credibilityTier: s.credibilityTier,
+      freshness: s.freshness,
+      retrievedAt: s.retrievedAt,
+    }));
+  }
+
+  /**
    * Extract durable facts suitable for long-term semantic memory storage.
    */
   public extractDurableFacts(findings: IResearchFinding[], citations: ResearchCitation[]): string[] {
@@ -87,15 +104,19 @@ export class ResearchSynthesizer {
         (f.status === FindingStatus.CONFIRMED || f.status === FindingStatus.CORROBORATED) &&
         (f.confidence ?? 0.8) >= 0.7
       ) {
-        const sourceRefs = (f.citationIndices || [])
-          .map((idx: number) => {
-            const c = citeMap.get(idx);
-            return c ? `${c.sourceTitle} (${c.url || c.sourceUrl || ''})` : `[${idx}]`;
-          })
-          .join(', ');
+        const sourceRefs = (f.citationIndices && f.citationIndices.length > 0)
+          ? f.citationIndices
+              .map((idx: number) => {
+                const c = citeMap.get(idx);
+                return c ? `${c.sourceTitle} (${c.url || c.sourceUrl || ''})` : `[${idx}]`;
+              })
+              .join(', ')
+          : citations.length > 0
+          ? `${citations[0].sourceTitle} (${citations[0].url || citations[0].sourceUrl || ''})`
+          : 'Verified Research';
 
-        const desc = f.description || f.statement || f.title;
-        facts.push(`[Verified Fact] ${f.title}: ${desc} (Sources: ${sourceRefs || 'Internal'})`);
+        const desc = f.description || f.statement || (f as any).summary || f.title;
+        facts.push(`[Verified Fact] ${f.title}: ${desc} (Sources: ${sourceRefs})`);
       }
     }
 
@@ -160,15 +181,25 @@ export class ResearchSynthesizer {
 
     // Contradictions & Discrepancies
     if (contradictions.length > 0) {
-      lines.push('## Conflicts and Discrepancies');
+      lines.push('## Source Discrepancies & Contradictions');
       lines.push('');
       lines.push('The following contradictions were detected between sources:');
       lines.push('');
       contradictions.forEach((c, idx) => {
-        lines.push(`#### ${idx + 1}. [${c.discrepancyType}] ${c.findingTitle}`);
-        lines.push(`- **Discrepancy:** ${c.description}`);
-        lines.push(`- **Source A:** [${c.sourceA.sourceTitle}](${c.sourceA.url}) — "${c.sourceA.claim}"`);
-        lines.push(`- **Source B:** [${c.sourceB.sourceTitle}](${c.sourceB.url}) — "${c.sourceB.claim}"`);
+        const discType = c.discrepancyType || (c as any).type || 'CONTRADICTION';
+        const title = c.findingTitle || (c as any).description || 'Contradiction';
+        const desc = c.description || (c as any).resolutionGuidance || '';
+        const srcAName = c.sourceA?.sourceTitle || (c as any).sourcesInvolved?.[0] || 'Source A';
+        const srcAUrl = c.sourceA?.url || '#';
+        const srcAClaim = c.sourceA?.claim || (c as any).claimsInvolved?.[0] || '';
+        const srcBName = c.sourceB?.sourceTitle || (c as any).sourcesInvolved?.[1] || 'Source B';
+        const srcBUrl = c.sourceB?.url || '#';
+        const srcBClaim = c.sourceB?.claim || (c as any).claimsInvolved?.[1] || '';
+
+        lines.push(`#### ${idx + 1}. [${discType}] ${title}`);
+        lines.push(`- **Discrepancy:** ${desc}`);
+        lines.push(`- **Source A:** [${srcAName}](${srcAUrl}) — "${srcAClaim}"`);
+        lines.push(`- **Source B:** [${srcBName}](${srcBUrl}) — "${srcBClaim}"`);
         lines.push('');
       });
     }
@@ -212,11 +243,11 @@ export class ResearchSynthesizer {
     lines.push('');
 
     // References / Citations Section
-    lines.push('## References & Sources');
+    lines.push('## Sources & Citations');
     lines.push('');
     citations.forEach((c) => {
       const url = c.url || c.sourceUrl || '#';
-      lines.push(`[${c.index}] **${c.publisher || 'Web Source'}** — *"${c.sourceTitle}"*, retrieved ${c.retrievedAt}. URL: ${url}`);
+      lines.push(`[${c.index}] **${c.publisher || 'Web Source'}** — *"${c.sourceTitle}"*, retrieved ${c.retrievedAt || new Date().toISOString()}. URL: ${url}`);
     });
     lines.push('');
 

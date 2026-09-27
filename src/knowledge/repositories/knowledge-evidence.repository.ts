@@ -24,6 +24,10 @@ interface RawEvidenceRow {
   credibility: string;
   confidence: number;
   provenance: string;
+  claim_id?: string | null;
+  study_id?: string | null;
+  url?: string | null;
+  content_hash?: string | null;
 }
 
 export class KnowledgeEvidenceRepository {
@@ -45,6 +49,10 @@ export class KnowledgeEvidenceRepository {
     credibility?: SourceCredibility;
     confidence?: number;
     provenance?: string;
+    claimId?: string;
+    studyId?: string;
+    url?: string;
+    contentHash?: string;
   }): KnowledgeEvidence {
     const id = data.id || randomUUID();
     const now = new Date().toISOString();
@@ -53,25 +61,53 @@ export class KnowledgeEvidenceRepository {
     const confidence = data.confidence !== undefined ? data.confidence : 1.0;
     const provenance = data.provenance || data.sourceType;
 
-    this.db.prepare(`
-      INSERT INTO knowledge_evidence (
-        id, fact_id, source_type, source_reference, quote, location,
-        source_date, retrieved_at, credibility, confidence, provenance
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      data.factId,
-      data.sourceType,
-      data.sourceReference,
-      data.quote || null,
-      data.location || null,
-      data.sourceDate || null,
-      retrievedAt,
-      credibility,
-      confidence,
-      provenance
-    );
+    try {
+      this.db.prepare(`
+        INSERT INTO knowledge_evidence (
+          id, fact_id, source_type, source_reference, quote, location,
+          source_date, retrieved_at, credibility, confidence, provenance,
+          claim_id, study_id, url, content_hash
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        data.factId,
+        data.sourceType,
+        data.sourceReference,
+        data.quote || null,
+        data.location || null,
+        data.sourceDate || null,
+        retrievedAt,
+        credibility,
+        confidence,
+        provenance,
+        data.claimId || null,
+        data.studyId || null,
+        data.url || null,
+        data.contentHash || null
+      );
+    } catch {
+      // Fallback for pre-018 schema
+      this.db.prepare(`
+        INSERT INTO knowledge_evidence (
+          id, fact_id, source_type, source_reference, quote, location,
+          source_date, retrieved_at, credibility, confidence, provenance
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        data.factId,
+        data.sourceType,
+        data.sourceReference,
+        data.quote || null,
+        data.location || null,
+        data.sourceDate || null,
+        retrievedAt,
+        credibility,
+        confidence,
+        provenance
+      );
+    }
 
     return {
       id,
@@ -85,6 +121,10 @@ export class KnowledgeEvidenceRepository {
       credibility,
       confidence,
       provenance,
+      claimId: data.claimId,
+      studyId: data.studyId,
+      url: data.url,
+      contentHash: data.contentHash,
     };
   }
 
@@ -108,6 +148,29 @@ export class KnowledgeEvidenceRepository {
     return this.findEvidenceForFact(factId);
   }
 
+  public listEvidence(options?: { studyId?: string; limit?: number; offset?: number }): KnowledgeEvidence[] {
+    const limit = options?.limit ?? 100;
+    const offset = options?.offset ?? 0;
+
+    let query = 'SELECT * FROM knowledge_evidence';
+    const params: any[] = [];
+
+    if (options?.studyId) {
+      query += ' WHERE study_id = ?';
+      params.push(options.studyId);
+    }
+
+    query += ' ORDER BY retrieved_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    try {
+      const rows = this.db.prepare(query).all(...params) as unknown as RawEvidenceRow[];
+      return rows.map((r) => this.mapRow(r));
+    } catch {
+      return [];
+    }
+  }
+
   public deleteEvidence(id: string): boolean {
     const res = this.db.prepare('DELETE FROM knowledge_evidence WHERE id = ?').run(id);
     return (res.changes ?? 0) > 0;
@@ -126,6 +189,10 @@ export class KnowledgeEvidenceRepository {
       credibility: row.credibility as SourceCredibility,
       confidence: row.confidence,
       provenance: row.provenance,
+      claimId: row.claim_id || undefined,
+      studyId: row.study_id || undefined,
+      url: row.url || undefined,
+      contentHash: row.content_hash || undefined,
     };
   }
 }

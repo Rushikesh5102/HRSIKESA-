@@ -78,6 +78,35 @@ export class DecisionRepository {
     return rows.map((r) => this.rowToDecision(r));
   }
 
+  public list(options?: { companyId?: string; projectId?: string; status?: DecisionStatus; limit?: number }): IDecision[] {
+    let query = 'SELECT * FROM decisions';
+    const params: any[] = [];
+    const conditions: string[] = [];
+
+    if (options?.companyId) {
+      conditions.push('company_id = ?');
+      params.push(options.companyId);
+    }
+    if (options?.projectId) {
+      conditions.push('project_id = ?');
+      params.push(options.projectId);
+    }
+    if (options?.status) {
+      conditions.push('status = ?');
+      params.push(options.status);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(options?.limit ?? 100);
+
+    const rows = this.db.prepare(query).all(...params) as unknown as RawDecisionRow[];
+    return rows.map((r) => this.rowToDecision(r));
+  }
+
   public update(id: string, updates: Partial<IDecision>): IDecision {
     const current = this.get(id);
     if (!current) throw new Error(`Decision '${id}' not found for update.`);

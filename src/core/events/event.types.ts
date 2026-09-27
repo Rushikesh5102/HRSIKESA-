@@ -329,7 +329,8 @@ export interface CapabilityEventPayload {
   readonly capabilityId: string;
   readonly action?: string;
   readonly success?: boolean;
-  readonly timestamp: string;
+  readonly status?: string;
+  readonly timestamp?: string;
 }
 
 export interface ResourcePressurePayload {
@@ -427,6 +428,9 @@ export interface EventMap {
   'fact.updated': { id: string; status: string };
   'contradiction.detected': { contradiction: unknown };
   'knowledge.consolidated': { report: unknown };
+  // Research events
+  'research.completed': { studyId?: string; bundle?: any };
+  'research.study.completed': { studyId?: string; bundle?: any };
   // Phase 20 Skills & Procedural Intelligence events
   'skill.created': { skillId: string; name: string; version: string };
   'skill.updated': { skillId: string; name: string; version: string };
@@ -452,7 +456,12 @@ export interface EventMap {
   'capability.discovered': { capabilityId: string; provider: string; serverId?: string };
   'capability.enabled': { capabilityId: string; provider?: string };
   'capability.disabled': { capabilityId: string; reason?: string };
-  'capability.health_changed': { capabilityId: string; previousStatus: string; currentStatus: string };
+  'capability.health_changed': { capabilityId: string; previousStatus?: string; currentStatus?: string; status?: string; timestamp?: string };
+  'capability.invoked': { capabilityId: string; operation?: string; actor?: string; status: string; verified?: boolean; durationMs?: number; timestamp: string };
+  'capability.verified': { capabilityId: string; verified: boolean; strategy?: string; timestamp: string };
+  'capability.failed': { capabilityId: string; error: string; timestamp: string };
+  'capability.authenticated': { capabilityId: string; authType: string; timestamp: string };
+  'capability.revoked': { capabilityId: string; timestamp: string; reason?: string };
   // Phase 22 Advanced Computer Operator events
   'computer.observation': { taskId?: string; activeWindow?: string; nodeCount: number; timestamp: string };
   'computer.action.planned': { taskId: string; actionCount: number; intent: string };
@@ -533,6 +542,114 @@ export interface EventMap {
   'self.rollback_executed': { rollbackId: string; proposalId: string; reason: string; timestamp: string };
   'self.maintenance_completed': { jobId: string; type: string; reclaimedBytes?: number; durationMs?: number; timestamp: string };
   'self.improvement_accepted': { proposalId: string; title: string; category: string; timestamp: string };
+  // FP-03 / FP-04 Distributed Resource Fabric & Execution Capacity events
+  'worker.registered': { workerId: string; name: string; type?: string; runtimeId?: string };
+  'worker.enrolled': { workerId: string };
+  'worker.online': { workerId: string; name?: string };
+  'worker.offline': { workerId: string; name?: string; reason?: string };
+  'worker.health_changed': { workerId: string; oldStatus?: string; status: string; timestamp?: string };
+  'worker.resource_changed': { workerId: string; loadScore: number };
+  'task.queued': { taskId: string; taskType: string; priority: number };
+  'task.placed': { taskId: string; workerId: string; reason: string };
+  'task.dispatched': { taskId: string; workerId: string };
+  'task.started': { taskId: string; workerId: string };
+  'task.progress': { taskId: string; progress: number; message?: string; tokenChunk?: string };
+  'task.completed': { taskId: string; workerId: string };
+  'task.failed': { taskId: string; workerId?: string; error?: string; reason?: string };
+  'task.requeued': { taskId: string; previousWorkerId?: string };
+  'task.cancelled': { taskId: string; workerId?: string; reason?: string };
+  // FP-08 GitHub & Open-Source Intelligence Fabric events
+  'github.search.started': { query: string; timestamp: string };
+  'github.search.completed': { query: string; count: number; timestamp: string };
+  'github.repository.discovered': { repositoryId: string; fullName: string; timestamp: string };
+  'github.repository.analysis_started': { repositoryId: string; timestamp: string };
+  'github.repository.analysis_completed': { repositoryId: string; architecture: string; license: string; timestamp: string };
+  'github.acquisition.started': { repositoryId: string; targetPath: string; timestamp: string };
+  'github.acquisition.completed': { repositoryId: string; commitSha: string; timestamp: string };
+  'github.build.started': { repositoryId: string; buildCommand: string; timestamp: string };
+  'github.build.completed': { repositoryId: string; success: boolean; durationMs: number; timestamp: string };
+  'github.test.started': { repositoryId: string; testCommand: string; timestamp: string };
+  'github.test.completed': { repositoryId: string; success: boolean; durationMs: number; timestamp: string };
+  'github.integration.proposed': { proposalId: string; repositoryId: string; capabilityId: string; timestamp: string };
+  'github.integration.approved': { proposalId: string; decidedBy: string; timestamp: string };
+  'github.integration.rejected': { proposalId: string; reason?: string; timestamp: string };
+  // FP-09 Universal IDE & Development Workspace events
+  'ide.fabric.initialized': { timestamp: string };
+  'ide.workspace.opened': { workspaceId: string; rootPath: string; architecture: any; timestamp: string };
+  'ide.terminal.created': { terminalId: string; workspaceId: string; name: string; timestamp: string };
+  'ide.terminal.output': { terminalId: string; chunk: string; timestamp: string };
+  'ide.preview.started': { previewId?: string; serverId?: string; workspaceId?: string; port: number; url: string; timestamp: string };
+  'ide.preview.ready': { previewId?: string; serverId: string; port: number; url: string; timestamp?: string };
+  'ide.verification.stage': { runId: string; stage: string; status: string; durationMs?: number; timestamp: string };
+  // FP-11 Native Universal Workflow & Automation Engine events
+  'workflow.created': { workflowId: string; status?: string; timestamp?: string };
+  'workflow.updated': { workflowId: string; timestamp?: string };
+  'workflow.validated': { workflowId: string; valid?: boolean; timestamp?: string };
+  'workflow.activated': { workflowId: string; timestamp?: string };
+  'workflow.paused': { workflowId: string; timestamp?: string };
+  'workflow.disabled': { workflowId: string; timestamp?: string };
+  'workflow.version.created': { workflowId: string; versionNumber: number; timestamp?: string };
+  'workflow.run.created': { workflowId: string; runId: string; versionNumber?: number; status?: string; timestamp?: string };
+  'workflow.run.started': { workflowId: string; runId: string; status?: string; timestamp?: string };
+  'workflow.node.started': { workflowId: string; runId: string; nodeId: string; status?: string; timestamp?: string };
+  'workflow.node.completed': { workflowId: string; runId: string; nodeId: string; status?: string; timestamp?: string };
+  'workflow.node.failed': { workflowId: string; runId: string; nodeId: string; error?: string; timestamp?: string };
+  'workflow.node.retrying': { workflowId: string; runId: string; nodeId: string; details?: any; timestamp?: string };
+  'workflow.node.skipped': { workflowId: string; runId: string; nodeId: string; timestamp?: string };
+  'workflow.approval.requested': { workflowId: string; runId: string; nodeId: string; details?: any; timestamp?: string };
+  'workflow.approval.resolved': { workflowId: string; runId: string; nodeId: string; details?: any; timestamp?: string };
+  'workflow.run.paused': { workflowId: string; runId: string; status?: string; timestamp?: string };
+  'workflow.run.resumed': { workflowId: string; runId: string; status?: string; timestamp?: string };
+  'workflow.run.recovered': { workflowId: string; runId: string; timestamp?: string };
+  'workflow.run.completed': { workflowId: string; runId: string; status?: string; details?: any; timestamp?: string };
+  'workflow.run.failed': { workflowId: string; runId: string; status?: string; error?: string; details?: any; timestamp?: string };
+  'workflow.run.cancelled': { workflowId: string; runId: string; status?: string; details?: any; timestamp?: string };
+  'workflow.notification': { workflowId: string; runId?: string; nodeId?: string; message: string; channel?: string; timestamp?: string };
+  // FP-13 Universal Digital Workspace & Application Operator events
+  'workspace.discovered': { workspaceId: string; type: string; name: string; timestamp?: string };
+  'workspace.connected': { workspaceId: string; agentId?: string; timestamp?: string };
+  'workspace.disconnected': { workspaceId: string; reason?: string; timestamp?: string };
+  'workspace.status.changed': { workspaceId: string; status: string; previousStatus?: string; oldStatus?: string; timestamp?: string };
+  'application.launched': { applicationId: string; workspaceId: string; processId?: number; timestamp?: string };
+  'application.ready': { applicationId: string; workspaceId: string; timestamp?: string };
+  'application.closed': { applicationId: string; workspaceId: string; timestamp?: string };
+  'observation.created': { observationId: string; workspaceId: string; confidence: string; layers?: any; timestamp?: string };
+  'target.resolved': { targetId?: string; selector?: string; confidence?: string; workspaceId?: string; request?: any; resolution?: any; timestamp?: string };
+  'action.started': { actionId: string; actionType: string; workspaceId: string; timestamp?: string };
+  'action.completed': { actionId: string; actionType: string; workspaceId: string; success?: boolean; status?: string; timestamp?: string };
+  'action.failed': { actionId: string; actionType: string; workspaceId: string; error: string; status?: string; timestamp?: string };
+  'verification.started': { actionId: string; strategy: string; workspaceId?: string; timestamp?: string };
+  'verification.completed': { actionId: string; passed: boolean; workspaceId?: string; timestamp?: string };
+  'operator.recovery.started': { actionId?: string; strategy?: string; attempt?: number; timestamp?: string; reason?: string; action?: string; target?: string; workspaceId?: string };
+  'operator.recovery.completed': { actionId?: string; recovered?: boolean; timestamp?: string; success?: boolean; action?: string; target?: string; strategy?: string; workspaceId?: string };
+  'workspace.lock.acquired': { lockId: string; workspaceId: string; agentId?: string; holderAgentId?: string; mode: string; timestamp?: string };
+  'workspace.lock.released': { lockId: string; workspaceId: string; agentId?: string; holderAgentId?: string; timestamp?: string };
+  'operator.security.challenge_detected': { workspaceId: string; challengeType: string; timestamp?: string };
+  'operator.action.blocked': { actionId: string; reason: string; workspaceId?: string; timestamp?: string };
+  // FP-14 Universal Agentic Mission & Workforce Runtime events
+  'mission.understanding': { missionId: string; timestamp?: string };
+  'mission.planned': { missionId: string; outcomesCount?: number; tasksCount?: number; timestamp?: string };
+  'mission.ready': { missionId: string; timestamp?: string };
+  'mission.paused': { missionId: string; reason?: string; timestamp?: string };
+  'mission.replanning': { missionId: string; reason?: string; planVersion?: number; timestamp?: string };
+  'mission.recovered': { missionId: string; timestamp?: string };
+  'mission.verifying': { missionId: string; timestamp?: string };
+  'outcome.started': { missionId: string; outcomeId: string; timestamp?: string };
+  'outcome.completed': { missionId: string; outcomeId: string; timestamp?: string };
+  'agent.assigned': { missionId: string; taskId: string; agent: string; timestamp?: string };
+  'agent.released': { agent: string; timestamp?: string };
+  'agent.overloaded': { agent: string; activeTasks: number; timestamp?: string };
+  'agent.recovered': { agent: string; timestamp?: string };
+  // FP-16 Demonstration Learning events
+  [key: `demonstration.${string}`]: any;
+  // FP-17 Creation & Media Studio events
+  [key: `creation.${string}`]: any;
+  // FP-18 Decision Intelligence events
+  [key: `research.${string}`]: any;
+  [key: `decision.${string}`]: any;
+  // FP-19 Persistent Distributed Execution events
+  [key: `worker.${string}`]: any;
+  [key: `execution.${string}`]: any;
 }
 
 export type EventKey = keyof EventMap;

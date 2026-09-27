@@ -27,6 +27,7 @@ export interface ContextAssemblerOptions {
   /** If provided, hybrid semantic memory recall is attempted for this query (Tier 4+) */
   readonly query?: string;
   readonly skipSemanticRecall?: boolean;
+  readonly sessionId?: string;
 }
 
 export class ContextAssembler {
@@ -35,6 +36,9 @@ export class ContextAssembler {
   private readonly sessionManager: SessionManager;
   private readonly memoryRepo?: MemoryRepository;
   private hybridRetriever?: import('../memory/semantic/hybrid.retriever.js').HybridMemoryRetriever;
+  private knowledgeAssembler?: import('../knowledge/services/knowledge-context-assembler.js').KnowledgeContextAssembler;
+  private cognitiveEngine?: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine;
+  private workingMemoryEngine?: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine;
 
   // Cached tier 1 prompt to eliminate repetitive string building
   private cachedTier1Prompt?: string;
@@ -59,6 +63,33 @@ export class ContextAssembler {
     retriever: import('../memory/semantic/hybrid.retriever.js').HybridMemoryRetriever
   ): void {
     this.hybridRetriever = retriever;
+  }
+
+  /**
+   * Wires in an optional KnowledgeContextAssembler for bounded knowledge graph recall.
+   */
+  public setKnowledgeAssembler(
+    assembler: import('../knowledge/services/knowledge-context-assembler.js').KnowledgeContextAssembler
+  ): void {
+    this.knowledgeAssembler = assembler;
+  }
+
+  /**
+   * Wires in an optional CognitiveContextEngine for unified INT-007 context intelligence.
+   */
+  public setCognitiveEngine(
+    engine: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine
+  ): void {
+    this.cognitiveEngine = engine;
+  }
+
+  /**
+   * Wires in an optional WorkingMemoryEngine for INT-008 conversational continuity.
+   */
+  public setWorkingMemoryEngine(
+    engine: import('../working-memory/services/working-memory.engine.js').WorkingMemoryEngine
+  ): void {
+    this.workingMemoryEngine = engine;
   }
 
   /**
@@ -89,11 +120,10 @@ export class ContextAssembler {
     const sections: string[] = [
       `You are ${sys.name} (${sys.sanskrit} / ${sys.internationalSpelling}), a sovereign personal AI operating system and autonomous AI workforce control plane.`,
       `Your sole creator, developer, and master is ${creator.fullName} (${creator.role}).`,
-      `You are executing locally on Rushikesh's workstation (${creator.hardware.machine}, ${creator.hardware.cpu}, ${creator.hardware.ramGb} GB RAM) via local model Qwen 2.5 (7B) hosted on Ollama.`,
+      `You are executing locally on Rushikesh's workstation (${creator.hardware.machine}, ${creator.hardware.cpu}, ${creator.hardware.ramGb} GB RAM) via local neural models (qwen2.5:7b) hosted on Ollama.`,
       `Identity Invariants:`,
       `- Your sovereign operating persona, OS control plane, and identity is ${sys.name}.`,
-      `- The local neural language model powering your cognition is Qwen (qwen2.5:7b).`,
-      `- Do not pretend that Qwen itself is ${sys.name}; you are the sovereign OS orchestrator operating through Qwen as your local cognition engine.`,
+      `- Maintain sovereign identity as the master operating system control plane.`,
       `- Maintain accurate conversation context across multiple turns.`,
       ``,
       `SOVEREIGN CAPABILITIES & ZERO-CONSTRAINT MANDATE:`,
@@ -111,6 +141,18 @@ export class ContextAssembler {
         `- Conciseness: ${creator.communicationPreferences.conciseness}`,
         `- Core Directives: ${creator.projectPrinciples.slice(0, 3).join('; ')}`
       );
+    }
+
+    // TIER 2+: Persistent Working Memory & Active Continuity (INT-008)
+    if (tier >= 2 && options.sessionId && this.workingMemoryEngine) {
+      try {
+        const wmContext = this.workingMemoryEngine.assembleWorkingContext(options.sessionId);
+        if (wmContext && wmContext.trim().length > 0) {
+          sections.push(wmContext.trim());
+        }
+      } catch {
+        // Non-blocking working memory safety
+      }
     }
 
     // TIER 3+: Explicit preferences from persistent memory
@@ -165,6 +207,52 @@ export class ContextAssembler {
       }
     }
 
+    // Knowledge Graph bounded recall for Tier 4+ (bounded to 800 chars / max 100ms)
+    const canAttemptKnowledge = tier >= 4 && options.query && options.query.trim().length >= 10 && this.knowledgeAssembler;
+    if (canAttemptKnowledge) {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Knowledge recall timeout')), 100)
+        );
+        const knowledgePromise = this.knowledgeAssembler!.assembleContext({
+          query: options.query!,
+          maxChars: 800,
+        });
+        const knowledgeResult = await Promise.race([knowledgePromise, timeoutPromise]);
+        if (knowledgeResult?.formattedContext && knowledgeResult.formattedContext.trim().length > 0) {
+          sections.push(
+            `Relevant Knowledge Graph:`,
+            knowledgeResult.formattedContext.trim()
+          );
+        }
+      } catch {
+        // Knowledge recall failure or timeout must NEVER slow down or break conversation
+      }
+    }
+
+    // Cognitive Context Engine bounded assembly for Tier 4+ (bounded to 150ms timeout)
+    const canAttemptCognitive = tier >= 4 && options.query && options.query.trim().length >= 10 && this.cognitiveEngine;
+    if (canAttemptCognitive) {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Cognitive context timeout')), 150)
+        );
+        const cognitivePromise = this.cognitiveEngine!.assembleCognitiveContext({
+          userMessage: options.query!,
+          modelContextBudget: { tier, maxChars: options.maxMemoryChars || 1500 },
+        });
+        const cognitiveResult = await Promise.race([cognitivePromise, timeoutPromise]);
+        if (cognitiveResult?.formattedContext && cognitiveResult.formattedContext.trim().length > 0) {
+          sections.push(
+            `\nRelevant Cognitive Intelligence:`,
+            cognitiveResult.formattedContext.trim()
+          );
+        }
+      } catch {
+        // Cognitive context failure or timeout must NEVER slow down or break conversation
+      }
+    }
+
     return sections.join('\n');
   }
 
@@ -172,7 +260,14 @@ export class ContextAssembler {
    * Assembles the full bounded ChatMessage[] context for the active turn.
    */
   public async assembleContext(sessionId: string, options?: ContextAssemblerOptions): Promise<ChatMessage[]> {
-    const systemPrompt = await this.buildSystemPrompt(options);
-    return this.sessionManager.getBoundedHistory(sessionId, systemPrompt);
+    const optsWithSession = { ...options, sessionId };
+    const systemPrompt = await this.buildSystemPrompt(optsWithSession);
+    const tier = options?.tier ?? 2;
+    // Bounded history window:
+    // Tier 1 & 2: 4 messages (previous turn + active turn) to preserve multi-turn continuity while keeping prompt < 100 tokens
+    // Tier 3: 6 messages
+    // Tier 4+: full sliding window (10 messages)
+    const maxMsgs = tier === 1 ? 4 : (tier === 2 ? 4 : (tier === 3 ? 6 : undefined));
+    return this.sessionManager.getBoundedHistory(sessionId, systemPrompt, maxMsgs);
   }
 }

@@ -54,6 +54,7 @@ export const AICore: React.FC<AICoreProps> = ({
   interactive = false,
 }) => {
   const config = STATE_CONFIG[state] || STATE_CONFIG.IDLE;
+  const isLarge = size >= 80;
 
   return (
     <div
@@ -61,15 +62,16 @@ export const AICore: React.FC<AICoreProps> = ({
         width: `${size}px`,
         height: `${size}px`,
         borderRadius: '50%',
-        background: `radial-gradient(circle, ${config.glow} 0%, rgba(15, 23, 42, 0.8) 70%)`,
+        background: `radial-gradient(circle, ${config.glow} 0%, rgba(15, 23, 42, 0.92) 75%)`,
         border: `1.5px solid ${config.color}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        boxShadow: `0 0 16px ${config.glow}`,
+        boxShadow: `0 0 24px ${config.glow}, inset 0 0 12px ${config.glow}`,
         cursor: interactive ? 'pointer' : 'default',
         flexShrink: 0,
+        overflow: 'hidden',
       }}
       title={`HṚṢĪKEŚA Sovereign Core: ${config.label}`}
     >
@@ -80,11 +82,115 @@ export const AICore: React.FC<AICoreProps> = ({
           inset: '-4px',
           borderRadius: '50%',
           border: `1px solid ${config.color}`,
-          opacity: 0.3,
-          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          opacity: 0.45,
+          animation: 'pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          pointerEvents: 'none',
         }}
       />
-      {config.icon}
+
+      {isLarge ? (
+        <div
+          style={{
+            position: 'relative',
+            width: '82%',
+            height: '82%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `1.5px solid ${config.color}`,
+            boxShadow: `0 0 16px ${config.glow}, inset 0 0 14px rgba(10, 6, 2, 0.65)`,
+            background: '#FFF6EE',
+          }}
+        >
+          {/* Master Brand Feather with Intact Background */}
+          <img
+            src="/assets/hrikesa_logo.png"
+            alt="HṚṢĪKEŚA Core Feather"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center 46%',
+              borderRadius: '50%',
+              display: 'block',
+              transition: 'transform 0.35s ease',
+            }}
+          />
+
+          {/* Ambient Cosmic Radial Vignette Overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              pointerEvents: 'none',
+              background: `radial-gradient(circle at center, rgba(255, 246, 238, 0) 52%, rgba(200, 146, 14, 0.15) 75%, rgba(10, 6, 2, 0.6) 100%)`,
+              boxShadow: 'inset 0 0 10px rgba(10, 6, 2, 0.55)',
+            }}
+          />
+
+          {state !== 'IDLE' && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '6px',
+                right: '6px',
+                background: 'rgba(10, 6, 2, 0.92)',
+                border: `1.5px solid ${config.color}`,
+                borderRadius: '50%',
+                padding: '4px',
+                display: 'flex',
+                boxShadow: `0 0 12px ${config.glow}`,
+                zIndex: 3,
+              }}
+            >
+              {config.icon}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          style={{
+            position: 'relative',
+            width: '78%',
+            height: '78%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `1px solid ${config.color}`,
+            boxShadow: `0 0 10px ${config.glow}, inset 0 0 8px rgba(10, 6, 2, 0.55)`,
+            background: '#FFF6EE',
+          }}
+        >
+          <img
+            src="/assets/hrikesa_logo.png"
+            alt="HṚṢĪKEŚA Emblem"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center 46%',
+              borderRadius: '50%',
+              display: 'block',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              pointerEvents: 'none',
+              background: `radial-gradient(circle at center, rgba(255, 246, 238, 0) 50%, rgba(200, 146, 14, 0.15) 75%, rgba(10, 6, 2, 0.6) 100%)`,
+              boxShadow: 'inset 0 0 6px rgba(10, 6, 2, 0.5)',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
+

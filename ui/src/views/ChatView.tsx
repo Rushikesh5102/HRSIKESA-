@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Headphones,
   StopCircle,
+  Zap,
 } from 'lucide-react';
 import { ChatMessage } from '../types/api.types';
 import { api } from '../services/api';
@@ -117,6 +118,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   // Model selection state
   const [selectedModel, setSelectedModel] = useState<ModelOption>(MODEL_OPTIONS[0]);
+
+  // Response Mode state (Part C: CONCISE, NORMAL, DETAILED, DEEP - default NORMAL)
+  const [responseMode, setResponseMode] = useState<'CONCISE' | 'NORMAL' | 'DETAILED' | 'DEEP'>('NORMAL');
 
   // Multilingual state
   const [selectedLanguage, setSelectedLanguage] = useState<IndianLanguage>(INDIAN_LANGUAGES[0]);
@@ -404,7 +408,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
           setMessages((prev) =>
             prev.map((m) => (m.id === astMsgId ? { ...m, content: m.content + token } : m))
           );
-        }
+        },
+        responseMode
       );
 
       const durationMs = Date.now() - startTime;
@@ -721,6 +726,32 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     {m.badge} — {m.name}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Response Mode Selector (FP-02 Part C) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={14} color="var(--accent-emerald)" />
+              <select
+                value={responseMode}
+                onChange={(e) => setResponseMode(e.target.value as any)}
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-emerald)',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  padding: '5px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+                title="Response Mode (CONCISE, NORMAL, DETAILED, DEEP)"
+              >
+                <option value="CONCISE">⚡ Concise (Fast)</option>
+                <option value="NORMAL">⚡ Normal</option>
+                <option value="DETAILED">📚 Detailed</option>
+                <option value="DEEP">🧠 Deep Reasoning</option>
               </select>
             </div>
 

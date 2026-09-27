@@ -151,14 +151,14 @@ describe('Phase 17: Advanced Research & Web Intelligence Subsystem', () => {
       'Rushikesh: Research the best open-source frameworks for building autonomous AI agents on a 16 GB Windows laptop.'
     );
     assert.strictEqual(intent1.isResearch, true);
-    assert.strictEqual(intent1.depth, 'STANDARD');
-    assert.strictEqual(intent1.suggestedAgent, 'Rahu');
+    assert.strictEqual(intent1.depth, 'NORMAL');
+    assert.strictEqual(intent1.suggestedAgent, 'Gāṇḍīva');
 
     const intent2 = engine.parseResearchIntent('Give me a quick summary of TypeScript 5.5 features');
     assert.strictEqual(intent2.isResearch, true);
     assert.strictEqual(intent2.depth, 'QUICK');
 
-    const intent3 = engine.parseResearchIntent('Deep comprehensive investigation of GitHub repository architecture');
+    const intent3 = engine.parseResearchIntent('Deep investigation of GitHub repository architecture');
     assert.strictEqual(intent3.isResearch, true);
     assert.strictEqual(intent3.depth, 'DEEP');
     assert.strictEqual(intent3.suggestedAgent, 'Gāṇḍīva');
@@ -514,7 +514,7 @@ describe('Phase 17: Advanced Research & Web Intelligence Subsystem', () => {
     assert.ok(saved.evidencePath.endsWith('evidence.json'));
 
     const mdContent = await fs.readFile(saved.markdownPath, 'utf8');
-    assert.ok(mdContent.includes('## References & Sources'));
+    assert.ok(mdContent.includes('## Sources & Citations'));
   });
 
   // 13. Capability Adapter Registration

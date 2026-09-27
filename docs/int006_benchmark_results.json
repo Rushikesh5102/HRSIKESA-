@@ -1,0 +1,145 @@
+{
+  "benchmark": "INT-006 Sovereign Personal Knowledge Graph & Memory Deepening",
+  "timestamp": "2026-09-25T03:24:24.596Z",
+  "summary": {
+    "totalTests": 11,
+    "passCount": 11,
+    "averageLatencyMs": 3.187,
+    "totalModelCalls": 0,
+    "allPassed": true
+  },
+  "tests": [
+    {
+      "id": 1,
+      "name": "Entity Lookup (Script Variant / Alias)",
+      "scope": "GLOBAL",
+      "latencyMs": 0.57,
+      "nodesTraversed": 1,
+      "factsReturned": 0,
+      "modelCalls": 0,
+      "memoryMb": 10.21,
+      "correctness": "PASS",
+      "details": "Resolved 'हृषीकेश' -> HṚṢĪKEŚA (ALIAS_EXACT)"
+    },
+    {
+      "id": 2,
+      "name": "Relationship Lookup (3-Hop Traversal)",
+      "scope": "GLOBAL",
+      "latencyMs": 1.536,
+      "nodesTraversed": 4,
+      "factsReturned": 0,
+      "modelCalls": 0,
+      "memoryMb": 10.27,
+      "correctness": "PASS",
+      "details": "3-hop path: Rushikesh -> HṚṢĪKEŚA -> Ollama -> Llama 3.2 3B"
+    },
+    {
+      "id": 3,
+      "name": "Research -> Graph Ingestion (Invariant Enforced)",
+      "scope": "PROJECT",
+      "latencyMs": 1.936,
+      "nodesTraversed": 2,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.36,
+      "correctness": "PASS",
+      "details": "1 verified claim ingested as RESEARCH fact; 0 model inferences persisted as facts"
+    },
+    {
+      "id": 4,
+      "name": "Memory -> Graph Linkage (Conversation Turn)",
+      "scope": "CREATOR",
+      "latencyMs": 2.78,
+      "nodesTraversed": 1,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.43,
+      "correctness": "PASS",
+      "details": "Extracted EXPLICIT user preference with secret filtering"
+    },
+    {
+      "id": 5,
+      "name": "Contradiction Retrieval (Non-Destructive)",
+      "scope": "GLOBAL",
+      "latencyMs": 0.932,
+      "nodesTraversed": 1,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.45,
+      "correctness": "PASS",
+      "details": "Retrieved active UNRESOLVED contradiction preserving both conflicting sources"
+    },
+    {
+      "id": 6,
+      "name": "Temporal Query (Current vs Historical Versioning)",
+      "scope": "GLOBAL",
+      "latencyMs": 0.79,
+      "nodesTraversed": 1,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.5,
+      "correctness": "PASS",
+      "details": "Current: v22.12.0 (v2); Historical: v20.18.0 (v1, supersededBy v2)"
+    },
+    {
+      "id": 7,
+      "name": "Decision Recall (ADR / PDR Memory)",
+      "scope": "PROJECT",
+      "latencyMs": 0.224,
+      "nodesTraversed": 1,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.51,
+      "correctness": "PASS",
+      "details": "Recalled ADR 'Sovereign Native Orchestration Engine' with reasoning & alternatives"
+    },
+    {
+      "id": 8,
+      "name": "Project / Company Scoped Queries (Boundary Isolation)",
+      "scope": "PROJECT",
+      "latencyMs": 0.072,
+      "nodesTraversed": 2,
+      "factsReturned": 0,
+      "modelCalls": 0,
+      "memoryMb": 10.53,
+      "correctness": "PASS",
+      "details": "Verified 0 cross-scope fact leakage between Project Alpha and Project Beta"
+    },
+    {
+      "id": 9,
+      "name": "Chat Isolation (Ephemeral Conversational Guard)",
+      "scope": "SESSION",
+      "latencyMs": 0.042,
+      "nodesTraversed": 0,
+      "factsReturned": 0,
+      "modelCalls": 0,
+      "memoryMb": 10.53,
+      "correctness": "PASS",
+      "details": "Transient conversational context kept strictly separate from durable graph"
+    },
+    {
+      "id": 10,
+      "name": "Deterministic Time/Date Fast-Path (< 20ms, 0 LLM Calls)",
+      "scope": "GLOBAL",
+      "latencyMs": 6.462,
+      "nodesTraversed": 0,
+      "factsReturned": 0,
+      "modelCalls": 0,
+      "memoryMb": 10.6,
+      "correctness": "PASS",
+      "details": "FastChatGate average latency: 6.462ms (INT-004 frozen fast-path)"
+    },
+    {
+      "id": 11,
+      "name": "Restart Persistence (Cold SQLite Disk Reload)",
+      "scope": "SYSTEM",
+      "latencyMs": 19.71,
+      "nodesTraversed": 4,
+      "factsReturned": 1,
+      "modelCalls": 0,
+      "memoryMb": 10.62,
+      "correctness": "PASS",
+      "details": "Cold database reloaded: entities, facts, relationships, contradictions, decisions intact"
+    }
+  ]
+}

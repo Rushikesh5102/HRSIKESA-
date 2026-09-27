@@ -56,9 +56,14 @@ tools/
 *.ogg
 data/audio/
 scratch/
+workspace/research/
+workspace/calculator/
+workspace/live_verifier_phase17/
+workspace/test_phase17_suite/
 screenshots/
 
 # Data & Persistence (Local databases & logs)
+.hrisekesa/
 data/
 !data/pronunciations.json
 *.sqlite

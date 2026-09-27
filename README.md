@@ -11,9 +11,16 @@
 
 > **Official Name:** HṚṢĪKEŚA (हृषीकेश)  
 > **International Filesystem / ASCII Alias:** `HRISEKESA`  
-> **Sole Creator & Master:** Rushikesh Pattiwar  
-> **Current Status:** PHASE 25 — Full Autonomous Company Operations (COMPLETED & VERIFIED)  
-> **Primary Local Model:** Qwen 2.5 (7B) via Ollama 0.34.2 (CPU Mode)  
+> **English Self-Reference Name:** `Rishi` ("I’m Rishi")  
+> **Current Status:** FP-19 PERSISTENT DISTRIBUTED EXECUTION & 24/7 OPERATIONS FABRIC (COMPLETED & VERIFIED)  
+> **Inference Backends:** Hardware-Agnostic (Ollama Resident Engine + llama.cpp Intel Arc Vulkan GPU + Multi-threaded CPU + LAN Distributed Worker Nodes)  
+> **Persistent Execution Substrate (FP-19):** Durable 24/7 Operations Fabric across LOCAL, LAN, REMOTE, CLOUD, and HOSTED runtimes underneath Mission, Workflow, Goal, Skill, and Company OS. Monotonic Fencing Tokens (split-brain prevention), Incremental Checkpoint Snapshots & Deterministic Resumption, Cross-Runtime Job Migration, Multi-Queue Priority Scheduling (CRITICAL to BACKGROUND), Autonomous Recovery & Dead-Letter Routing, and Sovereign Cloud Cost Governance (`DENY_PAID_WITHOUT_APPROVAL`).  
+> **Universal Capabilities:** 6 Protocol Connectors (CLI, REST, Browser, Software, MCP, Local Tool), Sub-10ms Intent Matching, Strict Anti-Injection Sandboxing, Zero Plaintext Secrets (`vault://`), Invariant Verification (`EXECUTED != VERIFIED`)  
+> **Creative Capabilities:** Local-First Multimodal Creation Studio (Image, Video, Audio, Music, Voice, 3D Assets, Documents, Presentations, Design Assets, Compound Packages) with Bounded Iteration & QA Verification  
+> **Decision Intelligence:** ResearchCase Lifecycle, Bounded Research Plans, Evidence Ledger & Claim Normalization, Multi-Source Contradiction Resolution, Temporal Intelligence, Environment-Aware Hardware Evaluation, Qualitative Candidate Comparison, 16-Section Decision Briefs, Immutable Decision History & Reviews, and Governed Action Bridge (Missions, Goals, Workflows, Skills, Environment Changes)  
+> **Interactive Latency:** T0 Deterministic Fast-Gate (<38ms) | T2 Warm Interactive Chat (TTFT 253–314ms, Wall 2.4–6.1s)  
+> **Distributed Fabric:** Multi-Worker Execution Fabric (Dedicated TLS 1.3 Port 4300 Transport, Concurrent Streaming, Model Residency Awareness +40 Bonus, Queue-Aware Scheduling, Graceful Draining, Zero Remote Shell)  
+> **Response Modes:** CONCISE (40–75 tok) | NORMAL (150–256 tok, Default) | DETAILED (384–512 tok) | DEEP (768–1024 tok)  
 > **Primary Development IDE:** Antigravity  
 
 ---
@@ -102,7 +109,7 @@ HṚṢĪKEŚA is engineered to operate fluidly within the physical envelope of 
 ```bash
 npm test
 ```
-*Executes 724 tests across 99 test suites covering Identity, Config, Lifecycle, Event Bus, Logger, Hardware, Registry, Router, Sessions, Conversation, Ollama (with live inference), Cloud Adapters, HTTP Gateway, SQLite Persistence, Creator Profile, Context Assembly, Tool Registry, Danger Tiers & Permissions, Built-in Tools, Security Sandboxing & Redaction, MCP Client Adapter, Tool Execution Bus, Agent Registry & Runtime, Task & Mission Persistence, Delegation Guardrails, Shared Blackboard, Mission Orchestrator, Browser Automation & URL Sandboxing, Windows Computer / Desktop Control, Local Voice Subsystem (STT, TTS, Pipeline, Security), Semantic Windows UI Automation, Software & Environment Management, Control Center & Agent Town, Long-Term Semantic Memory & Hybrid Retrieval, Autonomous Goal Management & Verification Engine, Persistent Autonomous Operations, Research Intelligence, Model Router & Intelligence Gateway, Advanced Memory & Knowledge Graph, Skills & Procedural Intelligence, Dynamic MCP & Capability Ecosystem, Advanced Computer Operator, External / Enterprise Environments, Multimodal Vision + Voice, and Full Autonomous Company Operations.*
+*Executes full test suite across 301 test suites covering Identity, Config, Lifecycle, Event Bus, Logger, Hardware, Registry, Router, Sessions, Conversation, Ollama (with live inference), Cloud Adapters, HTTP Gateway, SQLite Persistence, Creator Profile, Context Assembly, Tool Registry, Danger Tiers & Permissions, Built-in Tools, Security Sandboxing & Redaction, MCP Client Adapter, Tool Execution Bus, Agent Registry & Runtime, Task & Mission Persistence, Delegation Guardrails, Shared Blackboard, Mission Orchestrator, Browser Automation & URL Sandboxing, Windows Computer / Desktop Control, Local Voice Subsystem (STT, TTS, Pipeline, Security), Semantic Windows UI Automation, Software & Environment Management, Control Center & Agent Town, Long-Term Semantic Memory & Hybrid Retrieval, Autonomous Goal Management & Verification Engine, Persistent Autonomous Operations, Research Intelligence, Model Router & Intelligence Gateway, Advanced Memory & Knowledge Graph, Skills & Procedural Intelligence, Dynamic MCP & Capability Ecosystem, Advanced Computer Operator, External / Enterprise Environments, Multimodal Vision + Voice, Full Autonomous Company Operations, Safe Self-Improvement & Self-Maintenance, Demonstration Learning & Workflow Acquisition (FP-16), Universal Digital Creation & Media Studio (FP-17), Universal Real-World Research, Knowledge & Decision Intelligence Fabric (FP-18), and Persistent Distributed Execution & 24/7 Operations Fabric (FP-19).*
 
 ### 2. Build for Production
 ```bash

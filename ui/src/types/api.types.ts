@@ -969,3 +969,122 @@ export interface SkillMatchCandidate {
   missingCapabilities: string[];
   isAmbiguous?: boolean;
 }
+
+// ==========================================
+// FP-03: DISTRIBUTED RESOURCE FABRIC TYPES
+// ==========================================
+
+export interface WorkerCapabilityInfo {
+  capabilityId: string;
+  version: string;
+  available: boolean;
+  metadata?: Record<string, unknown>;
+  securityLevel?: 'SAFE' | 'CONTROLLED' | 'RESTRICTED';
+}
+
+export interface WorkerInfo {
+  id: string;
+  name: string;
+  type: 'LOCAL' | 'LAN' | 'REMOTE' | 'CLOUD';
+  status: 'REGISTERING' | 'ONLINE' | 'BUSY' | 'DEGRADED' | 'DRAINING' | 'DRAINED' | 'OFFLINE' | 'UNHEALTHY' | 'BLOCKED' | 'REVOKED';
+  host: string;
+  port?: number;
+  platform: string;
+  architecture: string;
+  cpu: {
+    model: string;
+    physicalCores: number;
+    logicalProcessors: number;
+    speedMhz?: number;
+  };
+  memory: {
+    totalBytes: number;
+    freeBytes: number;
+    availableBytes?: number;
+  };
+  gpu: {
+    name: string;
+    vendor: string;
+    vramBytes?: number;
+    vulkanSupported?: boolean;
+    cudaSupported?: boolean;
+    rocmSupported?: boolean;
+  };
+  gpuBackend?: string;
+  models: string[];
+  residentModels?: string[];
+  capabilities: WorkerCapabilityInfo[];
+  environmentIds?: string[];
+  priority: number;
+  trustLevel: 'TRUSTED' | 'ENROLLED' | 'PROVISIONAL' | 'BLOCKED' | 'REVOKED';
+  registeredAt: string;
+  lastHeartbeat: string;
+  lastSeen: string;
+  loadScore: number;
+  resourceLimits?: {
+    maxConcurrentTasks: number;
+    maxRamBytes?: number;
+    maxCpuPercent?: number;
+    allowGpu?: boolean;
+    allowedWorkloads?: string[];
+  };
+  protocolVersion: string;
+  version: string;
+}
+
+export interface ResourceSnapshotInfo {
+  id: string;
+  workerId: string;
+  cpuUsage: number;
+  ramUsedBytes: number;
+  ramTotalBytes: number;
+  gpuUtilization?: number;
+  gpuMemoryUsedBytes?: number;
+  activeTasks: number;
+  queueDepth: number;
+  timestamp: string;
+}
+
+export interface WorkerTaskInfo {
+  id: string;
+  taskType: string;
+  priority: number;
+  status: 'QUEUED' | 'PLACED' | 'DISPATCHING' | 'RUNNING' | 'PAUSED' | 'CANCELLING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'BLOCKED' | 'REQUEUED';
+  privacyLevel: 'PUBLIC' | 'PRIVATE' | 'HIGHLY_PRIVATE' | 'SOVEREIGN_LOCAL';
+  requiredCapabilities: string[];
+  assignedWorkerId?: string;
+  attempt: number;
+  progress: number;
+  inputPayload?: Record<string, unknown>;
+  outputPayload?: Record<string, unknown>;
+  errorMessage?: string;
+  placementReason?: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface ResourceFabricOverview {
+  totalWorkers: number;
+  onlineWorkers: number;
+  busyWorkers: number;
+  offlineWorkers: number;
+  totalCores: number;
+  totalRamBytes: number;
+  usedRamBytes: number;
+  activeTasksCount: number;
+  queueDepth: number;
+  localWorkerId: string;
+  timestamp: string;
+  modelInventory?: Record<string, number>;
+  activeTasksPerWorker?: Record<string, number>;
+}
+
+export interface EnrollmentTokenResponse {
+  success: boolean;
+  name: string;
+  token: string;
+  expiresAt: string;
+  instructions: string;
+}
+

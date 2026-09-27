@@ -21,6 +21,22 @@ import { migration014 } from './014_external_environments_schema.js';
 import { migration015 } from './015_multimodal_vision_voice_schema.js';
 import { migration016 } from './016_autonomous_company_operations_schema.js';
 import { migration017 } from './017_safe_self_improvement_schema.js';
+import { migration018 } from './018_knowledge_graph_deepening_schema.js';
+import { migration019 } from './019_working_memory_schema.js';
+import { migration020 } from './020_resource_fabric_schema.js';
+import { migration021 } from './021_universal_capability_fabric_schema.js';
+import { migration022 } from './022_github_intelligence_fabric_schema.js';
+import { migration023 } from './023_universal_ide_workspace_schema.js';
+import { migration024 } from './024_autonomous_engineering_schema.js';
+import { migration025 } from './025_workflow_engine_schema.js';
+import { migration026 } from './026_universal_service_account_fabric_schema.js';
+import { migration027 } from './027_universal_digital_workspace_operator_schema.js';
+import { migration028 } from './028_universal_agentic_mission_workforce_runtime_schema.js';
+import { migration029 } from './029_universal_application_service_ecosystem_schema.js';
+import { migration030 } from './030_demonstration_learning_schema.js';
+import { migration031 } from './031_creation_media_schema.js';
+import { migration032 } from './032_decision_intelligence_schema.js';
+import { migration033 } from './033_persistent_execution_schema.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export class MigrationManager {
@@ -49,7 +65,30 @@ export class MigrationManager {
       migration015,
       migration016,
       migration017,
+      migration018,
+      migration019,
+      migration020,
+      migration021,
+      migration022,
+      migration023,
+      migration024,
+      migration025,
+      migration026,
+      migration027,
+      migration028,
+      migration029,
+      migration030,
+      migration031,
+      migration032,
+      migration033,
     ];
+  }
+
+  /**
+   * Returns registered migration definitions.
+   */
+  public getAvailableMigrations(): readonly Migration[] {
+    return this.migrations;
   }
 
   /**

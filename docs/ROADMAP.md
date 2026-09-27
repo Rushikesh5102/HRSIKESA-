@@ -1,8 +1,11 @@
 # HṚṢĪKEŚA (हृषीकेश) — Master Engineering Roadmap
 
-> **Current Status:** PHASE 25 — Full Autonomous Company Operations (COMPLETED & VERIFIED)  
+> **Current Status:** Foundation Performance & Execution Block FP-18 — Universal Real-World Research, Knowledge & Decision Intelligence Fabric (COMPLETED & VERIFIED)  
+> **Previous Block:** Foundation Performance & Execution Block FP-17 — Universal Digital Creation & Media Studio (COMPLETED & FROZEN)  
+> **Previous Block:** Foundation Performance & Execution Block FP-16 — Demonstration Learning & Workflow Acquisition (COMPLETED & FROZEN)  
 > **Target Machine:** Acer Swift SFG14-73T (Intel Core Ultra 5 125H, 16 GB RAM, Intel Arc GPU)  
 > **Creator & Sole Master:** Rushikesh Pattiwar  
+> **English Self-Name:** Rishi ("I’m Rishi")  
 
 ---
 
@@ -428,8 +431,321 @@ graph LR
 - [x] 42/42 live verification scenarios passing in `scripts/live-phase26-verifier.ts`
 - [x] 804/804 total tests passing across all 112 test suites with zero regressions
 
+---
 
+## Track A: INT-005: Advanced Research & Web Intelligence ✅ (Completed)
+- [x] Multi-source research intelligence pipeline with 12 research types and 5 depth tiers (`QUICK`, `STANDARD`, `DEEP`, `COMPREHENSIVE`, `EXHAUSTIVE`).
+- [x] 10-dimensional research budget governance (`maxSources`, `maxDepth`, `maxSearchQueries`, `maxFetchQueries`, `maxTokensPerSource`, `maxTotalTokens`, `timeoutMs`, `maxCostUsd`, `maxModelCalls`, `allowPaywalled`).
+- [x] 17-state lifecycle state machine with cancellation and safe snippet fallback.
+- [x] Strict security containment: external web content treated as untrusted data (`<untrusted_web_content>` envelope).
+- [x] Prompt injection detector: regex and adversarial pattern defense neutralizing jailbreaks and prompt overrides.
+- [x] Access control and bot detection: CAPTCHA, reCAPTCHA, Cloudflare challenges, login/paywall detection without illegal bypass.
+- [x] Automated sensitive credential and secret redaction (`[REDACTED_CREDENTIAL]`).
+- [x] Deterministic credibility (`AUTHORITATIVE`, `PRIMARY`, `SECONDARY`, `COMMUNITY_OPINION`) and freshness classification.
+- [x] Claim extraction, evidence polarity, and provenance mapping.
+- [x] Cross-source discrepancy detector identifying 5 conflict types (`DATE_MISMATCH`, `NUMERICAL_DISCREPANCY`, `VERSION_MISMATCH`, `FACTUAL_DISAGREEMENT`, `COMPATIBILITY_CONFLICT`).
+- [x] Multi-source report synthesis with zero-hallucination citation graphs and durable facts extraction for sovereign memory.
+- [x] Builtin tools `research.execute` (TIER_1) and `research.query` (TIER_0).
+- [x] 6 procedural research skills added to `BUILTIN_SKILLS`.
+- [x] FastChatGate preservation: greetings (< 10ms), identity (< 5ms), time (< 10ms), date (< 5ms), and simple arithmetic remain isolated from research engine (0 LLM calls).
+- [x] 55/55 tests passing in `tests/int-005-research.test.ts`.
+- [x] 6/6 live benchmark scenarios passing in `scripts/benchmark_int005_live.js`.
+- [x] 119/119 regression tests passing with zero failures. Clean build and lint.
 
+---
 
+## Track A: INT-006: Sovereign Personal Knowledge Graph & Memory Deepening ✅ (Completed)
+- [x] Native SQLite schema extension (Migration 018) for `knowledge_merge_proposals`, temporal fact extensions, evidence citations, and structured contradictions.
+- [x] Sovereign entity resolution with multi-tier deterministic matching (exact canonical, alias lookup, canonical clusters, fuzzy candidates) and cross-type conflict protection.
+- [x] Proposal-based merging & non-destructive disambiguation: zero silent merges, human approval workflow via `knowledge_merge_proposals`.
+- [x] Temporal non-destructive fact versioning with `validFrom`, `validUntil`, `observedAt`, `version`, and `supersededBy`. Complete historical auditability without deleting historical evidence.
+- [x] Strict provenance tracking across all facts and entities (`EXPLICIT`, `DERIVED`, `INFERRED`, `IMPORTED`, `RESEARCH`, `SYSTEM`).
+- [x] Research-Knowledge Bridge ingesting `ResearchArtifactBundle` into graph with invariant protection: model inferences/opinions are never persisted as durable facts.
+- [x] Privacy and secret redaction pipeline neutralizing adversarial prompt injection and stripping API keys/credentials (`sk-...`) before persistence.
+- [x] Multi-tenant scope isolation (`CREATOR`, `GLOBAL`, `PROJECT`, `COMPANY`, `SESSION`) and Architectural Decision Register (ADR/PDR) memory recall.
+- [x] Bounded context assembly (< 800 chars / max 100ms) with cycle protection and max 5-hop / 150-node traversal bounds.
+- [x] Builtin tools `knowledge.search`, `knowledge.entity.lookup`, `knowledge.fact.query` and 6 procedural skills registered in `BUILTIN_SKILLS`.
+- [x] 6 HTTP REST endpoints under `/knowledge/*` and EventBus domain integration.
+- [x] Deterministic fast-paths (< 20ms, 0 LLM calls) strictly preserved.
+- [x] 44/44 dedicated tests passing in `tests/int-006-knowledge.test.ts`.
+- [x] 11/11 live benchmark tests passing in `scripts/benchmark_int006_live.js` (average latency: 3.187ms, 0 model calls).
+- [x] Full regression suite passing cleanly (163/163 tests, 0 errors).
+- [x] Clean TypeScript check (`tsc --noEmit`), clean build (`npm run build`), clean lint (`npm run lint`).
 
+---
+
+## Track A: INT-007: Cognitive Context Engine (Unified Memory, Research & Decision Intelligence) ✅ (Completed)
+- [x] Multi-source candidate collection across `FACTS`, `ENTITIES`, `DECISIONS`, `RESEARCH`, `PREFERENCES`, `EPISODIC`, `WORKING_MEMORY`, and `CONTRADICTIONS`.
+- [x] Intent and task complexity classification (`CHAT`, `TASK`, `DECISION_LOOKUP`, `RESEARCH`, `CODE`, `CREATIVE`, `SYSTEM`).
+- [x] Scope resolution with strict tenant isolation (`CREATOR`, `GLOBAL`, `PROJECT`, `COMPANY`, `SESSION`, `AGENT`, `GOAL`, `MISSION`).
+- [x] Transparent multi-factor relevance ranking with explainable scoring (+0.40 user preference, +0.35 intent, +0.30 scope, +0.25 entity, +0.20 provenance, +0.15 recency, +0.10 contradiction/evidence).
+- [x] Temporal filtering and fact versioning (`CURRENT`, `HISTORICAL`, `BEFORE`, `AFTER`, `AT_TIME`, `ALL`).
+- [x] Structured contradiction preservation: formatting disputed claims into `[CONTESTED INFORMATION / UNRESOLVED]` blocks rather than hallucinating or dropping facts.
+- [x] Adaptive context token/character budgeting (T0-T4) governed by `ResourceGovernor` memory pressure (`LOW_MEMORY` / `CRITICAL_MEMORY`).
+- [x] Lossless-priority context compressor protecting explicit preferences and unresolved contradictions from truncation.
+- [x] Sub-20ms deterministic fast-paths frozen and completely isolated from context retrieval pipeline (0 LLM calls, 0 database overhead).
+- [x] Builtin tools `context.inspect`, `context.search`, `context.trace` (TIER_0) and 6 procedural skills registered in `BUILTIN_SKILLS`.
+- [x] Diagnostic HTTP REST endpoints (`GET /context/trace/:requestId`, `GET /context/traces`, `POST /context/assemble`).
+- [x] 42/42 dedicated tests passing in `tests/int-007-context-engine.test.ts`.
+- [x] 15/15 live benchmark scenarios passing in `scripts/benchmark_int007_live.js` (average latency: 2.774ms, 0 model calls).
+- [x] 197/197 regression tests passing across all INT suites (0 failures).
+- [x] Clean TypeScript check (`tsc --noEmit`), clean build (`npm run build`), clean lint (`npm run lint`).
+
+---
+
+## Track A: INT-008: Persistent Working Memory & Conversational Continuity Engine ✅ (Completed)
+- [x] Native SQLite schema extension (Migration 019) creating `conversation_threads`, `working_memory_items`, `conversation_checkpoints`, and `pending_items` with proper foreign keys and indexes.
+- [x] Working memory repositories: `ConversationThreadRepository`, `WorkingMemoryItemRepository`, `ConversationCheckpointRepository`, `PendingItemRepository`.
+- [x] Multi-factor candidate thread ranking: explicit title matches, token matches, project overlap, status priority, recency decay, and continuation boost. Cross-session candidate isolation.
+- [x] Deterministic deictic reference and anaphora resolution: "it" -> blocker/error/task, "that" -> recent result/decision, "this" -> active topic/task, "the previous one" -> superseded state, "continue" -> active task/project.
+- [x] Ambiguity detection when multiple candidates have equal confidence (< 0.15 margin) without blind guessing.
+- [x] Explicit user correction detection: "No, I meant X", "Use Y instead", "Forget previous assumption" automatically superseding prior assumptions or overriding active project/company.
+- [x] Continuity tracking: project/company intent detection, active goal/mission tracking, blocker management, and pending item tracking.
+- [x] Checkpoint capture & cross-session restoration: full structured state snapshot and automatic recovery across restarts.
+- [x] Scope isolation (`GLOBAL`, `PROJECT`, `COMPANY`, `SESSION`, `AGENT`, `GOAL`, `MISSION`) and secret redaction (`sk-...`, tokens).
+- [x] INT-007 integration: `CandidateSourceType.WORKING_MEMORY`, relevance ranker priority bonuses (+0.40 user correction, +0.35 task/blocker, +0.30 project), and compressor budget protection.
+- [x] 4 builtin diagnostic tools: `working_memory.inspect`, `working_memory.threads`, `working_memory.pending`, `working_memory.checkpoint` (TIER_0).
+- [x] 4 procedural skills registered in `BUILTIN_SKILLS`: `working-context`, `resume-task`, `conversation-checkpoint`, `resolve-reference`.
+- [x] 7 HTTP REST endpoints under `/working-memory/*`.
+- [x] Deterministic fast-path preservation: sub-20ms instant responses completely bypass working memory lookups.
+- [x] 45/45 dedicated tests passing in `tests/int-008-working-memory.test.ts` (104ms).
+- [x] 20/20 live benchmark scenarios passing in `scripts/benchmark_int008_live.js` (average latency: 1.80ms, 0 model calls).
+- [x] Full regression suite passing cleanly (175/175 tests, 0 failures).
+- [x] Clean TypeScript check (`tsc --noEmit`), clean build (`npm run build`), clean lint (`npm run lint`).
+
+---
+
+## Foundation Performance & Execution Block (FP-01) ✅ (Completed)
+- [x] Hardware-agnostic local inference abstraction (`src/inference/`) supporting Ollama, llama.cpp CPU, and llama.cpp Vulkan (Intel Arc GPU).
+- [x] Deterministic zero-model T0 fast paths (< 25ms): greetings, identity ("Rishi"), time, date, simple math (0 LLM calls).
+- [x] Execution-First Policy: suppression of unnecessary clarification; assumption logging in working memory.
+- [x] Canonical identity **HṚṢĪKEŚA** with English self-reference **Rishi**.
+- [x] Asynchronous non-blocking chat title generation.
+- [x] Cooperative cancellation tokens immediately stopping model processes on STOP/CANCEL commands.
+- [x] 100% sovereign offline-first operation.
+- [x] 21/21 tests passing in `tests/fp-01-performance.test.ts`.
+
+---
+
+## Interactive Inference Optimization (FP-02) ✅ (Completed)
+- [x] Warm model residency (`keep_alive: 15m`) delivering Time-To-First-Token (TTFT) of 253–314ms.
+- [x] True Server-Sent Events (SSE) token streaming to the frontend.
+- [x] 4 response modes: `CONCISE` (max 75 tokens), `NORMAL` (default 256 tokens), `DETAILED`, `DEEP`.
+- [x] T1/T2 context minimization (< 100 tokens, tool schemas stripped for conversational turns).
+- [x] Hardware-aware backend selection with multi-threaded Intel Arc Vulkan offload (`-ngl 99`).
+- [x] Model role separation: T0 deterministic, T1 fast (1.5B), T2 interactive (Llama 3.2 3B resident), T3/T4 reasoning (Qwen 2.5 7B on-demand).
+- [x] 14/14 tests passing in `tests/fp-02-streaming.test.ts`.
+
+---
+
+## Distributed Local/LAN Resource Fabric & Execution Capacity (FP-03) ✅ (Completed)
+- [x] Control Plane vs Execution Plane separation: Control plane remains exclusively on the primary laptop; workers execute authorized workloads.
+- [x] SQLite schema Migration 020 (`020_resource_fabric_schema.ts`): `workers`, `worker_capabilities`, `worker_tasks`, `worker_resource_snapshots`, `worker_enrollment_tokens`.
+- [x] Core resource fabric subsystem in `src/resources/`: `ResourceRegistry`, `ResourcePolicyManager`, `ResourceHealthTracker`, `ResourceScheduler`, `ResourceManager`, `LocalWorker`, `LanWorkerClient`, `ResourceTelemetryTracker`.
+- [x] First-class Local Worker descriptor with automatic CPU, RAM, Intel Arc GPU, Vulkan, Ollama, and tool capability detection.
+- [x] Secure LAN worker client prototype with single-use cryptographic pairing tokens (SHA-256 hashed with TTL).
+- [x] Resource-aware placement engine with multi-factor scoring (priority + local affinity + GPU acceleration + RAM headroom - load score penalty) and explainable decision records.
+- [x] Privacy boundaries enforced: `SOVEREIGN_LOCAL` strictly prohibited from leaving host; `HIGHLY_PRIVATE`, `PRIVATE`, `PUBLIC`.
+- [x] Safe bounded execution whitelist for non-local workers (`compute.echo`, `compute.benchmark`, `resource.fabric.test`, `inference.generate`, `model.health`). Zero unrestricted remote shell.
+- [x] Cooperative cancellation propagation: scheduler -> worker -> running loop.
+- [x] Worker heartbeat tracking with auto-transition to `DEGRADED`/`OFFLINE` and automated task requeueing/recovery with idempotency protection.
+- [x] Safe artifact transfer with SHA-256 hash verification, 50 MB size bounds, and path traversal defense.
+- [x] Integration with `ResourceGovernor`: under `CRITICAL_MEMORY`, local affinity bonus drops to -30 to offload non-private workloads to LAN nodes.
+- [x] REST API endpoints (`/resources/workers`, `/resources/workers/pair`, `/resources/workers/enroll`, `/resources/workers/:id`, `/resources/tasks`, `/resources/overview`) and typed SSE events.
+- [x] Control Center Workers dashboard (`WorkersView.tsx`) with real-time hardware telemetry, live compute benchmark, pairing modal, and node controls (drain/revoke/resume).
+- [x] 39/39 tests passing in `tests/fp-03-resource-fabric.test.ts` (including 4 Live Verification Flows).
+- [x] Exact 17-agent workforce preserved intact (Agent -> Task -> Resource Fabric -> Worker -> Tool/Model).
+
+---
+
+## Physical LAN Execution & Distributed Inference (FP-04) ✅ (Completed)
+- [x] Pre-existing Phase 14 test fix: Resolved `no such table: workers` in `tests/company-os.test.ts` cleanly via DB instance awareness in `ResourceManager.initialize()` and `resetInstance()`. All 17/17 tests pass.
+- [x] Sovereign Port Isolation: Primary HṚṢĪKEŚA control plane (Port 4200) strictly bound to `127.0.0.1` (localhost). No enterprise/identity APIs exposed to LAN.
+- [x] Dedicated Worker Transport Layer (`src/resources/transport/`): Runs on dedicated port 4300 (`WorkerTransportServer`) exposing ONLY typed worker protocol frames.
+- [x] TLS 1.3 Encryption & Pure-JS X.509: Implemented zero-dependency pure JavaScript self-signed RSA-2048 certificate generation with SHA-256 fingerprinting.
+- [x] Framing & Buffer Defense: 4-byte big-endian length-prefixed framing with strict 5 MB frame payload ceiling defense against socket exhaustion.
+- [x] Standalone Physical Worker Runtime (`src/resources/worker-runtime/`): Standalone daemon CLI executable on Machine B without running the HṚṢĪKEŚA control plane.
+- [x] Cryptographic Pairing & Reconnection: Single-use enrollment tokens (`hrsk_enroll_<random>`) exchange for scoped session tokens (`hrsk_sess_<random>`). Safe reconnects with token reuse protection.
+- [x] Discovery Layer: Optional UDP beacon discovery (`WorkerDiscovery`) with strict zero-trust boundary (discovery $\neq$ authorization).
+- [x] Bounded Remote Workloads: `compute.echo`, `compute.benchmark`, `resource.fabric.test`, `model.health`, `inference.generate`. Absolute prohibition of arbitrary remote shell (`terminal.execute`) or arbitrary filesystem commands.
+- [x] Distributed Inference with True Token Streaming: Remote execution of `inference.generate` streams tokens in real-time over TLS transport chunks into HṚṢĪKEŚA SSE streams and the Chat UI.
+- [x] Cooperative Remote Cancellation: `TASK_CANCEL` propagates to worker runtime with `AbortController` cancellation stopping model generation immediately.
+- [x] Real-Time Telemetry & GPU Probing: Non-fabricating GPU telemetry (`nvidia-smi`, `rocm-smi`, Level-Zero) returning real metrics or `'UNKNOWN'`.
+- [x] 40/40 dedicated tests passing in `tests/fp-04-lan-execution.test.ts`.
+- [x] Physical LAN Verification Status: Accurately reported as `PHYSICAL_LAN_VERIFICATION = NOT_AVAILABLE` in single-machine development environment (zero fabrication).
+
+---
+
+## Multi-Worker Execution, Concurrent Inference & Physical LAN Validation (FP-05) ✅ (Completed)
+- [x] Multi-Worker Registry & Simultaneous TLS Connections: Transport server upgraded to manage concurrent worker sessions simultaneously via `Map<string, ConnectedWorkerSession>`, tracking multiple concurrent `activeTaskIds: Set<string>` per session without crosstalk.
+- [x] Model-Aware Placement & Warm Model Residency: Route tasks to workers advertising requested models; award +40 score bonus to workers with models pre-loaded in memory/VRAM (`worker.residentModels`).
+- [x] Worker Capacity Accounting & Load Balancing: Placement engine accounts for active tasks, applies active task penalty (`-15/task`), and tie-breaks by lowest active tasks across identical nodes.
+- [x] Per-Worker Concurrency Limits: Enforces `worker.resourceLimits.maxConcurrentTasks`, marking saturated workers ineligible for immediate placement (`isSaturated = true`).
+- [x] Queue-Aware Scheduling with Aging Bonus: When all eligible workers are saturated, tasks enqueue in priority `taskQueue`; aging bonus (+1 point per 5s) prevents starvation for lower-priority background tasks.
+- [x] Graceful Worker Draining Lifecycle (`DRAINING` -> `DRAINED`): Draining workers reject new tasks, complete active tasks, and automatically transition to `DRAINED` when active count reaches 0. Resuming restores `ONLINE` and pumps queue.
+- [x] Automatic Task Migration on Network Dropped: Tasks with `allowMigration: true` automatically requeue and migrate to alternate eligible workers upon transport network drop.
+- [x] In-Flight Idempotency Deduplication: Schedulers maintain `inFlightByIdempotency` to allow concurrent duplicate submissions with identical keys to share the single in-flight execution promise.
+- [x] 20/20 dedicated tests passing in `tests/fp-05-multi-worker.test.ts`.
+- [x] Zero regressions across FP-04 (40/40), FP-03 (39/39), FP-01/02 (35/35), Company OS (17/17), clean TypeScript check (`tsc --noEmit`), clean lint, clean backend build, and clean UI build.
+- [x] Physical LAN Verification Status: Accurately reported as `PHYSICAL_LAN_VERIFICATION = NOT_AVAILABLE` in single-machine development environment (zero fabrication).
+
+---
+
+## Universal Capability & Connector Fabric (FP-07) ✅ (Completed)
+- [x] Universal Capability Contract: Unified domain types and interfaces (`UniversalCapability`, `CapabilityCategory`, `CapabilityProtocol`, `CapabilityLifecycleStatus`, `CapabilityTrustLevel`, `CapabilityRiskLevel`, `PrivacyClass`).
+- [x] SQLite Schema & Dual-Layer Caching: Migration 021 with in-memory `Map` caching ensuring deterministic lookups under 1.2ms.
+- [x] 6 Protocol Connectors: `CLI`, `REST`, `BROWSER`, `SOFTWARE`, `MCP`, and `LOCAL_TOOL` adhering to common `IConnector` interface.
+- [x] Safe Subprocess Execution: CLI connector with strict binary allowlisting (`git`, `node`, `npm`, `ollama`) and shell metacharacter rejection.
+- [x] Zero Plaintext Secrets: Handled exclusively by reference (`vault://...`, `env://...`); recursive secret redaction filter for logs and audit records.
+- [x] OAuth 2.0 PKCE State Machine: Pure-JS SHA-256 PKCE challenge generation, state token validation, and TTL expiration.
+- [x] Deterministic Sub-10ms Intent Matcher: Keyword and token scoring without LLM overhead or prompt latency.
+- [x] Invariant Verification Engine: Post-condition verification across 7 strategies (`schema_match`, `read_after_write`, `process_state`, `checksum`, `dom_presence`, `exit_code`, `dry_run`).
+- [x] Untrusted Output Defanging: Wraps untrusted external outputs into isolated non-instruction envelopes to prevent prompt injection.
+- [x] Multi-Tenancy & Sovereign Local Privacy: Company/Project boundary enforcement; strict rejection of external HTTP/network egress for `SOVEREIGN_LOCAL` tasks.
+- [x] REST & SSE Endpoints: 12 REST endpoints and real-time SSE stream at `/capabilities/events`.
+- [x] Terminal CLI Integration: Subsystem commands `hres capabilities list`, `search`, `inspect`, `health`, `verify`, `revoke`, `invoke`.
+- [x] Glassmorphic Control Center UI: 7-tab view (`CapabilityCenter.tsx`) with real-time SSE telemetry updates.
+- [x] Comprehensive Verification Gate: 38/38 dedicated tests passing covering all 40 requirements, 99/99 regression tests passing, 0 TypeScript errors, clean UI build.
+
+## GitHub & Open-Source Intelligence / Acquisition Fabric (FP-08) ✅ (Completed)
+- [x] GitHubFabric: Master orchestrator wiring all GitHub subsystems and integrating with FP-07 CapabilityRegistry, PermissionManager, and EventBus.
+- [x] Rate-Limited GitHub Client: Authenticated REST client with vault:// / env:// credential resolution, rate-limit tracking, and RateLimitExceededError with retryAfterMs.
+- [x] License Analyzer: SPDX-aware classification (PERMISSIVE, WEAK_COPYLEFT, STRONG_COPYLEFT, PROPRIETARY, UNKNOWN), OSI/FSF flag mapping, compatibility matrix.
+- [x] Dependency Analyzer: Multi-ecosystem manifest parsing (npm, Python, Rust/Cargo, Go/go.mod), VCS dependency detection, install-script flagging, and risk scoring.
+- [x] Security Analyzer: Heuristic scanning for reverse shells, CI secret exfiltration, obfuscated payloads, typosquatting, Log4Shell/Spring4Shell/Shellshock patterns.
+- [x] Repository Store (SQLite): Provenance-tracked persistence with 4 tables (repositories, repository_scans, acquisitions, build_artifacts), SHA-256 artifact integrity.
+- [x] Sandbox Manager: Isolated directory workspaces, staged shallow acquisition (no blind dependency installation), command-injection prevention, process timeouts (SIGKILL), ResourceGovernor gating.
+- [x] Untrusted Data First (ADR-FP08-001): All repository content in UntrustedDataEnvelope<T>; never interpolated into model prompts.
+- [x] REST API & SSE Events: 6 REST endpoints (/api/github/*) and 7 typed EventBus events.
+- [x] CLI Interface: hres github analyze, hres github search, hres github acquire.
+- [x] Knowledge Graph Integration: Intelligence results written as typed edges (HAS_LICENSE, DEPENDS_ON, HAS_FINDING).
+- [x] Real Public Repository Verification: Live tests against octocat/Hello-World, torvalds/linux, microsoft/vscode with zero mocking.
+- [x] Comprehensive Verification Gate: 44/44 dedicated tests passing under NORMAL memory (38 PASS / 4 SKIP / 2 FAIL under CRITICAL_MEMORY due to deferred acquisition), 174/174 targeted regression passing (218/218 combined targeted under NORMAL memory), full repository test (npm test) 1296/1308 passing with 8 pre-existing legacy test failures and 4 memory skips, 0 TypeScript errors, clean backend build, clean UI build.
+
+## Universal IDE & Development Workspace (FP-09) ✅ (Completed)
+- [x] IdeFabric: Sovereign Master Development Workspace Orchestrator wiring all 8 IDE subsystems: WorkspaceManager, CodeSearchEngine, EditorEngine, TerminalManager, PreviewManager, GitWorkspaceManager, VerificationLoopEngine, and IdeRepository.
+- [x] Workspace Manager: Multi-project discovery, path traversal defenses (`resolveSafePath`), framework detection (Node, Vite, React, Next.js, Express, TypeScript, Python, Rust, Go), and pruned recursive file navigation tree.
+- [x] Code Search & Intelligence Engine: Multi-language regex & literal search, filename search, and structural code symbol extraction (classes, interfaces, methods, constants, functions).
+- [x] Precision Editor Engine: Safe bounded file viewing (`viewFile`), contiguous single-block replacement with diff calculation (`replaceContent`), bottom-up transactional multi-chunk editing with atomic disk rollback on validation failure (`multiReplace`), and staged changeset history tracking.
+- [x] Terminal Supervisor & Safety Governance: Governed process lifecycle execution (`executeSync`), circular output buffering bounded to 100KB with zero memory leaks, and hard rejection of destructive command patterns (`rm -rf /`, `format c:`, fork bombs).
+- [x] Dev Preview Supervisor: Dynamic ephemeral port allocation (3000-3999), child process daemon management, and HTTP health check polling until ready.
+- [x] Git Workspace Manager: Non-throwing git working-tree status inspection, staged/modified/untracked diff reporting, and git-less fallback capability.
+- [x] Complete 10-Stage Autonomous Verification Loop: Self-correcting autonomous development cycle: `UNDERSTAND → PLAN → MODIFY → EXECUTE → OBSERVE → TEST → VERIFY → FIX → REVERIFY → REPORT`.
+- [x] Universal Capability Fabric Integration: Registers sovereign `ide.workspace.open`, `ide.workspace.inspect`, `ide.terminal.execute`, `ide.code.search`, `ide.file.edit`, and `ide.verification.run` capabilities into FP-07 fabric.
+- [x] Persistence Layer (Migration 023): SQLite tables `ide_workspaces`, `ide_changesets`, `ide_terminals`, `ide_preview_servers`, and `ide_verification_runs`.
+- [x] REST API & CLI Interfaces: Complete HTTP REST endpoints under `/api/ide/*`, single-page routing for `/ide` and `/workspace`, and CLI commands via `hres ide status|search|run|git-status|verify|workspaces`.
+- [x] Glassmorphic Control Center UI (`UniversalIDEView.tsx`): 5-tab integrated workspace view (Editor, Terminal, Search, Previews, Verification) registered in Control Center sidebar and router.
+- [x] Comprehensive Verification Gate: 24/24 dedicated tests passing in `tests/fp-09-universal-ide.test.ts`, 82/82 regression tests passing across FP-07 and FP-08, 0 TypeScript errors (`tsc --noEmit`), clean backend build (`npm run build`), and clean UI bundle build (`npm --prefix ui run build`).
+
+## Autonomous Software Engineering & Agentic Coding Engine (FP-10) ✅ (Completed)
+- [x] AutonomousEngineeringFabric: Sovereign master orchestrator connecting Universal ModelRouter to closed repair loops across 10 autonomous lifecycle stages (`UNDERSTAND → PLAN → MODIFY → EXECUTE → OBSERVE → TEST → VERIFY → FIX → REVERIFY → REPORT`).
+- [x] Governed Execution Invariant: Model proposes strictly structured intent (`EngineeringActionPayload`) rather than arbitrary shell execution. Governed system validates, sandboxes, and executes.
+- [x] Action Validator & Sandboxing: Rigorous path traversal containment within workspace root, rejection of dangerous command patterns (`rm -rf`, `chmod -R 777`, `mkfs`, `curl | bash`), and danger tier categorization (Tier 0 to Tier 4) requiring operator approval for destructive operations.
+- [x] User Conflict Protection: SHA-256 pre-read baseline hash recording on `READ_FILE` and pre-patch verification on `EDIT_FILE`, rejecting stale agent patches with `Concurrent modification detected: User work protected` when files are modified externally.
+- [x] Diagnostic Normalizer & Failure Fingerprinting: Structured failure classification (`TEST_FAILURE`, `TYPE_ERROR`, `LINT_ERROR`, `BUILD_FAILURE`, `DEPENDENCY_ERROR`, `PERMISSION_ERROR`, `RUNTIME_ERROR`) with line/column/expected/received extraction and deterministic failure fingerprints.
+- [x] Convergence Engine & Anti-Loop Safeguards: Multi-dimensional convergence monitoring classifying repair outcomes (`IMPROVED`, `REGRESSED`, `RESOLVED`, `FAILED`), halting repeated failure states (>= 3 consecutive identical failure cycles), and enforcing strict attempt and time budget ceilings.
+- [x] Model-Driven Repair Engine: Precision surgical prompt synthesis with diagnostic error reports and target file slices, model routing to code specialists (`qwen2.5-coder:7b`, `deepseek-r1:1.5b`), and deterministic fallback repair heuristics.
+- [x] 9 Autonomous Engineering Skills: Registered in capability fabric (`fix-build`, `fix-test`, `add-test`, `refactor-code`, `review-code`, `security-review`, `performance-analysis`, `dependency-upgrade`, `implement-feature`).
+- [x] Persistence Layer (Migration 024): SQLite tables `engineering_tasks`, `engineering_plans`, `engineering_actions`, `engineering_diagnostics`, `engineering_repairs`, and `engineering_verifications`.
+- [x] REST API & SSE Streaming: Endpoints under `/api/engineering/*` and real-time Server-Sent Events at `/api/engineering/events`.
+- [x] CLI Interface: Native commands `hres engineering start|list|status|plan|pause|resume|cancel`.
+- [x] Glassmorphic Control Center UI (`AutonomousEngineeringView.tsx`): Real-time task creation form, progress tracking, live SSE stream feed, and verification audit ledger inspector.
+- [x] Real E2E & Negative E2E Empirical Verification: Deterministic bug repair in isolated project (`calc.js`) verified passing, and impossible test failure bounded and halted cleanly without infinite loops.
+- [x] Comprehensive Verification Gate: 39/39 dedicated tests passing in `tests/fp-10-autonomous-engineering.test.ts`, 0 TypeScript errors (`tsc --noEmit`), clean backend build (`npm run build`), and clean UI bundle build (`npm --prefix ui run build`).
+ 
++## Native Universal Workflow & Automation Engine (FP-11) ✅ (Completed)
++- [x] NativeWorkflowEngine: Sovereign orchestrator supporting 8 step execution types (HTTP, Script, CLI, Agent Prompt, Approval, Transform, Condition, Parallel Fork/Join).
++- [x] DAG Topo-Sort & Dependency Resolution: Cycle detection via Kahn's algorithm; dependency branch tracking.
++- [x] Safety & Sandbox Execution: Bounded timeouts, isolated execution contexts, strict command verification.
++- [x] Persistence Layer (Migration 025): Workflow templates, execution states, step journals, human-in-the-loop approval requests.
++- [x] Glassmorphic Control Center UI (`WorkflowEngineView.tsx`): Real-time DAG visualization, execution logs, run-now triggers.
++- [x] Verification Gate: 45/45 dedicated tests passing in `tests/fp-11-workflow-engine.test.ts`, 0 TypeScript errors.
++
++## Universal Service & Account Integration Fabric (FP-12) ✅ (Completed)
++- [x] UniversalAccountFabric: Secure unified credential and session management across multi-cloud and local SaaS providers.
++- [x] Vault Security & Safe Resolution: AES-256-GCM encrypted secret storage, token rotation, and zero plain-text leaks.
++- [x] Multi-Service Support: GitHub, GitLab, Google, AWS, Slack, Linear, OpenAI, Anthropic, Custom OAuth2/Tokens.
++- [x] Persistence Layer (Migration 026): Account configurations, session caches, audit access journals.
++- [x] Glassmorphic Control Center UI (`AccountsView.tsx`): Account status badges, connection wizards, health checks.
++- [x] Verification Gate: 45/45 dedicated tests passing in `tests/fp-12-account-fabric.test.ts`, 0 TypeScript errors.
++
++## Universal Digital Workspace & Application Operator (FP-13) ✅ (Completed)
++- [x] DigitalWorkspaceOperator: Cross-platform workspace manager coordinating apps, windows, virtual desktops, and local dev environments.
++- [x] Semantic Window & Process Supervision: Real-time window inspection, workspace layouts, process telemetry, and graceful termination.
++- [x] Persistence Layer (Migration 027): Saved workspace layouts, running application profiles, window topologies.
++- [x] Glassmorphic Control Center UI (`DigitalWorkspaceView.tsx`): Visual workspace layout canvas, process management controls.
++- [x] Verification Gate: 45/45 dedicated tests passing in `tests/fp-13-digital-workspace-operator.test.ts`, 0 TypeScript errors.
++
++## Universal Agentic Mission & Workforce Runtime (FP-14) ✅ (Completed)
++- [x] UniversalMissionRuntime: Fully sovereign, autonomous goal-to-completion mission orchestrator managing the 17-agent workforce.
++- [x] Workforce Planner & Mission Compiler: Automated dependency graph generation, archetypal plan fallback, parallel agent dispatch.
++- [x] Dynamic Blackboard & Artifact Exchange: Inter-agent state passing, conflict resolution, consensus verification.
++- [x] Acceptance Engine & Multi-Tier Verification: Automatic deterministic verification against mission criteria.
++- [x] Persistence Layer (Migration 028): SQLite tables for mission state, step tracking, workforce assignments, and blackboard entries.
++- [x] Glassmorphic Control Center UI (`MissionControlView.tsx`): Interactive mission dashboard, live Gantt chart, agent assignment matrix.
++- [x] Comprehensive Verification Gate: 85/85 dedicated unit tests and 10/10 E2E scenarios passing in `tests/fp-14-agentic-mission-workforce-runtime.test.ts`.
++
+## Post-FP-14 Repository Hygiene & Regression Baseline ✅ (Completed)
+- [x] Dynamic Migration Invariant: Eliminated hardcoded migration counts; dynamically assertions verifying all available migrations run in ascending order.
+- [x] Lifecycle & Socket Drainage: Zero process hangs; forceful Undici/HTTP socket cleanup and async resource teardown ensuring natural exit without `--forceExit`.
+- [x] ModelRouter Hardening: Mock tool providers properly declare capabilities and priority to avoid fallback planning timeouts.
+- [x] Full Repository Test Verification: 1658 total tests (1652 PASSED, 0 FAILED, 6 SKIPPED due to host CRITICAL_MEMORY pressure, 0 CANCELLED, Exit Code 0 in 269.9s).
+
+## Universal Application & Service Ecosystem (FP-15) ✅ (Completed)
+- [x] UniversalEcosystemFabric: Unified interface resolution layer across Authenticated APIs, CLI tools, Native Desktop apps, and Browser services.
+- [x] Interface Priority Ladder: Deterministic resolution ladder prioritizing authenticated APIs > CLI > Desktop > Browser.
+- [x] Consequential Action Verification Engine: Post-execution verification for mutating operations (issues, events, messages).
+- [x] Persistence Layer (Migration 029): SQLite tables for discovered services, applications, operational envelopes, and interface registries.
+- [x] Control Center UI (`EcosystemView.tsx`): Ecosystem dashboard, service health, interface priorities, rate limits.
+- [x] Verification Gate: 103/103 dedicated tests and 10/10 real E2E scenarios passing in `tests/fp-15-ecosystem.test.ts`.
+
+## Demonstration Learning & Workflow Acquisition (FP-16) ✅ (Completed & Frozen)
+- [x] DemonstrationFabric: Observes user demonstrations, infers semantic intent and action state transitions, compiles reusable skills/workflows.
+- [x] 17-Check Deterministic Verification Gate: Strict security checks rejecting secrets, prompt injection, and unauthorized elevation.
+- [x] Persistence Layer (Migration 030): Demonstration sessions, semantic actions, checkpoints, proposals, and learned procedures.
+- [x] Natural Language & Intent Detection: "watch me", "learn this workflow", "save as skill" intent mapping.
+- [x] Verification Gate: 122/122 dedicated tests passing in `tests/fp-16-demonstration-learning.test.ts`.
+
+## Universal Digital Creation & Media Studio (FP-17) ✅ (Completed)
+- [x] CreationFabric & Domain Model: Unified creation orchestrator for images, video, audio, music, voice, 3D, documents, presentations, and compound packages.
+- [x] MediaCapabilityService: Provider-agnostic capability fabric discovering local tools (Blender, FFmpeg, ImageMagick) with honest `NOT_CONFIGURED` status and native local synthesizers.
+- [x] Deterministic CreationVerifierService: Multi-stage QA checks verifying existence, non-zero bytes, syntax, dimensions, and SHA-256 hashes.
+- [x] Bounded Iteration & Convergence: Bounded iteration budgets preventing runaway regeneration loops.
+- [x] Sovereign Approval Boundaries: Mandatory approval gate for commercial publishing, paid generation, and voice cloning.
+- [x] Persistence Layer (Migration 031): `creation_jobs`, `creation_artifacts`, `creation_iterations`, `design_contexts`, `creation_reference_assets`.
+- [x] Control Center UI (`CreationStudioView.tsx`): Live creation dashboard, active progress bars, artifact inspector, creation wizard, and SSE stream.
+- [x] CLI Subsystem: `hres create <type> ...` and `hres creation list|status|verify|cancel`.
+- [x] Verification Gate: 126/126 dedicated tests passing in `tests/fp-17-creation-media.test.ts`, 0 TypeScript errors.
+
+## Universal Real-World Research, Knowledge & Decision Intelligence Fabric (FP-18) ✅ (Completed)
+- [x] DecisionFabric & Domain Model: Core orchestrator bridging external research, evidence, local context, and governed decision making.
+- [x] Persistent ResearchCase Lifecycle: 12 lifecycle stages (`DRAFT` → `SCOPING` → `RESEARCHING` → `GATHERING_EVIDENCE` → `ANALYZING` → `COMPARING` → `SYNTHESIZING` → `REVIEWING` → `AWAITING_USER` → `COMPLETED` / `FAILED` / `ARCHIVED`).
+- [x] Question Decomposition & Bounded Research Plans: Structured subquestion extraction with domain-specific priority budgets (`maxSources`, `maxSearches`, `maxPages`, `maxTokens`, `maxDurationMs`).
+- [x] Credibility-Ranked Source Strategy: 4-tier hierarchy (`PRIMARY`, `SECONDARY`, `COMMUNITY`, `UNVERIFIED`) with transparent source attribution.
+- [x] Traceable Evidence Ledger & Normalized Claims: Every factual claim linked to source, confidence, retrieval timestamp, and polarity (`SUPPORTING`, `CONTRADICTING`, `PARTIAL`, `UNKNOWN`).
+- [x] Multi-Source Contradiction Resolution: Detects factual disputes and categorizes root causes (`QUANTIZATION_DIFFERENCE`, `VERSION_MISMATCH`, `OS_MISMATCH`, `WORKLOAD_DIFFERENCE`, `OUTDATED_DATA`).
+- [x] Temporal Intelligence & Outdated Data Detection: Identifies findings >2 years old as `OUTDATED` without silently substituting stale information.
+- [x] Environment-Aware Research: Evaluates candidates against actual host hardware (Intel Core Ultra 5 125H, 15.7 GB RAM, Intel Arc GPU, Windows 11) into 5 compatibility classes.
+- [x] Qualitative Candidate Comparison Matrix: Rigorous qualitative tradeoff evaluations without fake numerical scores or collapsed uncertainty.
+- [x] Standard 16-Section Decision Brief: Generates auditable decision briefs and Markdown reports with clear distinction between Evidence, Analysis, and Recommendations.
+- [x] Immutable Decision History & Decision Reviews: Append-only decision records with structured reviews recommending `MAINTAIN` vs `UPDATE` based on new evidence.
+- [x] Governed Action Bridge: Compiles decisions into proposed Missions, Goals, Workflows, Skills, and Environment Changes with mandatory human approval gates (`AWAITING_USER` / `PENDING_APPROVAL`).
+- [x] Persistence Layer (Migration 032): SQLite tables `research_cases`, `research_candidates`, `research_comparisons`, `decision_records`, `decision_reviews`, and `decision_proposed_actions`.
+- [x] Control Center UI (`ResearchView.tsx`): Integrated view with Research and Decisions tabs, real-time metrics, decision records, and proposed action inspection.
+- [x] CLI Subsystem: Native commands `hres research <start|status|evidence|compare|report|cancel>` and `hres decision <list|show|review>`.
+- [x] REST API & SSE Events: Dedicated `/api/research/*` and `/api/decisions/*` routes and real-time Server-Sent Events at `/api/research/events`.
+- [x] Verification Gate: 125/125 dedicated tests passing in `tests/fp-18-decision-intelligence.test.ts`, 0 TypeScript errors.
+
+## Persistent Distributed Execution & 24/7 Operations Fabric (FP-19) ✅ (Completed & Frozen)
+- [x] ExecutionFabric & Substrate Model: Core runtime substrate operating directly underneath Missions (FP-14), Workflows (FP-11), Goals (FP-15), Skills (FP-20), and Company OS (FP-18).
+- [x] Multi-Tier Locality Model: Unified support for `LOCAL`, `LAN`, `REMOTE`, `CLOUD`, and `HOSTED` compute runtimes.
+- [x] WorkerRegistryService: Dynamic worker registration, heartbeat tracking (10s intervals), status lifecycle, and capability matching.
+- [x] LeaseFencingService: Distributed mutual exclusion locks with 64-bit monotonic fencing tokens preventing split-brain and zombie execution loops.
+- [x] CheckpointEngineService: Incremental step-level snapshots, verification evidence, and `JobMigrationPackage` serialization for cross-worker migration.
+- [x] ExecutionSchedulerService: 5 priority queues (`CRITICAL`, `HIGH`, `NORMAL`, `LOW`, `BACKGROUND`), concurrency controls, hardware/GPU constraint matching, and anti-starvation aging.
+- [x] RecoveryManagerService: Stale worker detection, abandoned lease reaping, exponential backoff retries with jitter, and dead-letter routing (`DEAD_LETTER`).
+- [x] CloudRuntimeBridgeService: Abstraction for AWS, GCP, Azure, Hetzner, Lambda Labs, RunPod with strict human approval gates (`DENY_PAID_WITHOUT_APPROVAL`) and cost caps.
+- [x] Persistence Layer (Migration 033): 9 relational tables: `execution_runtimes`, `execution_workers`, `execution_jobs`, `execution_leases`, `execution_checkpoints`, `execution_queues`, `cloud_providers`, `cloud_instances`, `execution_traces`.
+- [x] CLI Subsystem: Native commands `hres runtime <list|status>` and `hres execution <list|status|pause|resume|cancel|migrate|trace|summary>`.
+- [x] Verification Gate: 193/193 dedicated tests passing in `tests/fp-19-persistent-execution.test.ts`, 0 TypeScript errors.
 

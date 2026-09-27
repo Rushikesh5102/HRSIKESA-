@@ -1,7 +1,7 @@
 # HṚṢĪKEŚA (हृषीकेश) — System Architecture
 
 > **International Filesystem / ASCII Alias:** `HRISEKESA`  
-> **Status:** Phase 1 — Architecture & Foundation  
+> **Status:** Foundation Performance & Execution Block FP-17 — Universal Digital Creation & Media Studio (COMPLETED & VERIFIED)  
 > **Creator & Sole Master:** Rushikesh Pattiwar  
 > **Primary Development IDE:** Antigravity  
 
@@ -1120,4 +1120,866 @@ Phase 13.5 introduces mission engine optimizations, zero-model-call fast paths, 
 4. **Governed Human Approval Flow:**
    - `pending_approval` is strictly forbidden from being marked as successful completion.
    - The engine halts the task in `BLOCKED` until explicit human resolution.
+
+---
+
+## 31. Advanced Research & Web Intelligence Architecture (Track A / INT-005)
+
+Track A / INT-005 formalizes the sovereign Research Subsystem into an isolated, bounded multi-source intelligence pipeline:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          FAST CHAT GATE ROUTER                              │
+│                                                                             │
+│   Input Query ──► FastChatGate.evaluate()                                   │
+│      ├── Greetings / Identity / Time / Date / Math ──► FAST_PATH (0 Calls)  │
+│      └── Research Directive ──► Immediate System Ack (<10ms)                │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Async Background Dispatch
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│                    RESEARCH PIPELINE DECOMPOSITION                          │
+│                                                                             │
+│   1. Planning: Multi-angle search queries, depth & 10 budget dimensions     │
+│   2. Search & Harvest: Multi-provider search, rate-limited crawling         │
+│   3. Source Extractor:                                                      │
+│      - Untrusted Envelope (<untrusted_web_content>)                         │
+│      - Prompt Injection Defense (Jailbreak / System Override Neutralization)│
+│      - Bot / Access Wall Classifier (CAPTCHA, MFA, Cloudflare, Paywall)     │
+│      - Credential Redactor (API keys, Tokens, Secrets)                      │
+│      - Deterministic Credibility & Temporal Freshness Evaluator             │
+│   4. Claim Extraction: Statements, polarities, support types, provenance    │
+│   5. Cross-Source Analyzer: Contradiction detection (Dates, Numbers,        │
+│      Versions, Facts, Compatibility) & Corroboration clustering             │
+│   6. Synthesis: Structured Markdown, verified citations, durable facts      │
+│   7. Sovereign Memory: Ingestion into Semantic Vector Index & KG           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architectural Principles:
+1. **External Web Data is Untrusted:** Web text is strictly treated as passive data, never active instructions. Content is wrapped in isolated XML envelopes and sanitized.
+2. **Deterministic Fast-Path Sovereign Isolation:** Web crawling and multi-query research will never be triggered by simple conversational intents (greetings, identity, time, date, simple math).
+3. **Zero-Hallucination Citations:** Every synthesized claim and finding maps directly to a verified source URL with an immutable SHA-256 content hash.
+
+---
+
+## 32. Sovereign Personal Knowledge Graph Architecture (Track A / INT-006)
+
+Track A / INT-006 establishes the persistent, provenance-preserving Knowledge Graph connecting conversations, episodic memory, research evidence, companies, projects, decisions, and goals:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 SOVEREIGN KNOWLEDGE GRAPH ENGINE (SQLite Native)             │
+│                                                                             │
+│   ┌───────────────────────────┐       ┌─────────────────────────────────┐   │
+│   │ Entity Resolution Service │       │ Proposal-Based Merge Manager    │   │
+│   │ Canonical clusters        │       │ Non-destructive disambiguation  │   │
+│   │ Multi-tier alias matching │       │ Zero silent merges              │   │
+│   │ Cross-type conflict check │       │ Human approval workflow         │   │
+│   └─────────────┬─────────────┘       └────────────────┬────────────────┘   │
+│                 │                                      │                     │
+│                 ▼                                      ▼                     │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                 Knowledge Entities & Relationships                  │   │
+│   │   - Scopes: CREATOR | GLOBAL | PROJECT | COMPANY | SESSION          │   │
+│   │   - Provenance: EXPLICIT | DERIVED | INFERRED | IMPORTED | RESEARCH │   │
+│   └─────────────────────────────────────┬───────────────────────────────┘   │
+│                                         │                                    │
+│                                         ▼                                    │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                  Temporal Fact Versioning Subsystem                 │   │
+│   │   - validFrom, validUntil, version, supersededBy                    │   │
+│   │   - Non-destructive history: past evidence never erased             │   │
+│   │   - Time-travel queries: "What did I use?" vs "What do I use now?"  │   │
+│   └─────────────────────────────────────┬───────────────────────────────┘   │
+│                                         │                                    │
+│                 ┌───────────────────────┴───────────────────────┐            │
+│                 ▼                                               ▼            │
+│   ┌───────────────────────────┐                   ┌───────────────────────┐ │
+│   │ Evidence Provenance Engine│                   │ Contradiction Registry│ │
+│   │ - Cites studyId & URL     │                   │ - sourceA vs sourceB  │ │
+│   │ - SHA-256 contentHash     │                   │ - Dispute explanation │ │
+│   │ - Zero inference as facts │                   │ - UNRESOLVED tracking │ │
+│   └───────────────────────────┘                   └───────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Architectural Invariants:
+1. **Never Merge Ambiguous Entities Silently:** Discovered merge candidates generate `knowledge_merge_proposals` requiring explicit review.
+2. **Temporal Non-Destructive Versioning:** Updates increment version and mark `validUntil` without deleting historical facts or evidence.
+3. **Research-Knowledge Invariant:** Research study findings of type `INFERENCE` or `OPINION` are never persisted as durable source-backed facts.
+4. **Scope Isolation:** Strict multi-tenant boundaries (`CREATOR`, `GLOBAL`, `PROJECT`, `COMPANY`). Zero cross-project fact leakage.
+5. **Bounded Context Assembly:** Graph traversal bounded to 5 hops and 150 nodes max; context assembler limits output to < 800 chars / 100ms.
+
+---
+
+## 33. Cognitive Context Engine Architecture (Track A / INT-007)
+
+Track A / INT-007 establishes the unified **Cognitive Context Engine** — the central context assembly, ranking, and budget enforcement orchestrator that unifies structured episodic memory, persistent knowledge graph, live research findings, company/project context, explicit user preferences, and architectural decision records into a coherent, highly compressed context window for language model inference.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    COGNITIVE CONTEXT ENGINE PIPELINE                         │
+│                                                                             │
+│   Incoming Request (User Prompt + Scope + Budget + Tier)                    │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 1. Request Classifier                                               │   │
+│   │    - Intent Detection: CHAT | TASK | DECISION_LOOKUP | RESEARCH...  │   │
+│   │    - Task Complexity: SIMPLE | MODERATE | COMPLEX | CRITICAL        │   │
+│   │    - Entity Extraction & Temporal Intent (CURRENT, HISTORICAL, ALL) │   │
+│   │    - Fast-Path Bypass Detector (Deterministic intents: < 20ms)      │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 2. Scope Resolver                                                   │   │
+│   │    - Hierarchical: CREATOR | GLOBAL | PROJECT | COMPANY | SESSION   │   │
+│   │    - Target Project / Company resolution                            │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 3. Multi-Source Candidate Collector                                 │   │
+│   │    - Source Activation Matrix based on Intent & Scope               │   │
+│   │    - Memory, Entities, Facts, Decisions, Research, Preferences      │   │
+│   │    - Resilient token fallback & Canonical entity mapping            │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 4. Temporal Filter & Fact Versioning                                │   │
+│   │    - Enforces validFrom, validUntil, status, observedAt             │   │
+│   │    - Distinguishes current vs historical state                      │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 5. Transparent Multi-Factor Relevance Ranker                        │   │
+│   │    - Explicit User Preference bonus (+0.40)                         │   │
+│   │    - Intent Alignment (+0.35), Scope Match (+0.30)                  │   │
+│   │    - Entity Match (+0.25), Provenance Weight (+0.20)                │   │
+│   │    - Temporal Recency (+0.15), Contradiction Preservation (+0.10)   │   │
+│   │    - 100% Explainable Scoring (reasons array in trace)              │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 6. Conflict & Contradiction Resolver                                │   │
+│   │    - Structured [CONTESTED INFORMATION / UNRESOLVED] blocks         │   │
+│   │    - Prevents model hallucination on disputed facts                 │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 7. Adaptive Context Budget Manager & Governor                       │   │
+│   │    - Tiered token/char budgets (T0: 0, T1: 150, T2: 500,            │   │
+│   │      T3: 1500, T4: 3000 tokens)                                     │   │
+│   │    - Throttles under LOW_MEMORY (-30%) and CRITICAL_MEMORY (-60%)   │   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ 8. Lossless-Priority Context Compressor                             │   │
+│   │    - Deduplication, exact phrase pruning                            │   │
+│   │    - Non-droppable protection: Explicit preferences & Contradictions│   │
+│   └───────────────────────┬─────────────────────────────────────────────┘   │
+│                           │                                                 │
+│                           ▼                                                 │
+│   Final Formatted Context String + Complete Explainable ContextTrace        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architectural Principles & Invariants:
+1. **Deterministic Fast-Path Zero-Overhead Invariant:** Fast-path intents (`hello`, `who created you?`, `what time is it?`, `what is today's date?`, `2 + 2`) strictly bypass context engine retrieval (0 LLM calls, 0 database overhead).
+2. **Transparent Multi-Factor Explainability:** No black-box embedding thresholding without explanation; every included candidate carries a score breakdown and human-auditable reason array.
+3. **Structured Contradiction Preservation:** Contested claims from disparate sources are never discarded or merged into hallucinations; they are surfaced as structured `[CONTESTED INFORMATION / UNRESOLVED]` blocks.
+4. **Explicit Preference Non-Negotiability:** High-priority explicit user preferences are assigned the highest weighting and are immune to context compression budget pruning.
+5. **Strict Scope Isolation:** Project- and company-specific context is strictly quarantined; queries scoped to a target project never leak data from adjacent or parent entities unless globally scoped.
+
+---
+
+## 14. Track A: INT-008 — Persistent Working Memory & Conversational Continuity Engine
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    WORKING MEMORY ENGINE (INT-008)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Incoming User Turn (non-fast path)                                         │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 1. Expiration & Maintenance (TTL sweep, status update)                │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 2. Thread Selection & Ranking (ThreadManagerService)                  │  │
+│  │    - Exact title match (+0.50), token match (+0.30), overlap (+0.35)  │  │
+│  │    - Status weight (+0.25), recency decay (+0.20), continuation (+0.30│  │
+│  │    - Cross-session candidate isolation (no thread leak on greetings)  │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 3. Explicit User Correction Detector (CorrectionDetectorService)      │  │
+│  │    - Detects "No, I meant X", "Use Y instead", "Forget assumption"   │  │
+│  │    - Overrides active project/company and supersedes assumptions      │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 4. Continuity Tracking (ContinuityTrackerService)                     │  │
+│  │    - Project intent (canonical check, regex, Unicode resilience)      │  │
+│  │    - Company intent (Aumtrix vs Pragnya)                              │  │
+│  │    - Goal, mission, and task lifecycle (OPEN -> IN_PROGRESS -> RESOLVED)│
+│  │    - Blocker recording & resolution, pending questions/approvals      │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 5. Deictic Reference Resolver (ReferenceResolverService)              │  │
+│  │    - "it" -> active blocker / error / task                            │  │
+│  │    - "that" -> recent result / decision                               │  │
+│  │    - "this" -> current task / active topic                            │  │
+│  │    - "the previous one" -> superseded items / preceding thread        │  │
+│  │    - "continue" -> active task / project                              │  │
+│  │    - Ambiguity detection (score delta < 0.15)                         │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 6. Checkpoint Manager (CheckpointManagerService)                      │  │
+│  │    - Structured state snapshot every 10 turns or manual trigger       │  │
+│  │    - Instant cross-session restore across application restarts        │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
+│                                      │                                      │
+│                                      ▼                                      │
+│  Injected into INT-007 CandidateCollector & Prompt Assembly (T4+ prompts)  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Working Memory Invariants:
+1. **Zero Fast-Path Interference:** Deterministic fast-paths (`hello`, `who created you?`, `what time is it?`, `what is today's date?`, `2 + 2`) bypass working memory lookup entirely (< 20ms, 0 database overhead).
+2. **Deterministic & Model-Free:** Reference resolution, thread ranking, and continuity tracking use deterministic heuristics and SQLite lookups without making LLM calls (0 unnecessary LLM calls).
+3. **Cross-Session Isolation:** Unrelated sessions never inherit active thread or project context from foreign sessions unless explicitly requested.
+4. **Non-Durable Working Boundary:** Working items are short/medium-lived and session-bounded; they never auto-promote to permanent knowledge graph facts or episodic memories without explicit user direction.
+
+---
+
+## 27. Foundation Performance & Execution Block (FP-01)
+
+### 27.1 Architectural Motivation
+Corrective architectural block designed to eliminate chat latency bottlenecks, decouple local inference from CPU-only constraints, test Intel Arc GPU acceleration via llama.cpp Vulkan runtime, enforce execution-first behavior, establish English self-name identity "Rishi", and provide real-time token cancellation.
+
+### 27.2 Subsystems Added
+1. **Inference Abstraction Engine (`src/inference/`)**:
+   - `InferenceBackendDetector`: Automatic hardware and driver inspection (`AVX2`, `Intel Arc Graphics`, `Vulkan 1.3`, `Level Zero`, `SYCL`).
+   - `LlamaCppBackend`: Multi-threaded CPU and Intel Arc GPU acceleration via Vulkan runtime (`tools/llama-vulkan/`).
+   - `OllamaBackend`: Resilient local fallback runner on `localhost:11434`.
+   - `InferenceRegistry`: Residency tracking, active request counting, eviction candidate ranking.
+   - `InferenceScheduler`: Tier-aware execution scheduler (`T0`–`T4`).
+2. **Compute Tiers**:
+   - `T0`: Deterministic Zero-Model (<25ms, greetings, courtesy, identity, time, date, 2+2, interrupts)
+   - `T1`: Fast / Tiny Local Model (`deepseek-r1:1.5b`)
+   - `T2`: Interactive Chat (`llama3.2:3b` resident preferred)
+   - `T3`: Complex Local Reasoning (`qwen2.5:7b`)
+   - `T4`: Heavy Research & Coding
+3. **Execution-First Policy (`src/conversation/execution.policy.ts`)**:
+   - `UNDERSTAND -> DECIDE -> EXECUTE -> VERIFY -> REPORT`
+   - Structured assumption logging (`category`, `context`, `timestamp`).
+   - Suppression of unnecessary clarification questions.
+4. **Identity Enrichment**:
+   - Canonical system name remains **HṚṢĪKEŚA** (हृषीकेश / HRISHIKESHA).
+   - English self-reference name established as **Rishi** ("I’m Rishi").
+5. **Asynchronous Chat Naming (`src/conversation/chat.namer.ts`)**:
+   - ChatGPT-style 2–6 word descriptive conversation titles generated non-blockingly.
+6. **Cancellation Tokens (`src/conversation/cancellation.manager.ts`)**:
+   - Instant abort for STOP/CANCEL/ABORT/PAUSE across model generation, tool bus, and voice output.
+7. **Offline-First Mode (`src/core/offline/offline.manager.ts`)**:
+   - 100% offline local operation; external network calls report `OFFLINE — QUEUED`.
+
+---
+
+## 28. Interactive Inference Optimization (FP-02)
+
+### 28.1 Architectural Motivation
+In FP-01, deterministic fast paths (T0) achieved sub-25ms latency, but standard conversational turns (T2) suffered from cold-start process overhead and unconstrained token outputs. FP-02 introduces warm residency and Server-Sent Events (SSE) token streaming.
+
+### 28.2 Subsystems Added
+1. **Warm Model Residency**:
+   - Keeps interactive model (`llama3.2:3b`) resident in memory with `keep_alive: 15m`.
+   - Lowers Time-To-First-Token (TTFT) to 253–314ms.
+2. **True Token Streaming Architecture**:
+   - Token-by-token streaming via SSE to client interface (`/chat/conversations/:id/messages/stream`).
+   - Decoupled asynchronous tasks (persistence, working memory, title generation) off the critical path.
+3. **Response Modes (`CONCISE`, `NORMAL`, `DETAILED`, `DEEP`)**:
+   - Strict token budgets: `CONCISE` (75 tokens), `NORMAL` (256 tokens), `DETAILED` (512 tokens), `DEEP` (1024 tokens).
+4. **Context Minimization**:
+   - Tier 1/2 prompts stripped of unnecessary tool schemas and heavy memory structures (< 100 tokens).
+
+---
+
+## 29. Distributed Local/LAN Resource Fabric & Execution Capacity (FP-03)
+
+### 29.1 Architectural Motivation
+HṚṢĪKEŚA's execution bottleneck on a single laptop is hardware capacity (14 CPU cores, 16 GB RAM, shared Intel Arc iGPU). FP-03 separates the sovereign **Control Plane** from the **Execution Plane**, enabling horizontal task distribution across local and LAN nodes without altering agent or cognitive architectures.
+
+```
+RUSHIKESH PATTIWAR (Root Sovereign Master)
+             ↓
+HṚṢĪKEŚA CONTROL PLANE (Primary Laptop)
+  - Identity, Policy, Governance, Working Memory, Missions
+             ↓
+ResourceManager / ResourceScheduler
+             ↓
+     ResourceRegistry (SQLite Migration 020)
+             │
+ ┌───────────┴───────────┬──────────────────────┐
+ ▼                       ▼                      ▼
+Local Worker         LAN Worker           Future Cloud
+Intel Arc / Vulkan   NVIDIA / AMD / Intel (Authorized Only)
+Ollama / llama.cpp   Whitelisted Workloads
+Host Automation      Cryptographic Pairing
+```
+
+### 29.2 Subsystems Implemented
+1. **Resource Registry & Persistence (`src/resources/resource.registry.ts`)**:
+   - Migration 020: `workers`, `worker_capabilities`, `worker_tasks`, `worker_resource_snapshots`, `worker_enrollment_tokens`.
+   - In-memory caching for sub-millisecond dispatch lookups; durable SQLite backing; bounded snapshot retention (100 per worker).
+2. **Security & Enrollment Policy (`src/resources/resource.policy.ts`)**:
+   - Cryptographic pairing: Single-use pairing tokens hashed with SHA-256 and bounded by TTL (default 10 minutes).
+   - Zero unrestricted remote shell: Non-local workers are strictly confined to whitelisted safe workloads (`compute.echo`, `compute.benchmark`, `resource.fabric.test`, `inference.generate`, `model.health`).
+   - Privacy boundaries: `SOVEREIGN_LOCAL` (never leaves host), `HIGHLY_PRIVATE` (local default), `PRIVATE` (trusted enrolled workers), `PUBLIC` (all authorized workers).
+   - Artifact transfer safety: SHA-256 integrity verification, 50 MB file size limit, and path traversal rejection.
+3. **Resource-Aware Placement Engine (`src/resources/resource.scheduler.ts`)**:
+   - Multi-factor evaluation: Required capabilities, hardware metrics, model availability, privacy, priority, and load scores.
+   - Explainable decisions with structured factor scoring.
+   - ResourceGovernor integration: Under `CRITICAL_MEMORY`, local affinity bonus drops to -30 to offload non-private workloads to LAN nodes.
+4. **Health Tracking & Automated Fault Recovery (`src/resources/resource.health.ts`)**:
+   - Periodic heartbeat sweep detecting stale workers; transitions to `DEGRADED` and `OFFLINE`.
+   - Automatic task requeueing and retry on worker failure with idempotency keys.
+5. **Worker Implementations (`src/resources/workers/`)**:
+   - `LocalWorker`: First-class host worker detecting CPU, RAM, Intel Arc GPU, Vulkan, Ollama, and host tools.
+   - `LanWorkerClient`: Prototype LAN node client handling pairing, heartbeat emission, telemetry snapshots, and bounded task execution.
+6. **API & UI Layer**:
+   - REST API endpoints under `/resources/*` (`GET /resources/overview`, `GET /resources/workers`, `POST /resources/workers/pair`, `POST /resources/workers/enroll`, etc.).
+   - Control Center Workers dashboard (`WorkersView.tsx`) with real-time telemetry, node state management (drain/revoke/resume), and pairing dialog.
+
+---
+
+## 30. Physical LAN Execution & Distributed Inference Architecture (FP-04)
+
+### 30.1 Architectural Overview
+FP-04 transitions the distributed resource fabric from in-process loopback simulation to physical LAN network transport with encrypted TLS 1.3 socket streams, dedicated port isolation, standalone worker runtimes, and real-time distributed inference token streaming.
+
+```
+HṚṢĪKEŚA PRIMARY LAPTOP (Machine A)
+├── Control Plane (Port 4200 - localhost ONLY)
+│   ├── Sovereign Identity & Goals
+│   ├── Context & Memory (14 Tiers)
+│   ├── 17-Agent Workforce
+│   └── ResourceScheduler
+└── Dedicated Worker Transport Listener (Port 4300)
+    └── TLS 1.3 (Pure-JS X.509 RSA-2048)
+            │
+            ▼ Real Physical Network (LAN Ethernet / Wi-Fi)
+            │
+PHYSICAL LAN WORKER (Machine B)
+└── Worker Runtime Daemon (`worker.runtime.ts`)
+    ├── TLS Client (`WorkerTransportClient`)
+    ├── Capabilities & Model Scanner (Ollama, llama.cpp, GPUs)
+    ├── Bounded Typed Executor (`worker.executor.ts`)
+    │   ├── `compute.echo`
+    │   ├── `compute.benchmark`
+    │   ├── `resource.fabric.test`
+    │   ├── `model.health`
+    │   └── `inference.generate` (with Real-time Token Streaming)
+    └── Cooperative Cancellation (`AbortController`)
+```
+
+### 30.2 Subsystems & Components
+
+1. **Dedicated Worker Transport Layer (`src/resources/transport/`)**:
+   - `worker.transport.types.ts`: Strongly typed protocol frames (`ENROLL`, `AUTH`, `HEARTBEAT`, `CAPABILITIES`, `TELEMETRY`, `TASK_ACCEPTED`, `TASK_PROGRESS`, `TASK_COMPLETED`, `TASK_FAILED`, `TASK_CANCELLED`).
+   - `worker.transport.server.ts`: Runs on Port 4300 with TLS 1.3. Validates single-use enrollment tokens, manages session tokens, coordinates heartbeats, handles task dispatching, and propagates streaming token chunks.
+   - `worker.transport.client.ts`: Standalone client connecting to Port 4300 over TLS. Supports exponential backoff reconnection, heartbeat emission, telemetry reporting, and streaming task execution.
+   - `worker.transport.protocol.ts`: 4-byte big-endian length-prefixed framing with 5 MB frame ceiling defense against DoS.
+   - `worker.transport.tls.ts`: Pure JavaScript X.509 self-signed certificate generation with RSA-2048 and SHA-256 fingerprinting. Zero dependency on system `openssl.exe`.
+   - `worker.transport.discovery.ts`: UDP broadcast beacon announcer and listener (`WorkerDiscovery`) for automatic candidate node discovery with strict zero-trust boundaries.
+
+2. **Standalone Physical Worker Runtime (`src/resources/worker-runtime/`)**:
+   - `worker.runtime.ts`: CLI daemon executable on Machine B (`node dist/resources/worker-runtime/worker.runtime.js --connect <host>:4300 --token <token>`).
+   - `worker.capabilities.ts`: Probes installed models (Ollama, llama.cpp), CPU cores, RAM, and GPU accelerators.
+   - `worker.gpu.ts`: Telemetry abstraction querying `nvidia-smi`, `rocm-smi`, Level-Zero, or OS diagnostics without data fabrication (`gpuUtilization = 'UNKNOWN'` when not detectable).
+   - `worker.executor.ts`: Strictly bounds execution to whitelisted workloads. For `inference.generate`, streams token chunks in real time over `TASK_PROGRESS` frames.
+
+3. **Remote Distributed Inference & Token Streaming Pipeline**:
+   - Conversation / Chat Turn $\rightarrow$ `ResourceScheduler` $\rightarrow$ Worker Transport $\rightarrow$ Physical Worker Node $\rightarrow$ Worker Inference Runtime $\rightarrow$ Ollama / llama.cpp.
+   - Streaming path: Worker token chunk $\rightarrow$ TLS transport frame $\rightarrow$ Control plane dispatch handler $\rightarrow$ Server-Sent Events (SSE) $\rightarrow$ Chat UI.
+   - Preserves FP-01 / FP-02 deterministic fast gates: T0 queries (`hello`, `who created you?`, `time`, `date`, `2 + 2`) strictly bypass LAN transport and execute locally in < 38ms.
+
+4. **Cooperative Cancellation & Partition Resilience**:
+   - In-flight distributed tasks cancel cooperatively via `TASK_CANCEL` frames, aborting underlying processes and HTTP connections.
+   - Network partition recovery: Worker disconnections immediately mark tasks for requeueing onto eligible workers with idempotency deduplication.
+
+---
+
+## 31. Multi-Worker Execution Fabric & Concurrent Inference Architecture (FP-05)
+
+### 31.1 Architectural Overview
+FP-05 elevates the distributed transport into a true Multi-Worker Execution Fabric. The authoritative HṚṢĪKEŚA control plane coordinates multiple simultaneous worker nodes (`LOCAL`, `LAN-A`, `LAN-B`, `LAN-C`) with capability/model awareness, warm VRAM residency scoring, load balancing, per-worker concurrency limits, saturation queueing, graceful draining, and automatic task migration.
+
+```text
+                         RUSHIKESH (Master Authority)
+                                     │
+                                     ▼
+                              HṚṢĪKEŚA (हृषीकेश)
+                                     │
+                      ┌──────────────┴──────────────┐
+                      │                             │
+            Authoritative Control Plane       Resource Fabric
+            (Port 4200: localhost-only)       (Port 4300: TLS)
+                      │                             │
+                      └──────────────┬──────────────┘
+                                     ▼
+                             ResourceScheduler
+                                     │
+              ┌──────────────────────┼──────────────────────┐
+              ▼                      ▼                      ▼
+         LOCAL WORKER           LAN WORKER A           LAN WORKER B
+           (Primary)              (Alpha)                (Beta)
+              │                      │                      │
+         Intel Arc iGPU        NVIDIA RTX 4090        NVIDIA RTX 4080
+          llama3.2:3b         qwen2.5:7b, llama      mistral:7b, llama
+```
+
+### 31.2 Subsystems & Core Mechanisms
+
+1. **Multi-Worker Registry & Simultaneous TLS Sessions**:
+   - `WorkerTransportServer` manages concurrent worker sessions simultaneously via `Map<string, ConnectedWorkerSession>`, tracking multiple concurrent `activeTaskIds: Set<string>` per session.
+   - Demultiplexes incoming frames from all connected workers without crosstalk.
+
+2. **Model-Aware Placement & Warm Model Residency**:
+   - Tasks requesting specific models (`resourceRequirements.requiredModel`) route exclusively to workers advertising that model.
+   - Workers with the requested model resident in VRAM/memory (`worker.residentModels`) receive a **+40 warm residency score bonus**, eliminating cold-start disk loads.
+
+3. **Capacity Accounting, Load Balancing & Concurrency Limits**:
+   - Scheduler tracks real-time active tasks in-memory (`activeTasksByWorker`) and in SQLite registry.
+   - Applies an active tasks penalty (`-activeCount * 15`) and tie-breaks by lowest active tasks across identical nodes.
+   - Enforces per-worker concurrency limits (`worker.resourceLimits.maxConcurrentTasks`), marking saturated workers ineligible for immediate placement (`isSaturated = true`).
+
+4. **Queue-Aware Priority Scheduling with Aging Bonus**:
+   - When all eligible workers are saturated, tasks with `waitForCapacity !== false` enqueue in priority `taskQueue`.
+   - Starvation prevention via aging bonus:
+     $$\text{effectivePriority} = \text{basePriority} + \left\lfloor \frac{\text{now} - \text{enqueuedAt}}{5000} \right\rfloor$$
+   - Each 5 seconds of wait time awards +1 point to ensure low-priority background tasks are processed fairly.
+   - Pumping the queue (`processQueue()`) occurs automatically whenever any task completes or a worker resumes.
+
+5. **Graceful Worker Draining Lifecycle**:
+   - `resourceManager.drainWorker(workerId)` transitions node to `DRAINING` and sends `WORKER_DRAIN` frame.
+   - Draining nodes reject new tasks while in-flight workloads finish uninterrupted.
+   - Automatically transitions to `DRAINED` when active count reaches 0.
+   - `resumeWorker(workerId)` transitions node back to `ONLINE` and pumps the queue.
+
+6. **Automatic Task Migration on Network Failure**:
+   - Tasks submitted with `allowMigration: true` automatically requeue (`REQUEUED`), increment the attempt counter, and reschedule onto alternate eligible nodes if the active worker disconnects mid-execution.
+
+7. **In-Flight Idempotency Deduplication**:
+   - Schedulers maintain `inFlightByIdempotency: Map<string, Promise<TaskResult>>` to allow concurrent duplicate task submissions with identical keys to share the single in-flight execution promise, eliminating redundant compute cycles.
+
+8. **Physical LAN Verification Standard**:
+   - Where only one physical machine is active in the development environment, multi-worker testing executes over real TLS/TCP sockets and the physical status is reported transparently as `PHYSICAL_LAN_VERIFICATION = NOT_AVAILABLE` (zero fabricated data).
+
+---
+
+## 15. Universal Capability & Connector Fabric (FP-07)
+
+FP-07 introduces the **Universal Capability & Connector Fabric**, establishing a strongly-typed, securely governed pipeline through which HṚṢĪKEŚA invokes CLI binaries, REST APIs, headless browser sessions, desktop software, and Model Context Protocol (MCP) servers:
+
+```
+User / Agent Intent
+        │
+        ▼
+Capability Matcher (Deterministic Sub-10ms Token Overlap Scoring)
+        │
+        ▼
+Multi-Tenancy & Sovereign Privacy (Company / Project Boundaries & SOVEREIGN_LOCAL Gate)
+        │
+        ▼
+Permission Governance (Risk Tiers TIER_0 to TIER_4 & Human-in-the-Loop)
+        │
+        ▼
+Resource Governor (Hardware Pressure Interception)
+        │
+        ▼
+Authentication Manager (vault:// and env:// Resolution with Zero Plaintext Secrets)
+        │
+        ▼
+Connector Registry (CLI, REST, BROWSER, SOFTWARE, MCP, LOCAL_TOOL)
+        │
+        ▼
+Execution & Untrusted Data Defanging (Prompt Injection Defense)
+        │
+        ▼
+Capability Verifier (EXECUTED != VERIFIED Post-Condition Invariant Check)
+        │
+        ▼
+Telemetry, Health & Audit Logging (SQLite WAL Persistence, Zero Plaintext Secrets)
+```
+
+### Key Architectural Tenets
+1. **Explicit Trust & Risk Tiers**: Capabilities are never automatically trusted simply because they were discovered. Trust levels (`SYSTEM`, `TRUSTED`, `VERIFIED`, `USER_APPROVED`, `UNVERIFIED`, `UNTRUSTED`, `BLOCKED`) and danger risk tiers (`TIER_0` to `TIER_4`) govern execution.
+2. **Anti-Injection CLI Sandbox**: Native CLI execution requires binary allowlisting and metacharacter filtering (`;`, `&`, `|`, `$`, etc.) to prevent shell injection.
+3. **Zero Plaintext Secrets**: Plaintext keys are never stored in SQLite, emitted over EventBus, or logged. Only URI references (`vault://...`, `env://...`) are stored, and recursive secret redaction purges all sensitive keys and tokens.
+4. **Untrusted Data Isolation**: All external outputs from external APIs, web pages, or sub-processes are defanged into isolated data blocks to thwart indirect prompt injection against reasoning agents.
+5. **Post-Condition Verification (EXECUTED != VERIFIED)**: Invocation completion triggers invariant verification across 7 strategies (`schema_match`, `read_after_write`, `process_state`, `checksum`, `dom_presence`, `exit_code`, `dry_run`).
+6. **Sub-10ms Deterministic Performance**: Dual-layer caching (in-memory `Map` + SQLite WAL) achieves sub-1.2ms deterministic lookups without LLM overhead.
+
+---
+
+## 16. Autonomous Software Engineering & Agentic Coding Engine (FP-10)
+
+FP-10 introduces the **Autonomous Software Engineering & Agentic Coding Engine**, bridging LLM reasoning directly to deterministic IDE subsystems, workspace modification, precision code repair, and continuous verification loops under strict security boundaries:
+
+```
+                      ┌─────────────────────────────────────────┐
+                      │              USER / AGENT               │
+                      │       Engineering Task Intent           │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │        ENGINEERING CONTEXT ENGINE       │
+                      │  Tiers T0-T4 Context Assembly & Tokens  │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │          MODEL REPAIR ENGINE            │
+                      │    Proposes Patch / Structured Intent   │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │            ACTION VALIDATOR             │
+                      │  Path Traversal, Syntax, Danger Tiers   │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │       ENGINEERING EXECUTION ENGINE      │
+                      │  Conflict Hash Gate, Editor / Terminal  │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │           VERIFICATION LOOP             │
+                      │   TypeCheck, Lint, Build, Test Suites   │
+                      └────────────────────┬────────────────────┘
+                                           │
+                     ┌─────────────────────┴─────────────────────┐
+                     │                                           │
+            [Verification Fails]                        [Verification Passes]
+                     │                                           │
+                     ▼                                           ▼
+         ┌───────────────────────┐                   ┌───────────────────────┐
+         │  CONVERGENCE ENGINE   │                   │  TASK COMPLETED &     │
+         │  Fingerprint Dedupe   │                   │  CHANGES COMMITTED    │
+         │  Budget & Loop Guard  │                   └───────────────────────┘
+         └───────────┬───────────┘
+                     │
+         [<= 2 Identical & In-Budget]
+                     │
+                     ▼
+         [Re-enter Model Repair]
+```
+
+### Core Architecture Components
+
+1. **Governed Execution Pipeline**:
+   - The LLM *never* interacts directly with OS filesystems or child processes.
+   - Flow: `MODEL` $\rightarrow$ `STRUCTURED INTENT` $\rightarrow$ `VALIDATION` $\rightarrow$ `CAPABILITY FABRIC` $\rightarrow$ `EXECUTION` $\rightarrow$ `OBSERVATION`.
+
+2. **10-Stage Autonomous Lifecycle**:
+   - `INIT` $\rightarrow$ `CONTEXT_ASSEMBLED` $\rightarrow$ `PLAN_GENERATED` $\rightarrow$ `ACTION_DISPATCHED` $\rightarrow$ `ACTION_EXECUTED` $\rightarrow$ `DIAGNOSTIC_CAPTURED` $\rightarrow$ `REPAIR_PROPOSED` $\rightarrow$ `VERIFICATION_PASSED` $\rightarrow$ `SUCCESS` (or `HALTED` / `FAILED`).
+
+3. **Convergence & Anti-Infinite Loop Guard**:
+   - Computes deterministic failure fingerprints (`hash(file + ":" + line + ":" + normalizedMessage)`).
+   - Halts execution with `HALTED_CONVERGENCE_FAILURE` when 3 consecutive identical failures are detected, preventing infinite model repair loops and token exhaustion.
+   - Enforces configurable budget constraints (`maxAttempts`, `maxDurationMs`, `maxCostUsd`).
+
+4. **User-Conflict Baseline Protection**:
+   - Caches SHA-256 hashes of on-disk file content on initial read.
+   - Verifies before any mutation that the current on-disk hash matches the baseline hash. If human modifications or external edits occurred concurrently, the mutation is aborted cleanly.
+
+5. **Precision Model Repair**:
+   - Generates exact diff-based replacement chunks with verified line numbers and unambiguous target strings.
+   - Automatically resolves test failures back to corresponding source files.
+   - Falls back to deterministic syntax/semantic repair rules when model responses are unavailable.
+
+6. **Full-Stack Tooling**:
+   - **CLI**: `hres engineering <start|list|status|plan|pause|resume|cancel>`
+   - **REST & SSE**: Dedicated HTTP router (`/api/engineering/*`) and real-time Server-Sent Events (`/api/engineering/tasks/:taskId/events`).
+   - **UI**: Full-featured React dashboard (`AutonomousEngineeringView`) featuring real-time telemetry, stage indicators, diff viewer, and manual interventions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## 32. Foundation Performance Block FP-11 — Native Universal Workflow & Automation Engine
+
+FP-11 transforms HṚṢĪKEŚA from an individual task-runner into a sovereign, continuous, event-driven orchestration layer.
+
+### 1. Directed Execution Graph Runtime
+- **WorkflowExecutionEngine**: Authoritative state machine executing pre-compiled directed graphs with deterministic join barriers, branch conditions, and bounded loop cycles.
+- **Node Executors**: Specialized execution dispatchers for 20 node types (`TRIGGER`, `ACTION`, `AGENT`, `SKILL`, `CAPABILITY`, `MODEL`, `MISSION`, `GOAL`, `CODE`, `TEST`, `VERIFY`, `RESEARCH`, `CONDITION`, `SWITCH`, `PARALLEL`, `JOIN`, `LOOP`, `WAIT`, `APPROVAL`, `TRANSFORM`, `NOTIFY`, `REPORT`, `END`).
+- **Frozen FP-10 Delegation**: Workflow code generation, test execution, and verification tasks delegate strictly to FP-10 `EngineeringFabric` without duplicating logic.
+
+### 2. Expression Engine & Security
+- **SafeExpressionEvaluator**: Zero-eval sandboxed expression evaluator supporting arithmetic, comparison, logic, and path resolution with recursion depth limits and strict keyword blocking.
+- **Mandatory Financial Governance**: Outgoing monetary actions automatically pause in `WAITING_APPROVAL` and require explicit human sign-off.
+- **Secret Redaction**: Recursively strips API keys, tokens, and passwords from logs and approval summaries.
+
+### 3. Checkpointing & Crash Resumption
+- **SHA-256 Idempotency Checkpoints**: Checkpoints state snapshots after significant transitions.
+- **WorkflowRecoveryManager**: Interrupted in-flight runs resume from the last safe checkpoint upon system restart.
+
+### 4. Trigger & Scheduling Subsystems
+- **Event-Driven**: Wildcard pattern subscription over `EventBus`.
+- **Schedule-Driven**: Persistent Cron/Interval timers wired to `PersistentScheduler`.
+- **Webhooks**: Inbound HTTP routes with HMAC-SHA256 signature verification and replay defense.
+
+### 5. Multi-Interface Observability
+- **REST & SSE**: Full lifecycle endpoints (`/api/workflows/*`, `/api/workflow-runs/*`) and live event stream (`/api/workflows/events/stream`).
+- **CLI**: Native `hres workflow` suite.
+- **Control Center UI**: Interactive SVG canvas visualizer with Vedic manuscript / dark observatory aesthetics, live SSE updates, and human approval gates.
+
+---
+
+## 33. Foundation Performance Block FP-15 — Universal Application & Service Ecosystem
+
+FP-15 positions HṚṢĪKEŚA directly above the capability and account infrastructure and below mission orchestration, enabling deterministic execution of real-world software, CLI tools, provider APIs, and desktop applications.
+
+### 1. Deterministic Interface Priority Ladder
+1. `LOCAL_API`: High-speed in-process or local daemon execution (highest determinism, sub-millisecond).
+2. `AUTHENTICATED_API`: Structured OAuth2/REST APIs with rate limits and quota monitoring.
+3. `MCP`: Protocol-standardized tool invocation via external or local Model Context Protocol servers.
+4. `CLI`: System binaries installed on PATH with verified execution paths and arguments.
+5. `BROWSER_DOM`: Authenticated browser interaction via DOM tree and accessibility nodes.
+6. `DESKTOP_UIA`: Native operating system UI Automation via FP-13 Digital Workspace Operator.
+7. `OCR_VISION`: Visual grounding and screen region analysis.
+8. `COORDINATE_INPUT`: Absolute mouse/keyboard interaction (fallback only).
+
+### 2. Service & Application Normalization
+- **ServiceDescriptor**: Normalizes provider IDs, interface bindings, quota tracking, health, authentication scopes, and licenses.
+- **ApplicationDescriptor**: Directly reuses FP-13's `ApplicationDescriptor` without duplication or drift. Discovers desktop applications (e.g. Blender, Android Studio, VS Code) and CLI executables on the operating system.
+
+### 3. Natural Language Fast-Path (<5ms, Zero LLM Hallucination)
+Conversational inquiries regarding ecosystem connectivity are parsed deterministically via regular expressions and catalog mapping. Responses reflect ground-truth connectivity without invoking large language models.
+
+### 4. Security Governance & Consequential Verification
+- **External Data Defanging**: External service payloads (emails, issue comments, Slack messages) are defanged and tagged with `_untrustedExternalData: true`.
+- **Approval Gating**: Mutating, financial, external messaging, and destructive operations require explicit human approval.
+- **Consequential Verification**: Post-condition verification ensures operations succeeded in reality (e.g. fetching issue by ID, confirming calendar event insertion).
+- **Durable Persistence (Migration 029)**: `ecosystem_services`, `ecosystem_interfaces`, `ecosystem_operations`, `ecosystem_verifications`.
+
+---
+
+## 34. Foundation Performance Block FP-16 — Demonstration Learning & Workflow Acquisition
+
+FP-16 enables HṚṢĪKEŚA to observe user demonstrations, infer reusable procedural steps, validate proposals against 17 deterministic safety checks, and compile them into executable skills or workflows.
+
+1. **Demonstration Lifecycle**:
+   `RECORDING` → `PAUSED` → `STOPPED` → `ANALYZING` → `PROPOSAL_READY` → `VALIDATING` → `AWAITING_APPROVAL` → `COMPILED` (or `REJECTED`).
+2. **17-Gate Validator**:
+   Evaluates schema, credential safety, parameter validation, danger levels, scope isolation, prompt injection defense, and provenance.
+3. **Compilation Pipeline**:
+   Compiles approved proposals into FP-20 Skills (`skills/<name>/SKILL.md`) or FP-11 Workflows.
+4. **Durable Persistence (Migration 030)**:
+   `demonstration_sessions`, `demonstration_semantic_actions`, `demonstration_checkpoints`, `procedure_proposals`, `learned_procedures`, `learned_procedure_versions`.
+
+---
+
+## 35. Foundation Performance Block FP-17 — Universal Digital Creation & Media Studio
+
+FP-17 provides HṚṢĪKEŚA with a sovereign, local-first multimodal creation and production orchestration layer across images, vector graphics, video, audio, music, voice, 3D assets, documents, presentations, and compound media packages.
+
+### 1. Creation Domain Model & Lifecycle
+- **CreationJob**: Tracks owner, scope, creation type, objective, instructions, inputs, outputs, model provider, progress percentage, iteration counters, and verification state.
+- **CreationArtifact**: Deliverable entity with format, location, byte size, dimensions/duration/pages, cryptographic SHA-256 hash, and deterministic QA verification flag.
+- **DesignContext**: Multi-tenant styling tokens (brand identity, colors, typography, geometric rules, aesthetic constraints).
+- **Creation Lifecycle**: `DRAFT` → `PLANNING` → `QUEUED` → `RUNNING` → `PAUSED` → `AWAITING_INPUT` → `AWAITING_APPROVAL` → `VERIFYING` → `COMPLETED` / `FAILED` / `CANCELLED` / `ARCHIVED`.
+
+### 2. Media Capability Fabric & Honest Local-First Providers
+- **Standardized Capabilities**: Operations for `image.*`, `video.*`, `audio.*`, `music.*`, `voice.*`, `3d.*`, `document.*`, `presentation.*`, `design.*`.
+- **Native Deterministic Local Synthesizers**:
+  - `native.document.compiler`: Structured technical specifications, reports, presentations, and briefs.
+  - `native.audio.synthesizer`: Synthesizes rhythmic soundscapes, voice prompts, and audio tones.
+  - `native.image.synthesizer`: Vector SVGs, geometric emblems, Vedic astronomical layouts, and icons.
+  - `native.video.composer`: Multi-scene video scripts, storyboards, and video media manifests.
+- **Host Discovery**: Probes host system for Blender, FFmpeg, ImageMagick. Reports `NOT_CONFIGURED` honestly when uninstalled without fabricating execution.
+
+### 3. Deterministic Verification & Quality Assurance Gate
+- **Multi-Stage Checks**: Physical file existence, non-zero byte check, syntax validation, dimension/aspect ratio checking, and SHA-256 cryptographic hashing.
+- **Separation of Generation & Completion**: Artifacts are never marked `COMPLETED` unless they pass verification.
+
+### 4. Bounded Iteration & Convergence Safeguards
+- **Iteration Tracking**: `iterateJob` evaluates modifications, updates iteration budget, and strictly stops when `maxIterations` is exceeded (`AWAITING_INPUT`), preventing infinite loops and token depletion.
+
+### 5. Sovereign Human Approval & Security Boundaries
+- **Approval Boundaries**: Commercial publishing, paid generation, and voice cloning require human confirmation (`AWAITING_APPROVAL`).
+- **Security Sandboxing**: Prompt injection neutralized, SVG `<script>` tags sanitized, executable formats (`.exe`, `.bat`, `.sh`) rejected, and path traversal stripped.
+- **Resource Governance**: Integrated with `ResourceGovernor`; under `CRITICAL_MEMORY`, heavy creation jobs are automatically queued to prevent host crashes.
+
+### 6. Persistence & Interfaces
+- **Durable Persistence (Migration 031)**: `creation_jobs`, `creation_artifacts`, `creation_iterations`, `design_contexts`, `creation_reference_assets`.
+- **Control Center UI**: `CreationStudioView.tsx` with live SSE stream (`/api/creation/events`), progress tracking, artifact inspector, and creation wizard.
+- **CLI Subsystem**: `hres create <type>` and `hres creation list|status|verify|cancel`.
+
+---
+
+## 36. Foundation Performance Block FP-18 — Universal Real-World Research, Knowledge & Decision Intelligence Fabric
+
+FP-18 provides HṚṢĪKEŚA with an auditable analytical and cognitive fabric bridging external information (web, repositories, ecosystem) + existing knowledge/memory + company/project context + user preferences + host constraints into decision-support packages and actionable plans without silently making consequential decisions on behalf of Rushikesh.
+
+```
+EXTERNAL INFORMATION + KNOWLEDGE GRAPH + WORKING MEMORY + HOST CONSTRAINTS
+                                │
+                                ▼
+                       RESEARCH CASE LIFECYCLE
+                 (Decomposition & Bounded Budget)
+                                │
+                                ▼
+                     EVIDENCE LEDGER & CLAIMS
+               (Traceable Credibility & Normalization)
+                                │
+                                ▼
+                 CONTRADICTION & TEMPORAL ENGINE
+             (Quantization, Version, OS, Outdated >2y)
+                                │
+                                ▼
+                   ENVIRONMENT-AWARE EVALUATOR
+            (Intel Core Ultra 5 125H, 15.7 GB RAM, Arc GPU)
+                                │
+                                ▼
+                   CANDIDATE COMPARISON MATRIX
+               (Qualitative Tradeoffs, No Fake Precision)
+                                │
+                                ▼
+                     16-SECTION DECISION BRIEF
+             (Evidence vs Analysis vs Recommendation)
+                                │
+                                ▼
+                  IMMUTABLE HISTORY & REVIEW
+                    (MAINTAIN vs UPDATE)
+                                │
+                                ▼
+                      GOVERNED ACTION BRIDGE
+          (Proposed Missions, Goals, Workflows, Skills, Env)
+                                │
+                                ▼
+                   HUMAN APPROVAL GATEWAY
+                     (Rushikesh Authority)
+```
+
+### 36.1 ResearchCase Lifecycle & Bounded Planning
+- **12 Lifecycle States**: `DRAFT` → `SCOPING` → `RESEARCHING` → `GATHERING_EVIDENCE` → `ANALYZING` → `COMPARING` → `SYNTHESIZING` → `REVIEWING` → `AWAITING_USER` → `COMPLETED` / `FAILED` / `ARCHIVED`.
+- **Question Decomposition**: Converts broad inquiries into structured subquestions across relevant technical dimensions (hardware, licensing, maintenance, quantization, installation).
+- **Bounded Research Plans**: Explicit stopping budgets (`maxSources: 10`, `maxSearches: 5`, `maxPages: 10`, `maxTokens: 32000`, `maxDurationMs: 60000`) preventing recursive research loops.
+
+### 36.2 Evidence Ledger & Claim Normalization
+- **4-Tier Source Hierarchy**: `PRIMARY` (official docs, repos, specs), `SECONDARY` (reputable technical analysis), `COMMUNITY` (forums, discussions), `UNVERIFIED` (unsubstantiated claims).
+- **Traceable Ledger**: Every factual claim records subject, predicate, object, source ID, retrieval timestamp, polarity (`SUPPORTING`, `CONTRADICTING`, `PARTIAL`, `UNKNOWN`), and confidence level.
+
+### 36.3 Contradiction Analysis & Temporal Intelligence
+- **Contradiction Classification**: Detects conflicting claims across sources and identifies root causes:
+  - `QUANTIZATION_DIFFERENCE` (e.g. 12GB FP16 vs 8GB Q4_K_M)
+  - `VERSION_MISMATCH` (v1.0 vs v2.0 requirement changes)
+  - `OS_MISMATCH` (Linux vs Windows driver support)
+  - `WORKLOAD_DIFFERENCE` (inference vs fine-tuning)
+  - `OUTDATED_DATA` (findings >2 years old)
+- **Temporal Verification**: Evaluates freshness against retrieval date; explicitly marks older data as `OUTDATED` rather than presenting it as current.
+
+### 36.4 Environment-Aware Hardware Evaluation
+- **Host Grounding**: Evaluates software against the physical machine (Acer Swift SFG14-73T, Intel Core Ultra 5 125H, 15.7 GB RAM, Intel Arc GPU, Windows 11).
+- **5 Compatibility Ratings**: `VERIFIED_COMPATIBLE`, `LIKELY_COMPATIBLE`, `CONDITIONALLY_COMPATIBLE`, `INCOMPATIBLE`, `UNKNOWN`. Never claims verified compatibility without sufficient empirical evidence.
+
+### 36.5 Qualitative Candidate Comparison & 16-Section Decision Brief
+- **Matrix Comparison**: Structured evaluation across explicit criteria preserving uncertainty without fake numerical precision.
+- **Decision Brief**: 16 standard sections:
+  1. Objective | 2. Scope | 3. Key Findings | 4. Evidence Summary | 5. Evaluated Options | 6. Tradeoff Analysis | 7. Key Risks & Caveats | 8. Unknowns & Gaps | 9. Constraints | 10. Dependencies | 11. Cost Considerations | 12. Implementation Implications | 13. Open Questions | 14. Decisions Required | 15. Recommendation (Clearly segregated) | 16. Sources & Citations.
+
+### 36.6 Immutable Decision History & Review
+- **Decision Records**: Persistent append-only records with objective, chosen candidate, rationales, assumptions, approver (`Rushikesh Pattiwar`), and timestamp.
+- **Decision Reviews**: Re-evaluates historical decisions against new evidence without rewriting historical records, recommending `MAINTAIN` or `UPDATE`.
+
+### 36.7 Governed Action Bridge
+- **Proposed Action Artifacts**: Translates decisions into proposed Missions, Goals, Workflows, Skills, and Environment Changes.
+- **Sovereign Human Authority**: All consequential actions are generated in `PENDING_APPROVAL` status with `requiresApproval = true`. Consequential actions are never dispatched autonomously without Rushikesh's explicit confirmation.
+
+### 36.8 Persistence Layer (Migration 032)
+- Relational schema in SQLite:
+  - `research_cases`: Persistent research investigations and lifecycles.
+  - `research_candidates`: Evaluated options, hardware specs, licenses, and compatibility.
+  - `research_comparisons`: Evaluation criteria, candidate scores, and qualitative matrices.
+  - `decision_records`: Immutable historical decisions with rationales and assumptions.
+  - `decision_reviews`: Post-decision review audits and recommendations.
+  - `decision_proposed_actions`: Bridge connecting decisions to execution engines behind approval gates.
+
+---
+
+## 37. Persistent Distributed Execution & 24/7 Operations Fabric (FP-19)
+
+### 37.1 Distributed Execution Substrate Architecture
+- **Underlying Substrate**: Acts as the low-level execution fabric underneath Missions (FP-14), Workflows (FP-11), Goals (FP-15), Skills (FP-20), and Company OS (FP-18).
+- **Five Locality Tiers**: `LOCAL` (Acer Swift laptop), `LAN` (secondary home/office machines), `REMOTE` (VPS/SSH servers), `CLOUD` (on-demand compute instances), and `HOSTED` (serverless worker runtimes).
+
+### 37.2 Distributed Leases & Monotonic Fencing Tokens
+- **Mutual Exclusion Locking**: Exactly-one-active-worker per job via distributed leases.
+- **Monotonic Fencing Engine**: Every lease grant or takeover increments a 64-bit monotonic fencing token (`fencingToken = max(existingToken) + 1`).
+- **Split-Brain & Zombie Prevention**: Writes and checkpoint commits must present a matching, active fencing token. Outdated tokens from partitioned or slow workers are rejected.
+
+### 37.3 Incremental Checkpointing & State Migration
+- **Step-Level Snapshots**: Serializable execution state (step indices, memory context, variables, completed step results).
+- **Verification Evidence**: Checkpoints store hashes, output verification digests, and environment telemetry.
+- **Cross-Runtime Migration**: `JobMigrationPackage` transports complete state between workers (e.g. from local to LAN/cloud) with zero loss of progress.
+
+### 37.4 Multi-Queue Priority Scheduling & Fairness
+- **5 Priority Queues**: `CRITICAL` (P0), `HIGH` (P1), `NORMAL` (P2), `LOW` (P3), `BACKGROUND` (P4).
+- **Constraint Matching**: Enforces minimum CPU, RAM, GPU backends (Vulkan/DirectML vs CUDA), and tool availability.
+- **Fair-Share & Anti-Starvation**: Aging escalates starved lower-priority jobs.
+
+### 37.5 Autonomous Recovery & Dead-Letter Routing
+- **Heartbeat Daemon**: Workers emit heartbeats every 10s; 3 missed heartbeats marks worker `OFFLINE`.
+- **Orphan Job Takeover**: Expired leases and abandoned jobs are reclaimed and re-queued.
+- **Exponential Backoff & Jitter**: Failed jobs retry up to `maxRetries` with backoff; exhausted jobs route to `DEAD_LETTER` for operator triage.
+
+### 37.6 Sovereign Cloud Cost Governance
+- **Strict Human Approval Gate**: Autonomous 24/7 operations are permitted on zero-incremental-cost runtimes (`LOCAL`, `LAN`, pre-paid `REMOTE`). Provisioning or dispatching to paid cloud instances strictly requires operator approval (`DENY_PAID_WITHOUT_APPROVAL`).
+- **Budget Caps**: Hard limits on hourly and total spend per job.
+
+### 37.7 Relational Schema (Migration 033)
+- 9 relational tables in SQLite (`data/hrisekesa.db`):
+  - `execution_runtimes`: Compute node definitions and hardware profiles.
+  - `execution_workers`: Active daemons with dynamic inventories.
+  - `execution_jobs`: Durable job definitions, priorities, states, and retry counters.
+  - `execution_leases`: Leases with monotonic fencing tokens and TTL expiration.
+  - `execution_checkpoints`: Serialized step snapshots and verification evidence.
+  - `execution_queues`: Stratified priority queues with concurrency limits.
+  - `cloud_providers`: Cloud endpoints, regions, credentials metadata, and quotas.
+  - `cloud_instances`: Provisioned virtual instances with cost classes.
+  - `execution_traces`: Immutable append-only audit log of all execution events.
+
+
 

@@ -104,8 +104,8 @@ export class CreatorProfileManager {
   private readonly memoryRepo: MemoryRepository;
   private cachedProfile: CreatorProfileData | null = null;
 
-  constructor(memoryRepo: MemoryRepository) {
-    this.memoryRepo = memoryRepo;
+  constructor(memoryRepo?: MemoryRepository) {
+    this.memoryRepo = memoryRepo!;
   }
 
   /**
@@ -116,7 +116,7 @@ export class CreatorProfileManager {
       return this.cachedProfile;
     }
 
-    const item = this.memoryRepo.retrieve('creator_profile', 'rushikesh_pattiwar');
+    const item = this.memoryRepo?.retrieve ? this.memoryRepo.retrieve('creator_profile', 'rushikesh_pattiwar') : null;
     if (item) {
       try {
         const parsed = JSON.parse(item.content) as Partial<CreatorProfileData>;
@@ -141,16 +141,18 @@ export class CreatorProfileManager {
    */
   public saveProfile(profile: CreatorProfileData): void {
     this.cachedProfile = profile;
-    this.memoryRepo.store({
-      id: 'seed-creator-profile',
-      tier: 'creator_profile',
-      key: 'rushikesh_pattiwar',
-      content: JSON.stringify(profile, null, 2),
-      source: 'rushikesh_authority',
-      provenance: 'explicit',
-      confidence: 1.0,
-      metadata: { verified: true, authority: 'ROOT' }
-    });
+    if (this.memoryRepo?.store) {
+      this.memoryRepo.store({
+        id: 'seed-creator-profile',
+        tier: 'creator_profile',
+        key: 'rushikesh_pattiwar',
+        content: JSON.stringify(profile, null, 2),
+        source: 'rushikesh_authority',
+        provenance: 'explicit',
+        confidence: 1.0,
+        metadata: { verified: true, authority: 'ROOT' }
+      });
+    }
   }
 
   /**

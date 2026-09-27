@@ -5,13 +5,20 @@
  */
 
 export const ResearchStatus = {
+  CREATED: 'CREATED',
   DRAFT: 'DRAFT',
   PLANNING: 'PLANNING',
+  SEARCHING: 'SEARCHING',
+  FETCHING: 'FETCHING',
+  EXTRACTING: 'EXTRACTING',
   RESEARCHING: 'RESEARCHING',
+  ANALYZING: 'ANALYZING',
   VERIFYING: 'VERIFYING',
+  SYNTHESIZING: 'SYNTHESIZING',
+  COMPLETED: 'COMPLETED',
+  PARTIAL: 'PARTIAL',
   WAITING: 'WAITING',
   BLOCKED: 'BLOCKED',
-  COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
   CANCELLED: 'CANCELLED',
   PAUSED: 'PAUSED',
@@ -20,58 +27,129 @@ export type ResearchStatus = (typeof ResearchStatus)[keyof typeof ResearchStatus
 
 export const ResearchDepth = {
   QUICK: 'QUICK',
+  NORMAL: 'NORMAL',
   STANDARD: 'STANDARD',
   DEEP: 'DEEP',
+  COMPREHENSIVE: 'COMPREHENSIVE',
 } as const;
 export type ResearchDepth = (typeof ResearchDepth)[keyof typeof ResearchDepth];
 
+export const ResearchType = {
+  FACT_LOOKUP: 'FACT_LOOKUP',
+  CURRENT_INFORMATION: 'CURRENT_INFORMATION',
+  DEEP_RESEARCH: 'DEEP_RESEARCH',
+  COMPARISON: 'COMPARISON',
+  VERIFICATION: 'VERIFICATION',
+  TECHNICAL_RESEARCH: 'TECHNICAL_RESEARCH',
+  MARKET_RESEARCH: 'MARKET_RESEARCH',
+  COMPANY_RESEARCH: 'COMPANY_RESEARCH',
+  ACADEMIC_RESEARCH: 'ACADEMIC_RESEARCH',
+  PRODUCT_RESEARCH: 'PRODUCT_RESEARCH',
+  NEWS_RESEARCH: 'NEWS_RESEARCH',
+  OPEN_SOURCE_RESEARCH: 'OPEN_SOURCE_RESEARCH',
+} as const;
+export type ResearchType = (typeof ResearchType)[keyof typeof ResearchType];
+
 export interface ResearchBudget {
+  maxSearchQueries: number;
   maxSources: number;
   maxPages: number;
   maxBrowserActions: number;
   maxModelCalls: number;
+  maxExtractionCharacters: number;
+  maxResearchTime: number; // in ms (alias for maxDurationMs)
   maxDurationMs: number;
+  maxParallelRequests: number;
+  maxContextTokens: number;
   maxDepth: number;
 }
 
 export const DEFAULT_RESEARCH_BUDGET: Record<ResearchDepth, ResearchBudget> = {
   QUICK: {
+    maxSearchQueries: 3,
     maxSources: 5,
     maxPages: 8,
-    maxBrowserActions: 10,
-    maxModelCalls: 5,
-    maxDurationMs: 120_000, // 2 minutes
+    maxBrowserActions: 5,
+    maxModelCalls: 3,
+    maxExtractionCharacters: 25_000,
+    maxResearchTime: 60_000,
+    maxDurationMs: 60_000, // 1 minute
+    maxParallelRequests: 2,
+    maxContextTokens: 2_000,
     maxDepth: 1,
   },
+  NORMAL: {
+    maxSearchQueries: 6,
+    maxSources: 10,
+    maxPages: 16,
+    maxBrowserActions: 15,
+    maxModelCalls: 8,
+    maxExtractionCharacters: 50_000,
+    maxResearchTime: 180_000,
+    maxDurationMs: 180_000, // 3 minutes
+    maxParallelRequests: 2,
+    maxContextTokens: 4_000,
+    maxDepth: 2,
+  },
   STANDARD: {
+    maxSearchQueries: 8,
     maxSources: 12,
     maxPages: 20,
-    maxBrowserActions: 30,
-    maxModelCalls: 15,
+    maxBrowserActions: 20,
+    maxModelCalls: 12,
+    maxExtractionCharacters: 75_000,
+    maxResearchTime: 300_000,
     maxDurationMs: 300_000, // 5 minutes
+    maxParallelRequests: 2,
+    maxContextTokens: 6_000,
     maxDepth: 2,
   },
   DEEP: {
+    maxSearchQueries: 15,
     maxSources: 25,
-    maxPages: 45,
-    maxBrowserActions: 60,
-    maxModelCalls: 30,
+    maxPages: 40,
+    maxBrowserActions: 40,
+    maxModelCalls: 25,
+    maxExtractionCharacters: 150_000,
+    maxResearchTime: 600_000,
     maxDurationMs: 600_000, // 10 minutes
+    maxParallelRequests: 2,
+    maxContextTokens: 12_000,
     maxDepth: 3,
+  },
+  COMPREHENSIVE: {
+    maxSearchQueries: 25,
+    maxSources: 40,
+    maxPages: 60,
+    maxBrowserActions: 60,
+    maxModelCalls: 40,
+    maxExtractionCharacters: 250_000,
+    maxResearchTime: 900_000,
+    maxDurationMs: 900_000, // 15 minutes
+    maxParallelRequests: 2,
+    maxContextTokens: 20_000,
+    maxDepth: 4,
   },
 };
 
 export const SourceType = {
+  OFFICIAL: 'OFFICIAL',
+  PRIMARY: 'PRIMARY',
+  ACADEMIC: 'ACADEMIC',
+  GOVERNMENT: 'GOVERNMENT',
+  NEWS: 'NEWS',
+  DOCUMENTATION: 'DOCUMENTATION',
   OFFICIAL_DOCUMENTATION: 'OFFICIAL_DOCUMENTATION',
   OFFICIAL_REPOSITORY: 'OFFICIAL_REPOSITORY',
   ACADEMIC_PAPER: 'ACADEMIC_PAPER',
-  GOVERNMENT: 'GOVERNMENT',
-  NEWS: 'NEWS',
   COMPANY: 'COMPANY',
+  COMMUNITY: 'COMMUNITY',
   BLOG: 'BLOG',
+  SOCIAL: 'SOCIAL',
   FORUM: 'FORUM',
   SEARCH_RESULT: 'SEARCH_RESULT',
   USER_PROVIDED: 'USER_PROVIDED',
+  UNKNOWN: 'UNKNOWN',
   OTHER: 'OTHER',
 } as const;
 export type SourceType = (typeof SourceType)[keyof typeof SourceType];
@@ -84,6 +162,8 @@ export const SourceFreshness = {
   UNKNOWN: 'UNKNOWN',
 } as const;
 export type SourceFreshness = (typeof SourceFreshness)[keyof typeof SourceFreshness];
+export const FreshnessLevel = SourceFreshness;
+export type FreshnessLevel = SourceFreshness;
 
 export const SourceCredibilityTier = {
   AUTHORITATIVE: 'AUTHORITATIVE', // official docs, official repo, academic peer-reviewed
@@ -93,6 +173,8 @@ export const SourceCredibilityTier = {
   UNVERIFIED: 'UNVERIFIED',
 } as const;
 export type SourceCredibilityTier = (typeof SourceCredibilityTier)[keyof typeof SourceCredibilityTier];
+export const CredibilityLevel = SourceCredibilityTier;
+export type CredibilityLevel = SourceCredibilityTier;
 
 export interface IResearchSource {
   id: string;
@@ -110,6 +192,8 @@ export interface IResearchSource {
   contentHash: string;
   cleanText?: string;
   extractedText?: string;
+  content?: string; // alias to cleanText
+  language?: string;
   credibilityTier: SourceCredibilityTier;
   credibilityReason?: string;
   isDuplicate: boolean;
@@ -131,6 +215,15 @@ export const ClaimType = {
 } as const;
 export type ClaimType = (typeof ClaimType)[keyof typeof ClaimType];
 
+export const SupportType = {
+  SUPPORTS: 'SUPPORTS',
+  PARTIALLY_SUPPORTS: 'PARTIALLY_SUPPORTS',
+  CONTRADICTS: 'CONTRADICTS',
+  MENTIONS: 'MENTIONS',
+  DOES_NOT_SUPPORT: 'DOES_NOT_SUPPORT',
+} as const;
+export type SupportType = (typeof SupportType)[keyof typeof SupportType];
+
 export interface IResearchEvidence {
   id: string;
   researchId: string;
@@ -140,6 +233,7 @@ export interface IResearchEvidence {
   quoteText?: string;
   supportingText?: string; // alias
   claimType: ClaimType;
+  supportType?: SupportType;
   confidence: number;
   location?: string;
   retrievedAt?: string;
@@ -210,6 +304,7 @@ export interface IResearchStudy {
   title: string;
   question: string;
   objective: string;
+  researchType?: ResearchType;
   scope?: string;
   status: ResearchStatus;
   depth: ResearchDepth;
@@ -231,6 +326,7 @@ export interface IResearchStudy {
     findingsGenerated?: number;
     conflictsDetected?: number;
     durationMs?: number;
+    modelCalls?: number;
     error?: string;
   };
   metadata?: Record<string, unknown>;

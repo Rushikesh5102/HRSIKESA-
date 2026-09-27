@@ -12,7 +12,8 @@ describe('Control Center & Environment HTTP API Subsystem', () => {
       HRISEKESA_PORT: TEST_PORT,
       HRISEKESA_LOG_LEVEL: 'warn',
       HRISEKESA_VOICE_TTS: 'sapi',
-      HRISEKESA_VOICE_STT: 'windows'
+      HRISEKESA_VOICE_STT: 'windows',
+      HRISEKESA_DB_PATH: ':memory:',
     });
 
     await kernel.start();
