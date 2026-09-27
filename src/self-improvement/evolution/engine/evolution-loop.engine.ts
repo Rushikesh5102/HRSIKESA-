@@ -27,6 +27,7 @@ import { EvolutionConvergenceEngine } from './evolution-convergence.js';
 import { EvolutionCodeSynthesizer } from './evolution-code.synthesizer.js';
 import { EvolutionReportGenerator } from '../reporting/evolution-report.generator.js';
 import { SupervisorEvidence } from '../supervisors/supervisor.types.js';
+import { ModelRouter } from '../../../models/router/model.router.js';
 import {
   EvolutionObjective,
   EvolutionExperiment,
@@ -72,6 +73,7 @@ export class EvolutionLoopEngine {
     convergenceEngine?: EvolutionConvergenceEngine;
     reportGenerator?: EvolutionReportGenerator;
     codeSynthesizer?: EvolutionCodeSynthesizer;
+    modelRouter?: ModelRouter;
     resourceGovernor?: ResourceGovernor;
     eventBus?: EventBus;
     logger?: ILogger;
@@ -90,6 +92,7 @@ export class EvolutionLoopEngine {
       repoRoot: options.gateway.repoRoot,
       trustTiers: options.trustTiers,
       boundaryGuard: options.boundaryGuard,
+      modelRouter: options.modelRouter,
       logger: options.logger,
     });
     this.resourceGovernor = options.resourceGovernor;
@@ -198,6 +201,8 @@ export class EvolutionLoopEngine {
 
         const maxExperiments = objective.maxExperiments || 5;
         let iteration = this.listExperiments(objectiveId).length;
+        let lastCompilerError: string | undefined = undefined;
+        let lastTestFailure: string | undefined = undefined;
 
         while (this.activeLoops.has(objectiveId)) {
           if (this.safetyController.isEmergencyStopped()) {
@@ -254,17 +259,26 @@ export class EvolutionLoopEngine {
           const progressFraction = Math.min(1.0, iteration / Math.min(maxExperiments, 3));
           const candidateVal = baseVal + (targetVal - baseVal) * progressFraction;
 
+          if (lastCompilerError || lastTestFailure) {
+            this.emitEvent('evolution.log', {
+              objectiveId,
+              level: 'WARN',
+              message: `🛠️ [Closed-Loop Auto-Repair] Diagnostic error detected from previous attempt. Passing compiler diagnostics to synthesizer for surgical repair...`,
+            });
+          }
+
           // Synthesize real modifications safely across the allowed scope
           const synthesis = await this.codeSynthesizer.synthesizeModifications(
             currentObj,
             iteration,
-            this.gateway.repoRoot
+            this.gateway.repoRoot,
+            { compilerError: lastCompilerError, testFailure: lastTestFailure }
           );
 
           this.emitEvent('evolution.log', {
             objectiveId,
             level: 'INFO',
-            message: `🧠 [Code Synthesis] Strategy: ${synthesis.strategySummary} (${synthesis.modifications.length} verified operations)`,
+            message: `🧠 [Code Synthesis] Strategy: ${synthesis.strategySummary} (${synthesis.modifications.length} verified operations)${synthesis.usedModel ? ` [Model: ${synthesis.usedModel}]` : ''}`,
           });
 
           this.emitEvent('evolution.log', {
@@ -320,6 +334,19 @@ export class EvolutionLoopEngine {
               message: `✅ [Experiment #${iteration} Result] Status: ${exp.decision} | Reason: ${exp.decisionReason || 'Supervisor verified.'}`,
             });
 
+            if (exp.decision === 'ACCEPTED') {
+              lastCompilerError = undefined;
+              lastTestFailure = undefined;
+            } else {
+              // Capture diagnostics for closed-loop self-repair in next iteration
+              if (exp.testResults?.stderr || exp.testResults?.stdout) {
+                lastCompilerError = (exp.testResults.stderr || exp.testResults.stdout || '').slice(0, 1000);
+              }
+              if (exp.testResults?.failedTestNames && exp.testResults.failedTestNames.length > 0) {
+                lastTestFailure = `Failed tests: ${exp.testResults.failedTestNames.join(', ')}`;
+              }
+            }
+
             const refreshedObj = this.objectiveEngine.getObjective(objectiveId);
             if (refreshedObj?.status === 'PROMOTION_READY' || (iteration >= 3 && exp.decision === 'ACCEPTED')) {
               if (refreshedObj?.status !== 'PROMOTION_READY') {
@@ -339,6 +366,7 @@ export class EvolutionLoopEngine {
               level: 'ERROR',
               message: `⚠️ [Iteration #${iteration} Failed]: ${expErr.message}`,
             });
+            lastCompilerError = expErr.message;
             break;
           }
 

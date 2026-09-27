@@ -1300,6 +1300,7 @@ export class HrisekesaKernel {
       safetyController: this.evolutionSafetyController,
       trustTiers,
       boundaryGuard,
+      modelRouter: this.router,
       resourceGovernor: this.resourceGovernor,
       eventBus: this.eventBus,
       logger: this.logger,
