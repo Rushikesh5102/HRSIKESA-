@@ -21,10 +21,14 @@ import {
   Headphones,
   StopCircle,
   Zap,
+  Sliders,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { ChatMessage } from '../types/api.types';
 import { api } from '../services/api';
 import { AICore, AICoreState } from '../components/AICore';
+import { GoldenVoiceOrb, OrbState } from '../components/GoldenVoiceOrb';
 import { IndianFrame } from '../components/IndianFrame';
 import { AnimationService } from '../services/animation.service';
 
@@ -131,6 +135,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState('');
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [voiceViewMode, setVoiceViewMode] = useState<'chamber' | 'transcript'>('chamber');
 
   // Multi-Chat History state (Panel 4)
   const [showHistory, setShowHistory] = useState(true);
@@ -839,6 +844,18 @@ export const ChatView: React.FC<ChatViewProps> = ({
               <span>{isVoiceToVoice ? 'Voice-to-Voice ON' : 'Voice-to-Voice'}</span>
             </button>
 
+            {isVoiceToVoice && (
+              <button
+                onClick={() => setVoiceViewMode(voiceViewMode === 'chamber' ? 'transcript' : 'chamber')}
+                className="btn btn-secondary"
+                style={{ fontSize: '11.5px', padding: '5px 10px', color: 'var(--text-gold)', border: '1px solid var(--border-accent)' }}
+                title="Toggle between 3D Cosmic Orb and Chat Transcript"
+              >
+                <Sparkles size={13} color="var(--accent-gold)" />
+                <span>{voiceViewMode === 'chamber' ? '💬 Transcript View' : '🔮 Cosmic Orb View'}</span>
+              </button>
+            )}
+
             <button
               className="btn btn-secondary"
               onClick={handleNewChat}
@@ -851,8 +868,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
           </div>
         </div>
 
-        {/* Live Audio Visualizer Banner during active voice */}
-        {(isVoiceToVoice || speakingMsgId || isListening) && (
+        {/* Live Audio Visualizer Banner during active voice (in transcript mode) */}
+        {(isVoiceToVoice || speakingMsgId || isListening) && (!isVoiceToVoice || voiceViewMode === 'transcript') && (
           <div
             style={{
               padding: '10px 16px',
@@ -913,18 +930,170 @@ export const ChatView: React.FC<ChatViewProps> = ({
           </div>
         )}
 
-        {/* Messages List Area */}
-        <div
-          ref={messagesContainerRef}
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '12px 6px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
+        {/* Center-Stage Immersive Golden Voice Chamber Mode */}
+        {isVoiceToVoice && voiceViewMode === 'chamber' ? (
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'radial-gradient(circle at center, rgba(245, 158, 11, 0.08) 0%, rgba(10, 6, 2, 0.85) 75%)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              padding: '24px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8), 0 0 24px rgba(245, 158, 11, 0.1)',
+            }}
+          >
+            {/* Ambient Background Aura */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '420px',
+                height: '420px',
+                borderRadius: '50%',
+                background:
+                  speakingMsgId
+                    ? 'radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(10, 6, 2, 0) 70%)'
+                    : isListening
+                    ? 'radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(10, 6, 2, 0) 70%)'
+                    : 'radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, rgba(10, 6, 2, 0) 70%)',
+                pointerEvents: 'none',
+                filter: 'blur(30px)',
+                transition: 'background 0.5s ease',
+              }}
+            />
+
+            {/* 3D Golden Cosmic Particle Orb */}
+            <GoldenVoiceOrb
+              state={
+                speakingMsgId
+                  ? 'SPEAKING'
+                  : isListening
+                  ? 'LISTENING'
+                  : loading
+                  ? 'WORKING'
+                  : voiceError
+                  ? 'ERROR'
+                  : 'IDLE'
+              }
+              size={320}
+              interactive={true}
+              onMicClick={isListening ? stopListening : startListening}
+              statusLabel={
+                speakingMsgId
+                  ? `Speaking in ${selectedLanguage.nativeName}...`
+                  : isListening
+                  ? `Listening (${selectedLanguage.nativeName})...`
+                  : loading
+                  ? 'Formulating Response...'
+                  : 'Available • Speak Anytime'
+              }
+            />
+
+            {/* Subtitles / Live Speech Transcription Bar */}
+            <div
+              style={{
+                marginTop: '24px',
+                maxWidth: '680px',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                alignItems: 'center',
+                zIndex: 10,
+              }}
+            >
+              {/* User Live / Interim Transcript */}
+              {interimText && (
+                <div
+                  style={{
+                    background: 'rgba(56, 189, 248, 0.12)',
+                    border: '1px dashed #38BDF8',
+                    padding: '8px 18px',
+                    borderRadius: '24px',
+                    color: '#38BDF8',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 0 16px rgba(56, 189, 248, 0.2)',
+                  }}
+                >
+                  <Mic size={14} className="animate-pulse-ring" />
+                  <span>"{interimText}..."</span>
+                </div>
+              )}
+
+              {/* Latest Assistant Spoken Message */}
+              {messages.length > 0 && messages[messages.length - 1].role === 'assistant' && (
+                <div
+                  style={{
+                    background: 'rgba(20, 14, 6, 0.85)',
+                    border: '1.5px solid rgba(212, 168, 55, 0.45)',
+                    padding: '14px 22px',
+                    borderRadius: '16px',
+                    color: '#fef08a',
+                    fontSize: '13.5px',
+                    lineHeight: '1.6',
+                    textAlign: 'center',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(245, 158, 11, 0.15)',
+                    maxHeight: '110px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <div style={{ fontSize: '10px', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', fontWeight: 700 }}>
+                    HṚṢĪKEŚA Response ({selectedLanguage.nativeName})
+                  </div>
+                  <div>{messages[messages.length - 1].content}</div>
+                </div>
+              )}
+
+              {/* Interrupt / Barge-In Floating Action */}
+              {speakingMsgId && (
+                <button
+                  onClick={stopSpeech}
+                  style={{
+                    background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                    border: 'none',
+                    color: '#fff',
+                    borderRadius: '20px',
+                    padding: '6px 16px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 0 16px rgba(225, 29, 72, 0.4)',
+                    marginTop: '4px',
+                  }}
+                >
+                  <StopCircle size={14} /> Interrupt / Stop Speaking
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Classic Messages List Area */
+          <div
+            ref={messagesContainerRef}
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '12px 6px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
           {messages.map((msg) => {
             const isUser = msg.role === 'user';
             const isSpeaking = speakingMsgId === msg.id;
@@ -1144,6 +1313,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
           <div ref={messagesEndRef} />
         </div>
+        )}
 
         {/* Interim Speech Preview */}
         {interimText && (
