@@ -96,6 +96,8 @@ export const App: React.FC = () => {
   }, []);
 
   const [systemOnline, setSystemOnline] = useState<boolean>(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+  const [degradedSubsystems, setDegradedSubsystems] = useState<string[]>([]);
 
   // Theme State: 'cosmic' | 'mahabharata' | 'shiva' | 'surya' | 'light'
   const [theme, setTheme] = useState<string>(() => {
@@ -188,26 +190,109 @@ export const App: React.FC = () => {
         api.getProjects(),
       ]);
 
+      const degraded: string[] = [];
       let isHealthy = false;
       if (healthRes.status === 'fulfilled' && healthRes.value) {
         setHealth(healthRes.value);
         isHealthy = healthRes.value.status === 'ok' || healthRes.value.lifecycleState === 'READY';
+        if (healthRes.value.degradedReason) {
+          degraded.push(healthRes.value.degradedReason);
+        }
+      } else {
+        degraded.push('Kernel Health API');
       }
-      if (statusRes.status === 'fulfilled') setStatus(statusRes.value);
-      if (agentsRes.status === 'fulfilled') setAgents(agentsRes.value.agents || []);
-      if (missionsRes.status === 'fulfilled') setMissions(missionsRes.value.missions || []);
-      if (goalsRes.status === 'fulfilled') setGoals(goalsRes.value.goals || []);
-      if (tasksRes.status === 'fulfilled') setTasks(tasksRes.value.tasks || []);
-      if (toolsRes.status === 'fulfilled') setTools(toolsRes.value.tools || []);
-      if (approvalsRes.status === 'fulfilled') setApprovals(approvalsRes.value.approvals || []);
-      if (memoryRes.status === 'fulfilled') setMemoryItems(memoryRes.value.items || []);
-      if (envRes.status === 'fulfilled') setEnvStatus(envRes.value);
-      if (voiceRes.status === 'fulfilled') setVoiceStatus(voiceRes.value);
-      if (modelsRes.status === 'fulfilled') setModels(modelsRes.value.providers || []);
-      if (auditRes.status === 'fulfilled') setAuditLogs(auditRes.value.logs || []);
-      if (companiesRes.status === 'fulfilled') setCompaniesCount(companiesRes.value.companies?.length || 0);
-      if (knowledgeRes.status === 'fulfilled') setKnowledgeCount(knowledgeRes.value.entities?.length || 0);
-      if (projectsRes.status === 'fulfilled') setProjectsCount(projectsRes.value.projects?.length || 0);
+
+      if (statusRes.status === 'fulfilled') {
+        setStatus(statusRes.value);
+      } else {
+        degraded.push('Status API');
+      }
+
+      if (agentsRes.status === 'fulfilled') {
+        setAgents(agentsRes.value.agents || []);
+      } else {
+        degraded.push('Agents Registry');
+      }
+
+      if (missionsRes.status === 'fulfilled') {
+        setMissions(missionsRes.value.missions || []);
+      } else {
+        degraded.push('Missions Subsystem');
+      }
+
+      if (goalsRes.status === 'fulfilled') {
+        setGoals(goalsRes.value.goals || []);
+      } else {
+        degraded.push('Goals Subsystem');
+      }
+
+      if (tasksRes.status === 'fulfilled') {
+        setTasks(tasksRes.value.tasks || []);
+      } else {
+        degraded.push('Task Board');
+      }
+
+      if (toolsRes.status === 'fulfilled') {
+        setTools(toolsRes.value.tools || []);
+      } else {
+        degraded.push('Tool Bus');
+      }
+
+      if (approvalsRes.status === 'fulfilled') {
+        setApprovals(approvalsRes.value.approvals || []);
+      } else {
+        degraded.push('Approvals Engine');
+      }
+
+      if (memoryRes.status === 'fulfilled') {
+        setMemoryItems(memoryRes.value.items || []);
+      } else {
+        degraded.push('Memory Subsystem');
+      }
+
+      if (envRes.status === 'fulfilled') {
+        setEnvStatus(envRes.value);
+      } else {
+        degraded.push('Environment Monitor');
+      }
+
+      if (voiceRes.status === 'fulfilled') {
+        setVoiceStatus(voiceRes.value);
+      } else {
+        degraded.push('Voice Pipeline');
+      }
+
+      if (modelsRes.status === 'fulfilled') {
+        setModels(modelsRes.value.providers || []);
+      } else {
+        degraded.push('Models Registry');
+      }
+
+      if (auditRes.status === 'fulfilled') {
+        setAuditLogs(auditRes.value.logs || []);
+      } else {
+        degraded.push('Audit Trail');
+      }
+
+      if (companiesRes.status === 'fulfilled') {
+        setCompaniesCount(companiesRes.value.companies?.length || 0);
+      } else {
+        degraded.push('Company OS');
+      }
+
+      if (knowledgeRes.status === 'fulfilled') {
+        setKnowledgeCount(knowledgeRes.value.entities?.length || 0);
+      } else {
+        degraded.push('Knowledge Graph');
+      }
+
+      if (projectsRes.status === 'fulfilled') {
+        setProjectsCount(projectsRes.value.projects?.length || 0);
+      } else {
+        degraded.push('Projects');
+      }
+
+      setDegradedSubsystems(degraded);
 
       // System online is derived strictly from real /health response
       setSystemOnline(isHealthy);
@@ -337,18 +422,22 @@ export const App: React.FC = () => {
         companiesCount={companiesCount}
         projectsCount={projectsCount}
         knowledgeCount={knowledgeCount}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
-
 
       <div className="main-wrapper">
         <TopBar
           systemOnline={systemOnline}
+          degradedSubsystems={degradedSubsystems}
           activeMissionCount={activeMissionsCount}
           activeGoalCount={activeGoalsCount}
           pendingApprovalsCount={pendingApprovalsCount}
           onOpenApprovals={() => setCurrentTab('approvals')}
           onNavigate={setCurrentTab}
           onSearchPrompt={handleStartPromptFromHome}
+          mobileNavOpen={mobileSidebarOpen}
+          onToggleMobileNav={() => setMobileSidebarOpen((prev) => !prev)}
         />
 
         <main ref={contentAreaRef} className="content-area">

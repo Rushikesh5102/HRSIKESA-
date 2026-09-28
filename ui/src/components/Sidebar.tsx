@@ -31,6 +31,7 @@ import {
   Terminal,
   GitBranch,
   Palette,
+  X,
 } from 'lucide-react';
 import { IndianEmblem } from './IndianEmblem';
 
@@ -86,6 +87,8 @@ interface SidebarProps {
   companiesCount?: number;
   projectsCount?: number;
   knowledgeCount?: number;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -99,10 +102,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   companiesCount = 0,
   projectsCount = 0,
   knowledgeCount = 0,
+  mobileOpen = false,
+  onCloseMobile,
 }) => {
   const [advancedOpen, setAdvancedOpen] = useState(
     ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'capabilities', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement', 'creation', 'persistent-ops', 'evolution'].includes(currentTab)
   );
+
+  const handleSelectTab = (tab: NavTab) => {
+    onSelectTab(tab);
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
 
   const activeWorkTotal = activeGoalsCount + activeMissionsCount;
 
@@ -220,121 +232,155 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sidebar">
-      {/* Brand Header with Sacred Feather Emblem */}
-      <div className="sidebar-header" style={{ padding: '16px 14px' }}>
-        <IndianEmblem size={40} showText={true} variant="crest" />
-      </div>
-
-      <nav style={{ padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, overflowY: 'auto' }}>
-        {/* Primary Navigation */}
-        {primaryNavItems.map((item) => (
-          <button
-            key={item.id}
-            className={`nav-item ${item.isActive ? 'active' : ''}`}
-            onClick={() => onSelectTab(item.id)}
-            style={{ width: '100%' }}
-          >
-            <span className="nav-item-icon">{item.icon}</span>
-            <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-            {item.badge !== undefined && (
-              <span className="nav-badge warning">{item.badge}</span>
-            )}
-          </button>
-        ))}
-
-        {/* Subtle Gold Divider */}
+    <>
+      {mobileOpen && (
         <div
-          style={{
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)',
-            margin: '14px 8px',
-            opacity: 0.4,
-          }}
+          className="sidebar-overlay"
+          onClick={onCloseMobile}
+          aria-label="Close navigation overlay"
         />
-
-        {/* Advanced Systems Collapsible Section */}
-        <div>
-          <button
-            onClick={() => setAdvancedOpen(!advancedOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              padding: '8px 12px',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              borderRadius: 'var(--radius-xs)',
-              transition: 'color 0.15s ease',
-            }}
-          >
-            <span>Systems & Diagnostics</span>
-            {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </button>
-
-          {advancedOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
-              {advancedNavItems.map((item) => {
-                const isActive = currentTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    className={`nav-item ${isActive ? 'active' : ''}`}
-                    onClick={() => onSelectTab(item.id)}
-                    style={{
-                      fontSize: '12.5px',
-                      padding: '7px 11px',
-                    }}
-                  >
-                    <span className="nav-item-icon">{item.icon}</span>
-                    <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-                    {item.badge !== undefined && (
-                      <span className="nav-badge warning">{item.badge}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+      )}
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+        {/* Brand Header with Sacred Feather Emblem */}
+        <div
+          className="sidebar-header"
+          style={{
+            padding: '16px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <IndianEmblem size={40} showText={true} variant="crest" />
+          {mobileOpen && onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="btn-icon"
+              style={{
+                background: 'rgba(212, 168, 55, 0.12)',
+                border: '1px solid rgba(212, 168, 55, 0.3)',
+                borderRadius: '6px',
+                padding: '4px',
+                color: 'var(--text-gold)',
+                cursor: 'pointer',
+              }}
+              aria-label="Close navigation"
+            >
+              <X size={16} />
+            </button>
           )}
         </div>
-      </nav>
 
-      {/* Bottom Status Indicator */}
-      <div
-        style={{
-          padding: '12px 16px',
-          borderTop: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          fontSize: '11.5px',
-          color: 'var(--text-secondary)',
-          background: 'var(--bg-card)',
-        }}
-      >
+        <nav style={{ padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, overflowY: 'auto' }}>
+          {/* Primary Navigation */}
+          {primaryNavItems.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-item ${item.isActive ? 'active' : ''}`}
+              onClick={() => handleSelectTab(item.id)}
+              style={{ width: '100%' }}
+            >
+              <span className="nav-item-icon">{item.icon}</span>
+              <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
+              {item.badge !== undefined && (
+                <span className="nav-badge warning">{item.badge}</span>
+              )}
+            </button>
+          ))}
+
+          {/* Subtle Gold Divider */}
+          <div
+            style={{
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)',
+              margin: '14px 8px',
+              opacity: 0.4,
+            }}
+          />
+
+          {/* Advanced Systems Collapsible Section */}
+          <div>
+            <button
+              onClick={() => setAdvancedOpen(!advancedOpen)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: '8px 12px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-xs)',
+                transition: 'color 0.15s ease',
+              }}
+            >
+              <span>Systems & Diagnostics</span>
+              {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+
+            {advancedOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
+                {advancedNavItems.map((item) => {
+                  const isActive = currentTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      className={`nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => handleSelectTab(item.id)}
+                      style={{
+                        fontSize: '12.5px',
+                        padding: '7px 11px',
+                      }}
+                    >
+                      <span className="nav-item-icon">{item.icon}</span>
+                      <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
+                      {item.badge !== undefined && (
+                        <span className="nav-badge warning">{item.badge}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Bottom Status Indicator */}
         <div
           style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: '#10B981',
-            boxShadow: '0 0 8px #10B981',
+            padding: '12px 16px',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '11.5px',
+            color: 'var(--text-secondary)',
+            background: 'var(--bg-card)',
           }}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Autonomous Kernel</span>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Sovereign OS
-          </span>
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#10B981',
+              boxShadow: '0 0 8px #10B981',
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Autonomous Kernel</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Sovereign OS
+            </span>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };

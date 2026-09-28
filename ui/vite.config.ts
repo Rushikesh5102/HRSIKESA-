@@ -41,8 +41,26 @@ export default defineConfig({
       '/workspace': 'http://127.0.0.1:4200',
       '/self': 'http://127.0.0.1:4200',
       '/research': 'http://127.0.0.1:4200',
+      '/decision': 'http://127.0.0.1:4200',
+      '/creation': 'http://127.0.0.1:4200',
+      '/execution': 'http://127.0.0.1:4200',
+      '/workers': 'http://127.0.0.1:4200',
+      '/runtimes': 'http://127.0.0.1:4200',
       '/computer': 'http://127.0.0.1:4200',
-      '/integrations': 'http://127.0.0.1:4200'
+      '/integrations': 'http://127.0.0.1:4200',
+      '/github': 'http://127.0.0.1:4200',
+      '/ide': 'http://127.0.0.1:4200',
+      '/engineering': 'http://127.0.0.1:4200',
+      '/workflows': 'http://127.0.0.1:4200',
+      '/workflow-runs': 'http://127.0.0.1:4200',
+      '/workflow-approvals': 'http://127.0.0.1:4200',
+      '/workflow-events': 'http://127.0.0.1:4200',
+      '/workflow-templates': 'http://127.0.0.1:4200',
+      '/accounts': 'http://127.0.0.1:4200',
+      '/operator': 'http://127.0.0.1:4200',
+      '/applications': 'http://127.0.0.1:4200',
+      '/office': 'http://127.0.0.1:4200',
+      '/agents-office': 'http://127.0.0.1:4200'
     }
   },
   build: {

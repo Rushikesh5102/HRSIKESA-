@@ -76,6 +76,8 @@ import { DecisionRoutes } from './routes/decision.routes.js';
 import type { DecisionFabric } from '../decision/decision.fabric.js';
 import { EvolutionRoutes } from './routes/evolution.routes.js';
 import type { EvolutionLoopEngine } from '../self-improvement/evolution/engine/evolution-loop.engine.js';
+import { ExecutionRoutes } from './routes/execution.routes.js';
+import type { ExecutionFabric } from '../execution/execution.fabric.js';
 
 export interface PersistenceContext {
   readonly db: DatabaseManager;
@@ -299,6 +301,8 @@ export class HttpServer {
   private creationRoutes?: CreationRoutes;
   private decisionFabric?: DecisionFabric; // FP-18 Universal Real-World Research & Decision Intelligence Fabric
   private decisionRoutes?: DecisionRoutes;
+  private executionFabric?: ExecutionFabric; // FP-19 Universal Persistent Distributed Execution Fabric
+  private executionRoutes?: ExecutionRoutes;
   private evolutionEngine?: EvolutionLoopEngine; // Self-Development & Autonomous Evolution Engine
   private evolutionRoutes?: EvolutionRoutes;
 
@@ -466,6 +470,15 @@ export class HttpServer {
     return this.decisionFabric;
   }
 
+  public setExecutionFabric(fabric: ExecutionFabric): void {
+    this.executionFabric = fabric;
+    this.executionRoutes = new ExecutionRoutes(fabric, this.eventBus);
+  }
+
+  public getExecutionFabric(): ExecutionFabric | undefined {
+    return this.executionFabric;
+  }
+
   public setEvolutionEngine(engine: EvolutionLoopEngine, resourceGovernor?: any): void {
     this.evolutionEngine = engine;
     this.evolutionRoutes = new EvolutionRoutes(engine, this.eventBus, resourceGovernor);
@@ -539,7 +552,7 @@ export class HttpServer {
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-    const pathname = url.pathname;
+    let pathname = url.pathname;
     const method = req.method?.toUpperCase();
 
     // Restrict CORS Headers to localhost / local dev origins
@@ -561,6 +574,11 @@ export class HttpServer {
     if (method === 'OPTIONS') {
       res.writeHead(204);
       res.end();
+      return;
+    }
+
+    // FP-19 Universal Persistent Distributed Execution Fabric
+    if (this.executionRoutes && (await this.executionRoutes.handle(req, res))) {
       return;
     }
 
@@ -612,6 +630,11 @@ export class HttpServer {
     // FP-09 IDE Subsystem
     if (this.ideRoutes && (await this.ideRoutes.handleRequest(req, res))) {
       return;
+    }
+
+    // Normalize path to seamlessly support /api/xxx convention for all core endpoints
+    if (pathname.startsWith('/api/')) {
+      pathname = pathname.substring(4);
     }
 
     // GET /health
@@ -5534,8 +5557,8 @@ Maintain your authentic domain focus.`;
     // Phase 21: Dynamic MCP & Capability Endpoints
     // ==========================================
 
-    // GET /mcp/servers — List all registered MCP servers
-    if (pathname === '/mcp/servers' && method === 'GET') {
+    // GET /mcp/servers or /mcp — List all registered MCP servers
+    if ((pathname === '/mcp/servers' || pathname === '/mcp') && method === 'GET') {
       if (!this.mcp) {
         this.sendJson(res, 503, { error: 'MCP subsystem is not initialized.' });
         return;

@@ -33,6 +33,7 @@ import {
   ArrowRight,
   Command,
   LucideIcon,
+  Menu,
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import { VoiceStatusResponse } from '../types/api.types';
@@ -324,6 +325,7 @@ const SEARCH_DESTINATIONS: SearchDestination[] = [
 
 interface TopBarProps {
   systemOnline: boolean;
+  degradedSubsystems?: string[];
   activeMissionCount: number;
   activeGoalCount?: number;
   pendingApprovalsCount: number;
@@ -333,16 +335,21 @@ interface TopBarProps {
   onOpenApprovals: () => void;
   onNavigate?: (tab: NavTab) => void;
   onSearchPrompt?: (query: string) => void;
+  mobileNavOpen?: boolean;
+  onToggleMobileNav?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   systemOnline,
+  degradedSubsystems = [],
   activeMissionCount,
   activeGoalCount = 0,
   pendingApprovalsCount,
   onOpenApprovals,
   onNavigate,
   onSearchPrompt,
+  mobileNavOpen,
+  onToggleMobileNav,
 }) => {
   const [searchVal, setSearchVal] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -435,7 +442,26 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <header className="topbar">
-      <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        {/* Mobile Sidebar Hamburger Toggle */}
+        <button
+          className="topbar-mobile-toggle btn-icon"
+          onClick={onToggleMobileNav}
+          aria-label="Toggle navigation drawer"
+          style={{
+            background: 'rgba(212, 168, 55, 0.12)',
+            border: '1px solid rgba(212, 168, 55, 0.35)',
+            borderRadius: '6px',
+            padding: '5px',
+            color: 'var(--text-gold)',
+            cursor: 'pointer',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Menu size={18} />
+        </button>
+
         {/* Sanskrit Title Tag with Sacred Brand Emblem */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <IndianEmblem size={28} showText={false} variant="crest" />
@@ -742,10 +768,12 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Status Pill */}
+        {/* Truthful Subsystem Status Pill */}
         <span
           className={`badge ${
             !systemOnline
+              ? 'badge-warning'
+              : degradedSubsystems.length > 0
               ? 'badge-warning'
               : isWaitingApproval
               ? 'badge-warning'
@@ -753,9 +781,22 @@ export const TopBar: React.FC<TopBarProps> = ({
               ? 'badge-running'
               : 'badge-online'
           }`}
-          style={{ fontSize: '11px', padding: '3px 9px' }}
+          style={{ fontSize: '11px', padding: '3px 9px', cursor: degradedSubsystems.length > 0 ? 'help' : 'default' }}
+          title={
+            !systemOnline
+              ? 'Backend sovereign server offline'
+              : degradedSubsystems.length > 0
+              ? `Degraded subsystems: ${degradedSubsystems.join(', ')}`
+              : 'All core systems nominal & operational'
+          }
         >
-          ● {systemOnline ? (isWorking ? 'Executing' : 'Online') : 'Offline'}
+          ● {!systemOnline
+            ? 'Offline'
+            : degradedSubsystems.length > 0
+            ? `Core Online (${degradedSubsystems.length} Degraded)`
+            : isWorking
+            ? 'Executing'
+            : 'Online'}
         </span>
 
         {/* Master User Profile: Sovereign Authority */}

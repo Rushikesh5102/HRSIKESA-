@@ -340,6 +340,17 @@ import { WorkspaceRepository } from '../operator/repository/workspace.repository
 import { UniversalAgenticMissionRuntime } from '../mission/mission.runtime.js';
 // FP-15: Universal Application & Service Ecosystem Fabric
 import { UniversalEcosystemFabric } from '../ecosystem/ecosystem.fabric.js';
+// FP-17: Universal Digital Creation & Media Studio Fabric
+import {
+  CreationFabric,
+  CreationRepository,
+  MediaCapabilityService,
+  CreationVerifierService,
+} from '../creation/index.js';
+// FP-18: Universal Real-World Research & Decision Intelligence Fabric
+import { DecisionFabric } from '../decision/decision.fabric.js';
+// FP-19: Universal Persistent Distributed Execution Fabric
+import { ExecutionFabric } from '../execution/execution.fabric.js';
 
 export class HrisekesaKernel {
   public readonly identity: IdentityManager;
@@ -551,6 +562,9 @@ export class HrisekesaKernel {
   public readonly operator: ApplicationOperator;
   public readonly missionRuntime: UniversalAgenticMissionRuntime;
   public readonly ecosystemFabric: UniversalEcosystemFabric;
+  public readonly creationFabric: CreationFabric;
+  public readonly decisionFabric: DecisionFabric;
+  public readonly executionFabric: ExecutionFabric;
   public readonly officeTicketEngine: OfficeTicketEngine;
   public readonly officeOrchestrator: OfficeOrchestrator;
   public readonly server: HttpServer;
@@ -1574,6 +1588,35 @@ export class HrisekesaKernel {
       this.eventBus
     );
 
+    // FP-17: Universal Digital Creation & Media Studio Fabric
+    const creationRepo = new CreationRepository(this.db.getRawDb());
+    const mediaCapService = new MediaCapabilityService();
+    const creationVerifier = new CreationVerifierService();
+    this.creationFabric = new CreationFabric({
+      repository: creationRepo,
+      capabilityService: mediaCapService,
+      verifierService: creationVerifier,
+      eventBus: this.eventBus,
+      logger: this.logger,
+      resourceGovernor: this.resourceGovernor,
+    });
+
+    // FP-18: Universal Real-World Research & Decision Intelligence Fabric
+    this.decisionFabric = new DecisionFabric({
+      dbManager: this.db,
+      eventBus: this.eventBus,
+      logger: this.logger,
+      resourceGovernor: this.resourceGovernor,
+    });
+
+    // FP-19: Universal Persistent Distributed Execution Fabric
+    this.executionFabric = new ExecutionFabric(
+      this.db,
+      this.resourceGovernor,
+      this.eventBus,
+      this.logger
+    );
+
     this.contextAssembler.setWorkingMemoryEngine(this.workingMemoryEngine);
     this.conversation.setWorkingMemoryEngine(this.workingMemoryEngine);
     this.server.setWorkingMemoryEngine(this.workingMemoryEngine);
@@ -1586,6 +1629,9 @@ export class HrisekesaKernel {
     this.server.setOperator(this.operator);
     this.server.setMissionRuntime(this.missionRuntime);
     this.server.setEcosystemFabric(this.ecosystemFabric);
+    this.server.setCreationFabric(this.creationFabric);
+    this.server.setDecisionFabric(this.decisionFabric);
+    this.server.setExecutionFabric(this.executionFabric);
     this.server.setEvolutionEngine(this.evolutionEngine, this.resourceGovernor);
     this.server.setOffice({
       orchestrator: this.officeOrchestrator,

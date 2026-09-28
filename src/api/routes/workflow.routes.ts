@@ -27,18 +27,30 @@ export class WorkflowRoutes {
     let pathname = url.pathname;
     const method = req.method?.toUpperCase();
 
-    // Support both /api/workflows and /workflows prefixes
-    if (pathname.startsWith('/workflows') || pathname.startsWith('/workflow-runs') || pathname.startsWith('/workflow-approvals')) {
+    // Support both /api/workflows and /workflows prefixes, as well as separate resources
+    if (
+      pathname.startsWith('/workflows') ||
+      pathname.startsWith('/workflow-runs') ||
+      pathname.startsWith('/workflow-approvals') ||
+      pathname.startsWith('/workflow-events') ||
+      pathname.startsWith('/workflow-templates')
+    ) {
       pathname = '/api' + pathname;
     }
 
-    if (!pathname.startsWith('/api/workflows') && !pathname.startsWith('/api/workflow-runs') && !pathname.startsWith('/api/workflow-approvals')) {
+    if (
+      !pathname.startsWith('/api/workflows') &&
+      !pathname.startsWith('/api/workflow-runs') &&
+      !pathname.startsWith('/api/workflow-approvals') &&
+      !pathname.startsWith('/api/workflow-events') &&
+      !pathname.startsWith('/api/workflow-templates')
+    ) {
       return false;
     }
 
     try {
-      // 1. GET /api/workflows/events - SSE Stream for all workflow events
-      if (method === 'GET' && pathname === '/api/workflows/events') {
+      // 1. GET /api/workflows/events & /api/workflow-events - SSE Stream for all workflow events
+      if (method === 'GET' && (pathname === '/api/workflows/events' || pathname === '/api/workflow-events')) {
         this.handleSseStream(req, res);
         return true;
       }
@@ -64,17 +76,19 @@ export class WorkflowRoutes {
         return true;
       }
 
-      // 4. GET /api/workflows/templates - Built-in templates
-      if (method === 'GET' && pathname === '/api/workflows/templates') {
+      // 4. GET /api/workflows/templates & /api/workflow-templates - Built-in templates
+      if (method === 'GET' && (pathname === '/api/workflows/templates' || pathname === '/api/workflow-templates')) {
         const templates = this.workflowFabric.listTemplates();
         this.sendJson(res, 200, { success: true, count: templates.length, templates });
         return true;
       }
 
-      // 5. POST /api/workflows/templates/instantiate
-      if (method === 'POST' && pathname === '/api/workflows/templates/instantiate') {
+      // 5. POST /api/workflows/templates/instantiate & /api/workflow-templates/:id/instantiate
+      const tmplInstMatch = pathname.match(/^\/api\/workflow-templates\/([a-zA-Z0-9_-]+)\/instantiate$/);
+      if (method === 'POST' && (pathname === '/api/workflows/templates/instantiate' || tmplInstMatch)) {
         const body = await this.parseJsonBody(req);
-        const instantiated = this.workflowFabric.instantiateTemplate(body.templateName || body.templateIndex || 0, {
+        const templateName = tmplInstMatch ? tmplInstMatch[1] : (body.templateName || body.templateIndex || 0);
+        const instantiated = this.workflowFabric.instantiateTemplate(templateName, {
           scope: body.scope,
           companyId: body.companyId,
           projectId: body.projectId,
@@ -83,8 +97,8 @@ export class WorkflowRoutes {
         return true;
       }
 
-      // 6. POST /api/workflows/plan-nl - Natural Language Planner
-      if (method === 'POST' && pathname === '/api/workflows/plan-nl') {
+      // 6. POST /api/workflows/plan-nl & /api/workflows/plan - Natural Language Planner
+      if (method === 'POST' && (pathname === '/api/workflows/plan-nl' || pathname === '/api/workflows/plan')) {
         const body = await this.parseJsonBody(req);
         if (!body.prompt) {
           this.sendJson(res, 400, { success: false, error: 'prompt is required' });
@@ -97,6 +111,15 @@ export class WorkflowRoutes {
           projectId: body.projectId,
         });
         this.sendJson(res, 201, { success: true, ...planned });
+        return true;
+      }
+
+      // 6.5. GET /api/workflow-approvals - List global workflow approvals
+      if (method === 'GET' && pathname === '/api/workflow-approvals') {
+        const repo = this.workflowFabric.getRepository();
+        const status = url.searchParams.get('status') || undefined;
+        const approvals = repo.listApprovals({ status });
+        this.sendJson(res, 200, { success: true, count: approvals.length, approvals });
         return true;
       }
 
@@ -292,17 +315,20 @@ export class WorkflowRoutes {
         }
       }
 
-      // Approvals endpoints: POST /api/workflow-approvals/:id/decide
-      const apprMatch = pathname.match(/^\/api\/workflow-approvals\/([a-zA-Z0-9_-]+)\/decide$/);
+      // Approvals endpoints: POST /api/workflow-approvals/:id/decide or /respond
+      const apprMatch = pathname.match(/^\/api\/workflow-approvals\/([a-zA-Z0-9_-]+)\/(?:decide|respond)$/);
       if (method === 'POST' && apprMatch) {
         const approvalId = apprMatch[1];
         const body = await this.parseJsonBody(req);
-        if (!body.decision || (body.decision !== 'APPROVED' && body.decision !== 'REJECTED')) {
+        let decision = body.decision;
+        if (decision === 'APPROVE') decision = 'APPROVED';
+        if (decision === 'REJECT') decision = 'REJECTED';
+        if (!decision || (decision !== 'APPROVED' && decision !== 'REJECTED')) {
           this.sendJson(res, 400, { success: false, error: "decision must be 'APPROVED' or 'REJECTED'" });
           return true;
         }
-        await this.workflowFabric.resolveApproval(approvalId, body.decision, body.decidedBy || 'operator', body.comments);
-        this.sendJson(res, 200, { success: true, approvalId, decision: body.decision });
+        await this.workflowFabric.resolveApproval(approvalId, decision, body.decidedBy || 'operator', body.comments);
+        this.sendJson(res, 200, { success: true, approvalId, decision, approval: { id: approvalId, status: decision } });
         return true;
       }
 

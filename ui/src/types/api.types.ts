@@ -2,6 +2,9 @@ export interface HealthResponse {
   status: string;
   uptime: number;
   lifecycleState?: string;
+  state?: string;
+  healthy?: boolean;
+  degradedReason?: string;
   model?: string;
   memory: {
     rss: number;

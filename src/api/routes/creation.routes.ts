@@ -89,12 +89,12 @@ export class CreationRoutes {
       // ─── Capabilities & Providers ───────────────────────────────────────────
       if (method === 'GET' && pathname === '/api/creation/capabilities') {
         const caps = this.fabric.getCapabilities();
-        return this.sendJson(res, 200, { capabilities: caps, count: caps.length });
+        return this.sendJson(res, 200, { success: true, capabilities: caps, count: caps.length });
       }
 
       if (method === 'GET' && pathname === '/api/creation/providers') {
         const provs = this.fabric.getProviders();
-        return this.sendJson(res, 200, { providers: provs, count: provs.length });
+        return this.sendJson(res, 200, { success: true, providers: provs, count: provs.length });
       }
 
       // ─── Jobs Collection ────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ export class CreationRoutes {
           return this.sendError(res, 400, 'type, objective, and prompt are required');
         }
         const job = this.fabric.createJob(body as any);
-        return this.sendJson(res, 201, { job });
+        return this.sendJson(res, 201, { success: true, job });
       }
 
       if (method === 'GET' && pathname === '/api/creation/jobs') {
@@ -112,7 +112,7 @@ export class CreationRoutes {
         const type = url.searchParams.get('type') || undefined;
         const status = url.searchParams.get('status') || undefined;
         const jobs = this.fabric.listJobs({ owner, type, status });
-        return this.sendJson(res, 200, { jobs, count: jobs.length });
+        return this.sendJson(res, 200, { success: true, jobs, count: jobs.length });
       }
 
       // ─── Individual Job Operations ──────────────────────────────────────────

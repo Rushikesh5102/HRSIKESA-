@@ -92,7 +92,7 @@ export class DecisionRoutes {
         const projectId = url.searchParams.get('projectId') || undefined;
         const status = (url.searchParams.get('status') as any) || undefined;
         const cases = this.fabric.repository.listCases({ companyId, projectId, status });
-        return this.sendJson(res, 200, { cases, count: cases.length });
+        return this.sendJson(res, 200, { success: true, cases, count: cases.length });
       }
 
       // ─── Individual Case Operations ─────────────────────────────────────────
@@ -192,7 +192,7 @@ export class DecisionRoutes {
         const projectId = url.searchParams.get('projectId') || undefined;
         const status = url.searchParams.get('status') || undefined;
         const records = this.fabric.repository.listDecisionRecords({ companyId, projectId, status });
-        return this.sendJson(res, 200, { records, count: records.length });
+        return this.sendJson(res, 200, { success: true, records, count: records.length });
       }
 
       const decMatch = pathname.match(/^\/api\/decision\/records\/([a-zA-Z0-9_-]+)(\/.*)?$/);
