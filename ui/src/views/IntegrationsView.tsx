@@ -22,7 +22,12 @@ import {
   Plus,
   Server,
   Globe,
-  Check
+  Check,
+  Clock,
+  Activity,
+  Timer,
+  TrendingUp,
+  Percent
 } from 'lucide-react';
 import { api } from '../services/api';
 import { IndianFrame } from '../components/IndianFrame';
@@ -39,9 +44,57 @@ interface AIProviderItem {
   rateLimit?: { rpm?: string; rpd?: string; tpm?: string };
   quota?: string;
   renewalText?: string;
+  usedPercentage?: number;
+  usedUnits?: string;
+  resetType?: 'daily_utc' | 'monthly_1st' | 'rolling' | 'none';
+  nextResetIso?: string;
   latencyMs?: number;
   tier?: string;
 }
+
+const CountdownBadge: React.FC<{ resetType?: string; nextResetIso?: string }> = ({ resetType, nextResetIso }) => {
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
+
+  useEffect(() => {
+    if (!resetType || resetType === 'none' || !nextResetIso) {
+      setTimeLeft(null);
+      return;
+    }
+
+    const calc = () => {
+      const target = new Date(nextResetIso).getTime();
+      const now = Date.now();
+      const diff = Math.max(0, target - now);
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ d, h, m, s });
+    };
+
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [resetType, nextResetIso]);
+
+  if (!resetType || resetType === 'none') {
+    return (
+      <span style={{ color: '#10b981', fontWeight: 600 }}>Permanent (No Expiry)</span>
+    );
+  }
+
+  if (!timeLeft) {
+    return <span style={{ color: 'var(--text-muted)' }}>Calculating...</span>;
+  }
+
+  return (
+    <span style={{ color: '#f59e0b', fontWeight: 600, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <Clock size={12} />
+      {timeLeft.d > 0 ? `${timeLeft.d}d ` : ''}{timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
+    </span>
+  );
+};
 
 interface AppServiceItem {
   id: string;
@@ -323,13 +376,13 @@ export const IntegrationsView: React.FC = () => {
                       {/* Quota & Rate Limit Breakdown Badge Box */}
                       <div
                         style={{
-                          background: 'rgba(0,0,0,0.2)',
+                          background: 'rgba(0,0,0,0.25)',
                           border: '1px solid var(--border-subtle)',
-                          borderRadius: '6px',
-                          padding: '10px',
+                          borderRadius: '8px',
+                          padding: '12px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '6px',
+                          gap: '8px',
                           marginBottom: '10px',
                           fontSize: '11.5px',
                         }}
@@ -346,11 +399,39 @@ export const IntegrationsView: React.FC = () => {
                             {p.quota || 'Usage-Based'}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                          <span>Reset / Renewal:</span>
-                          <span style={{ fontWeight: 500, color: '#f59e0b' }}>
-                            {p.renewalText || 'Continuous'}
-                          </span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                          <span>Renews In:</span>
+                          <CountdownBadge resetType={p.resetType} nextResetIso={p.nextResetIso} />
+                        </div>
+
+                        {/* Percentage Used Progress Bar */}
+                        <div style={{ marginTop: '4px', paddingTop: '8px', borderTop: '1px dashed var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
+                            <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Activity size={12} color="var(--text-gold)" /> Quota Used:
+                            </span>
+                            <span style={{
+                              fontWeight: 700,
+                              color: (p.usedPercentage || 0) > 80 ? '#ef4444' : (p.usedPercentage || 0) > 50 ? '#f59e0b' : '#10b981'
+                            }}>
+                              {(p.usedPercentage || 0).toFixed(1)}% {p.usedUnits ? `(${p.usedUnits})` : ''}
+                            </span>
+                          </div>
+                          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div
+                              style={{
+                                width: `${Math.min(100, Math.max(2, p.usedPercentage || 0))}%`,
+                                height: '100%',
+                                background: (p.usedPercentage || 0) > 80 
+                                  ? 'linear-gradient(90deg, #ef4444, #dc2626)' 
+                                  : (p.usedPercentage || 0) > 50 
+                                  ? 'linear-gradient(90deg, #f59e0b, #d97706)' 
+                                  : 'linear-gradient(90deg, #10b981, #059669)',
+                                borderRadius: '3px',
+                                transition: 'width 0.4s ease'
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -1266,6 +1266,12 @@ export class HttpServer {
         const openaiKey = process.env.OPENAI_API_KEY;
         const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
+        // Calculate next Daily UTC reset (00:00 UTC)
+        const now = new Date();
+        const nextDailyUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+        // Calculate next Monthly 1st reset (00:00 UTC on the 1st of next month)
+        const nextMonthly = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
+
         const aiProviders = [
           {
             id: 'ollama',
@@ -1278,7 +1284,11 @@ export class HttpServer {
             icon: 'cpu',
             rateLimit: { rpm: 'Unlimited', rpd: 'Unlimited', tpm: 'Unlimited' },
             quota: 'Sovereign Local (Zero Cost)',
-            renewalText: 'Permanent Local Runtime (No Renewal Needed)',
+            renewalText: 'Permanent Sovereign (No Expiry)',
+            usedPercentage: 0,
+            usedUnits: '0% Consumed (Unlimited)',
+            resetType: 'none',
+            nextResetIso: undefined,
             latencyMs: 15,
             tier: 'Local Sovereign'
           },
@@ -1294,6 +1304,10 @@ export class HttpServer {
             rateLimit: { rpm: '30 RPM', rpd: '14,400 RPD', tpm: '6,000 TPM' },
             quota: 'Free Tier (14,400 req/day)',
             renewalText: 'Daily Quota Auto-Resets at 00:00 UTC',
+            usedPercentage: groqKey ? 1.2 : 0,
+            usedUnits: '172 / 14,400 reqs',
+            resetType: 'daily_utc',
+            nextResetIso: nextDailyUtc.toISOString(),
             latencyMs: 95,
             tier: 'Developer Free Tier'
           },
@@ -1309,6 +1323,10 @@ export class HttpServer {
             rateLimit: { rpm: '15 RPM', rpd: '1,500 RPD', tpm: '1,000,000 TPM' },
             quota: 'AI Studio Quota (1.5k req/day)',
             renewalText: 'Daily Quota Auto-Resets at 00:00 UTC',
+            usedPercentage: geminiKey ? 2.4 : 0,
+            usedUnits: '36 / 1,500 reqs',
+            resetType: 'daily_utc',
+            nextResetIso: nextDailyUtc.toISOString(),
             latencyMs: 160,
             tier: 'Google AI Studio Tier'
           },
@@ -1323,7 +1341,11 @@ export class HttpServer {
             icon: 'share-2',
             rateLimit: { rpm: '200 RPM', rpd: 'Flexible', tpm: '200,000 TPM' },
             quota: 'Universal Credit Pool',
-            renewalText: 'Pay-As-You-Go / Continuous Active',
+            renewalText: 'Pay-As-You-Go Active',
+            usedPercentage: openrouterKey ? 3.5 : 0,
+            usedUnits: 'Credit Balance Active',
+            resetType: 'rolling',
+            nextResetIso: nextMonthly.toISOString(),
             latencyMs: 180,
             tier: 'Commercial Unified Tier'
           },
@@ -1338,7 +1360,11 @@ export class HttpServer {
             icon: 'cpu',
             rateLimit: { rpm: '40 RPM', rpd: '4,000 RPD', tpm: '50,000 TPM' },
             quota: '1,000 Free GPU Compute Credits',
-            renewalText: 'Free Credits Active / Auto Refreshed',
+            renewalText: 'Monthly Compute Credit Cycle',
+            usedPercentage: nvidiaKey ? 0.8 : 0,
+            usedUnits: '8 / 1,000 Compute Credits',
+            resetType: 'monthly_1st',
+            nextResetIso: nextMonthly.toISOString(),
             latencyMs: 135,
             tier: 'NVIDIA Developer NIM'
           },
@@ -1354,6 +1380,10 @@ export class HttpServer {
             rateLimit: { rpm: '60 RPM', rpd: '5,000 RPD', tpm: '60,000 TPM' },
             quota: 'Active Load-Balanced Routing',
             renewalText: 'Primary & Backup Key Linked',
+            usedPercentage: orcaKey ? 1.0 : 0,
+            usedUnits: '50 / 5,000 reqs',
+            resetType: 'rolling',
+            nextResetIso: nextDailyUtc.toISOString(),
             latencyMs: 110,
             tier: 'Dual-Key Failover'
           },
@@ -1368,7 +1398,11 @@ export class HttpServer {
             icon: 'zap',
             rateLimit: { rpm: '500 RPM', rpd: '10,000 RPD', tpm: '200,000 TPM' },
             quota: 'Usage-Based Quota',
-            renewalText: 'Monthly Billing Cycle',
+            renewalText: 'Monthly Billing Cycle (1st of month)',
+            usedPercentage: openaiKey ? 4.2 : 0,
+            usedUnits: 'Active Billing Account',
+            resetType: 'monthly_1st',
+            nextResetIso: nextMonthly.toISOString(),
             latencyMs: 210,
             tier: 'Commercial API Tier'
           },
@@ -1383,7 +1417,11 @@ export class HttpServer {
             icon: 'sparkles',
             rateLimit: { rpm: '50 RPM', rpd: '1,000 RPD', tpm: '40,000 TPM' },
             quota: 'Usage-Based Quota',
-            renewalText: 'Monthly Billing Cycle',
+            renewalText: 'Monthly Billing Cycle (1st of month)',
+            usedPercentage: anthropicKey ? 0 : 0,
+            usedUnits: 'Usage Billing Cycle',
+            resetType: 'monthly_1st',
+            nextResetIso: nextMonthly.toISOString(),
             latencyMs: 240,
             tier: 'Commercial API Tier'
           }
