@@ -90,9 +90,19 @@ export class WorkerTransportServer implements IDispatchHandler {
     eventBus?: EventBus,
     logger?: ILogger
   ) {
+    const isTestEnv = process.env.NODE_ENV === 'test' || typeof (process as any).env.NODE_TEST_CONTEXT !== 'undefined';
+    let defaultPort = 4300;
+    if (config.port !== undefined) {
+      defaultPort = config.port;
+    } else if (process.env.HRSK_WORKER_PORT) {
+      defaultPort = Number(process.env.HRSK_WORKER_PORT);
+    } else if (isTestEnv) {
+      defaultPort = 0; // Ephemeral port for test isolation
+    }
+
     this.config = {
       bindHost: config.bindHost || process.env.HRSK_WORKER_BIND_HOST || '127.0.0.1',
-      port: config.port || Number(process.env.HRSK_WORKER_PORT) || 4300,
+      port: defaultPort,
       tlsEnabled: config.tlsEnabled ?? true,
       keyPem: config.keyPem,
       certPem: config.certPem,
@@ -135,8 +145,27 @@ export class WorkerTransportServer implements IDispatchHandler {
     }
 
     await new Promise<void>((resolve, reject) => {
-      this.server!.once('error', reject);
+      this.server!.once('error', (err: any) => {
+        // If 4300 is in use, fallback to ephemeral port 0 gracefully
+        if (err.code === 'EADDRINUSE' && this.config.port !== 0) {
+          this.logger?.warn(`Port ${this.config.port} in use, falling back to ephemeral port for worker transport.`);
+          this.server!.listen(0, this.config.bindHost, () => {
+            const addr = this.server!.address() as net.AddressInfo;
+            if (addr) (this.config as any).port = addr.port;
+            this.isListening = true;
+            this.logger?.info(
+              `Dedicated Worker Transport listening on ${this.config.bindHost}:${this.config.port} (TLS: ${this.config.tlsEnabled ? 'ENABLED' : 'DISABLED'})`
+            );
+            resolve();
+          });
+          return;
+        }
+        reject(err);
+      });
+
       this.server!.listen(this.config.port, this.config.bindHost, () => {
+        const addr = this.server!.address() as net.AddressInfo;
+        if (addr) (this.config as any).port = addr.port;
         this.isListening = true;
         this.logger?.info(
           `Dedicated Worker Transport listening on ${this.config.bindHost}:${this.config.port} (TLS: ${this.config.tlsEnabled ? 'ENABLED' : 'DISABLED'})`

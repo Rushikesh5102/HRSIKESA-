@@ -446,7 +446,9 @@ async function handleCapabilities(command?: string, params: string[] = [], custo
         console.log(`Unknown capabilities command '${command}'. Available: list, search, inspect, health, verify, revoke, invoke`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -689,7 +691,9 @@ async function handleGitHub(command?: string, params: string[] = [], customDbMan
         console.log(`Unknown github command '${command}'. Available: search, inspect, analyze, license, dependencies, security, releases, acquire, build, test, provenance`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -794,7 +798,9 @@ async function handleIde(command?: string, params: string[] = [], customDbManage
     }
   } finally {
     await ideFabric.shutdown().catch(() => {});
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -918,7 +924,9 @@ async function handleEngineering(command?: string, params: string[] = [], custom
   } finally {
     await engineeringFabric.shutdown().catch(() => {});
     await ideFabric.shutdown().catch(() => {});
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1086,7 +1094,9 @@ async function handleWorkflow(command?: string, params: string[] = [], customDbM
         console.log(`Unknown workflow command '${command}'. Available: list, create, inspect, validate, activate, pause, resume, disable, run, runs, logs, templates`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1210,7 +1220,9 @@ async function handleAccount(command?: string, params: string[] = [], customDbMa
         console.log(`Unknown account command '${command}'. Available: list, connect, inspect, verify, refresh, revoke, disconnect, capabilities, health, usage`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1252,7 +1264,9 @@ async function handleProvider(command?: string, params: string[] = [], customDbM
         console.log(`Unknown provider command '${command}'. Available: list, inspect`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1308,7 +1322,9 @@ async function handleWorkspace(command?: string, params: string[] = [], customDb
         console.log(`Unknown workspace command '${command}'. Available: list, inspect, connect, disconnect, observe`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1372,7 +1388,9 @@ async function handleApp(command?: string, params: string[] = [], customDbManage
         console.log(`Unknown app command '${command}'. Available: list, find, launch, inspect, close`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1426,7 +1444,9 @@ async function handleOperator(command?: string, params: string[] = [], customDbM
         console.log(`Unknown operator command '${command}'. Available: observe, screenshot, action, verify, status`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1607,7 +1627,9 @@ async function handleMission(command?: string, params: string[] = [], customDbMa
         console.log(`Unknown mission command '${command}'. Available: list, run, create, inspect, start, pause, resume, cancel, replan, approve, outcomes, tasks, artifacts, report, workforce`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 
@@ -1684,7 +1706,9 @@ async function handleEcosystem(command?: string, params: string[] = [], customDb
         console.log(`Unknown ecosystem command '${command}'. Available: list, services, applications, capabilities, search, health, refresh`);
     }
   } finally {
-    dbManager.close();
+    if (!customDbManager) {
+      dbManager.close();
+    }
   }
 }
 

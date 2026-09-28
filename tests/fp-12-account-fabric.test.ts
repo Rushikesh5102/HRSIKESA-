@@ -588,10 +588,10 @@ describe('FP-12: Universal Service & Account Integration Fabric', () => {
       assert.equal(isLimited, false);
     });
 
-    test('42. Account health changes emit EventBus events', (done) => {
-      eventBus.subscribe('account.health_changed', (evt) => {
-        assert.equal(evt.payload.accountId, 'acc_test_health_event');
-        assert.equal(evt.payload.currentStatus, 'DEGRADED');
+    test('42. Account health changes emit EventBus events', async () => {
+      let receivedEvent: any;
+      const unsubscribe = eventBus.subscribe('account.health_changed', (evt) => {
+        receivedEvent = evt;
       });
 
       fabric.repository.saveAccount({
@@ -614,11 +614,13 @@ describe('FP-12: Universal Service & Account Integration Fabric', () => {
         consecutiveErrors: 0,
       });
 
-      // Trigger health change
-      fabric.healthMonitor.verifyAccount('acc_test_health_event').then(() => {
-        // Validation will mark DEGRADED or HEALTHY
-        assert.ok(true);
-      });
+      // Trigger health change (no credentials -> UNHEALTHY)
+      await fabric.healthMonitor.verifyAccount('acc_test_health_event');
+      unsubscribe();
+
+      assert.ok(receivedEvent, 'Event should have been emitted');
+      assert.equal(receivedEvent.payload.accountId, 'acc_test_health_event');
+      assert.equal(receivedEvent.payload.currentStatus, 'UNHEALTHY');
     });
 
     test('43. Health monitor periodic timer can start and stop cleanly', () => {
@@ -685,33 +687,36 @@ describe('FP-12: Universal Service & Account Integration Fabric', () => {
       assert.ok(res.error?.includes('timestamp out of valid window'));
     });
 
-    test('47. Normalized webhook event is dispatched to EventBus for FP-11 workflow triggers', (done) => {
-      eventBus.subscribe('github.issues', (evt) => {
-        assert.equal(evt.source, 'webhook.github');
-        assert.equal(evt.payload.providerId, 'github');
-        assert.equal((evt.payload.data as any).action, 'created');
+    test('47. Normalized webhook event is dispatched to EventBus for FP-11 workflow triggers', async () => {
+      let receivedEvent: any;
+      const unsubscribe = eventBus.subscribe('github.issues', (evt) => {
+        receivedEvent = evt;
       });
 
-      fabric.processWebhook({
+      const res = await fabric.processWebhook({
         providerId: 'github',
         headers: {
           'x-github-delivery': `gh_deliv_${Date.now()}`,
           'x-github-event': 'issues',
         },
         rawBody: JSON.stringify({ action: 'created', issue: { title: 'New Test Issue' } }),
-      }).then((res) => {
-        assert.equal(res.accepted, true);
       });
+      unsubscribe();
+
+      assert.equal(res.accepted, true);
+      assert.ok(receivedEvent, 'Event should have been dispatched');
+      assert.equal(receivedEvent.source, 'webhook.github');
+      assert.equal(receivedEvent.payload.providerId, 'github');
+      assert.equal((receivedEvent.payload.data as any).action, 'created');
     });
 
-    test('48. Webhook secret headers are redacted before dispatching', (done) => {
-      eventBus.subscribe('github.pull_request', (evt) => {
-        assert.ok(evt.payload.headers);
-        // Ensure no raw secrets in dispatched payload
-        assert.equal((evt.payload.headers as any)['authorization'], undefined);
+    test('48. Webhook secret headers are redacted before dispatching', async () => {
+      let receivedEvent: any;
+      const unsubscribe = eventBus.subscribe('github.pull_request', (evt) => {
+        receivedEvent = evt;
       });
 
-      fabric.processWebhook({
+      const res = await fabric.processWebhook({
         providerId: 'github',
         headers: {
           'x-github-delivery': `gh_deliv_pr_${Date.now()}`,
@@ -719,9 +724,16 @@ describe('FP-12: Universal Service & Account Integration Fabric', () => {
           authorization: 'Bearer secret_token',
         },
         rawBody: JSON.stringify({ action: 'opened' }),
-      }).then((res) => {
-        assert.equal(res.accepted, true);
       });
+      unsubscribe();
+
+      assert.equal(res.accepted, true);
+      assert.ok(receivedEvent, 'Event should have been dispatched');
+      assert.ok(receivedEvent.payload.headers);
+      // Ensure no raw secrets in dispatched payload (authorization masked)
+      const authHeader = (receivedEvent.payload.headers as any)['authorization'];
+      assert.ok(authHeader, 'Authorization header should be present in redacted form');
+      assert.equal(authHeader.includes('secret_token'), false, 'Authorization header must not contain secret token');
     });
 
     test('49. Webhook configurations are saved and listed in repository', () => {

@@ -37,10 +37,14 @@ export class DatabaseManager {
   /**
    * Initializes and opens the SQLite connection. Configures WAL and foreign keys.
    */
+  private isClosed = false;
+
   public open(): DatabaseSync {
     if (this.db) {
       return this.db;
     }
+
+    this.isClosed = false;
 
     if (this.dbPath !== ':memory:') {
       const dir = path.dirname(path.resolve(this.dbPath));
@@ -77,13 +81,14 @@ export class DatabaseManager {
   }
 
   public isOpen(): boolean {
-    return this.db !== null;
+    return this.db !== null && !this.isClosed;
   }
 
   /**
    * Executes one or more raw SQL statements directly.
    */
   public exec(sql: string): void {
+    if (this.isClosed) return;
     const db = this.getRawDb();
     db.exec(sql);
   }
@@ -118,6 +123,7 @@ export class DatabaseManager {
   public close(): void {
     if (this.db) {
       this.logger?.info(`Closing SQLite database at [${this.dbPath}]`);
+      this.isClosed = true;
       this.db.close();
       this.db = null;
     }

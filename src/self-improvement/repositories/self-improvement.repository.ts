@@ -125,6 +125,37 @@ export class SelfImprovementRepository {
     stmt.run(status, resolvedAt || (status === 'RESOLVED' ? new Date().toISOString() : null), id);
   }
 
+  public updateAnomaly(anomaly: Partial<ISelfAnomaly> & { id: string }): void {
+    const db = this.dbManager.getRawDb();
+    const existing = this.getAnomalyById(anomaly.id);
+    if (!existing) return;
+
+    const title = anomaly.title !== undefined ? anomaly.title : existing.title;
+    const severity = anomaly.severity !== undefined ? anomaly.severity : existing.severity;
+    const description = anomaly.description !== undefined ? anomaly.description : existing.description;
+    const evidenceSummary = anomaly.evidenceSummary !== undefined ? anomaly.evidenceSummary : existing.evidenceSummary;
+    const observationIds = anomaly.observationIds !== undefined ? anomaly.observationIds : existing.observationIds;
+    const status = anomaly.status !== undefined ? anomaly.status : existing.status;
+    const resolvedAt = anomaly.resolvedAt !== undefined ? anomaly.resolvedAt : existing.resolvedAt;
+
+    const stmt = db.prepare(`
+      UPDATE self_anomalies
+      SET title = ?, severity = ?, description = ?, evidence_summary = ?,
+          observation_ids = ?, status = ?, resolved_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(
+      title,
+      severity,
+      description,
+      evidenceSummary,
+      JSON.stringify(observationIds || []),
+      status,
+      resolvedAt || null,
+      anomaly.id
+    );
+  }
+
   public listAnomalies(filter?: { status?: string; severity?: string; component?: string; companyId?: string }): ISelfAnomaly[] {
     const db = this.dbManager.getRawDb();
     let query = `SELECT * FROM self_anomalies WHERE 1=1`;

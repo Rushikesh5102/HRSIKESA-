@@ -35,21 +35,52 @@ export class AnomalyDetectorService {
       }
     }
 
-    // 2. Check for threshold breach (>2 repeated errors)
+    // Retrieve currently active anomalies to deduplicate against
+    const activeAnomalies = this.repository.listAnomalies({ status: 'ACTIVE', companyId });
+
+    // 2. Check for threshold breach (>2 repeated errors) with deterministic lifecycle deduplication
     for (const [key, cluster] of Object.entries(errorClusters)) {
       if (cluster.count >= 2) {
         const [component, category] = key.split(':');
         const severity: AnomalySeverity = cluster.count >= 5 ? 'CRITICAL' : cluster.count >= 3 ? 'HIGH' : 'MEDIUM';
-        const anomaly = this.recordAnomaly({
-          companyId,
-          title: `Repeated failures detected in ${component} (${category})`,
-          component,
-          severity,
-          description: `Observed ${cluster.count} error events in ${category}. Details: ${cluster.lastError}`,
-          evidenceSummary: `${cluster.count} failure events registered`,
-          observationIds: cluster.ids,
-        });
-        detected.push(anomaly);
+        const expectedTitle = `Repeated failures detected in ${component} (${category})`;
+
+        // Check for existing active anomaly matching component and category/title
+        const existing = activeAnomalies.find(
+          (a) => a.component === component && (a.title === expectedTitle || a.title.includes(`(${category})`))
+        );
+
+        if (existing) {
+          // Deduplicate: merge observation IDs and update description/evidence without creating a new record
+          const mergedObsIds = Array.from(new Set([...(existing.observationIds || []), ...cluster.ids]));
+          const updatedAnomaly: ISelfAnomaly = {
+            ...existing,
+            severity,
+            description: `Observed ${cluster.count} error events in ${category}. Details: ${cluster.lastError}`,
+            evidenceSummary: `${mergedObsIds.length} failure events registered`,
+            observationIds: mergedObsIds,
+          };
+          this.repository.updateAnomaly(updatedAnomaly);
+          this.logger?.info(`Updated existing active anomaly [${existing.id}] for ${component} (${category}).`);
+          detected.push(updatedAnomaly);
+        } else {
+          // Create new deterministic anomaly
+          const cleanComp = component.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const cleanCat = category.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const deterministicId = `anom_${cleanComp}_${cleanCat}${companyId ? '_' + companyId : ''}`;
+
+          const anomaly = this.recordAnomaly({
+            id: deterministicId,
+            companyId,
+            title: expectedTitle,
+            component,
+            severity,
+            description: `Observed ${cluster.count} error events in ${category}. Details: ${cluster.lastError}`,
+            evidenceSummary: `${cluster.count} failure events registered`,
+            observationIds: cluster.ids,
+          });
+          detected.push(anomaly);
+        }
       }
     }
 

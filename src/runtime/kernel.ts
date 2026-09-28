@@ -569,6 +569,7 @@ export class HrisekesaKernel {
   public readonly officeOrchestrator: OfficeOrchestrator;
   public readonly server: HttpServer;
   private refreshTimer?: ReturnType<typeof setTimeout>;
+  private warmupPromise?: Promise<unknown>;
 
   constructor(
     envOverrides: Partial<Record<string, string>> = {},
@@ -1809,7 +1810,7 @@ export class HrisekesaKernel {
       } else {
         this.logger.info(`HṚṢĪKEŚA status: READY with ${availableModels.length} models available across ${activeProviders.length} active providers.`);
         // Non-blocking pre-warm to keep model resident in RAM
-        this.router.routeAndExecute({
+        this.warmupPromise = this.router.routeAndExecute({
           prompt: 'System warm-up ping. Respond with one word: ready.',
           preferredModel: availableModels[0].name
         }).catch(() => {});
@@ -1889,6 +1890,11 @@ export class HrisekesaKernel {
       // Shutdown voice pipeline
       await this.voicePipeline.shutdown().catch(() => {});
 
+      // Await any in-flight startup warm-up ping before closing DB
+      if (this.warmupPromise) {
+        await this.warmupPromise.catch(() => {});
+      }
+
       // Gracefully close database connection
       this.db.close();
 
@@ -1904,6 +1910,10 @@ export class HrisekesaKernel {
 
   public async start(): Promise<void> {
     await this.lifecycle.start();
+  }
+
+  public async stop(reason?: string): Promise<void> {
+    await this.lifecycle.shutdown(reason);
   }
 
   public async shutdown(reason?: string): Promise<void> {

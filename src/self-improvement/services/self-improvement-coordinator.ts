@@ -80,9 +80,17 @@ export class SelfImprovementCoordinator {
     const newAnomalies = this.anomalyDetector.detectAnomalies(companyId);
 
     // 2. Formulate Proposals for Unaddressed Anomalies
+    const existingProposals = this.repository.listProposals({ companyId });
     for (const anom of newAnomalies) {
-      const existing = this.repository.listProposals({ companyId }).find((p) => p.anomalyId === anom.id);
-      if (!existing) {
+      const activeProposalExists = existingProposals.some(
+        (p) =>
+          (p.anomalyId === anom.id || (p.affectedComponents.includes(anom.component) && p.title.includes(anom.title))) &&
+          p.state !== 'ACCEPTED' &&
+          p.state !== 'REJECTED' &&
+          p.state !== 'CANCELLED' &&
+          p.state !== 'EXPIRED'
+      );
+      if (!activeProposalExists) {
         this.proposalService.createProposal({
           companyId,
           anomalyId: anom.id,

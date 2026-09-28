@@ -38,6 +38,7 @@ import { migration031 } from './031_creation_media_schema.js';
 import { migration032 } from './032_decision_intelligence_schema.js';
 import { migration033 } from './033_persistent_execution_schema.js';
 import { migration034 } from './034_self_evolution_engine_schema.js';
+import { migration035 } from './035_deduplicate_self_anomalies_and_proposals.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export class MigrationManager {
@@ -83,6 +84,7 @@ export class MigrationManager {
       migration032,
       migration033,
       migration034,
+      migration035,
     ];
   }
 
