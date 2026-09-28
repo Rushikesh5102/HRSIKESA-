@@ -2035,18 +2035,101 @@ Maintain your authentic domain focus.`;
       return;
     }
 
-    // GET /tools/approvals
-    if (pathname === '/tools/approvals' && method === 'GET') {
-      if (!this.tools) {
-        this.sendJson(res, 503, { error: 'Tool execution bus is not enabled.' });
-        return;
-      }
-      const pending = this.tools.permissionManager.getPendingApprovals();
+    // GET /approvals (and /api/approvals, /tools/approvals)
+    if ((pathname === '/approvals' || pathname === '/tools/approvals') && method === 'GET') {
+      const toolApprovals = this.tools?.permissionManager.getPendingApprovals() || [];
+      const workflowApprovals = (this.workflowFabric as any)?.getPendingApprovals?.() || [];
+
+      const mappedToolApprovals = toolApprovals.map((a) => ({
+        id: a.id,
+        toolName: a.toolId,
+        dangerTier: a.risk,
+        agentId: a.requestedBy,
+        reason: a.description,
+        params: a.inputSummary || {},
+        status: (a.status === 'pending' ? 'PENDING' : a.status === 'approved' ? 'APPROVED' : 'DENIED') as 'PENDING' | 'APPROVED' | 'DENIED',
+        timestamp: a.requestedAt
+      }));
+
+      const mappedWorkflowApprovals = workflowApprovals.map((w: any) => ({
+        id: w.id || w.runId,
+        toolName: w.stepId ? `workflow.step.${w.stepId}` : 'workflow.execution',
+        dangerTier: 2,
+        agentId: w.workflowId || 'workflow_engine',
+        reason: w.prompt || `Workflow approval requested for ${w.workflowId || 'workflow'}`,
+        params: w.context || {},
+        status: (w.status ? String(w.status).toUpperCase() : 'PENDING') as 'PENDING' | 'APPROVED' | 'DENIED',
+        timestamp: w.requestedAt || new Date().toISOString()
+      }));
+
+      const allApprovals = [...mappedToolApprovals, ...mappedWorkflowApprovals];
+
       this.sendJson(res, 200, {
-        pendingApprovals: pending,
-        totalPending: pending.length,
+        success: true,
+        approvals: allApprovals,
+        pendingApprovals: toolApprovals,
+        totalPending: allApprovals.length,
         timestamp: new Date().toISOString()
       });
+      return;
+    }
+
+    // POST /approvals (and /api/approvals)
+    if (pathname === '/approvals' && method === 'POST') {
+      try {
+        const body = await this.readJsonBody(req);
+        const approvalId = String(body.approvalId || body.id || '').trim();
+        const decision = String(body.decision || body.action || '').toUpperCase();
+        const reason = typeof body.reason === 'string' ? body.reason : 'Resolved via Control Center';
+        const approver = typeof body.approver === 'string' && body.approver ? body.approver : 'Master Rushikesh';
+
+        if (!approvalId) {
+          this.sendJson(res, 400, { success: false, error: 'Missing approvalId in request body.' });
+          return;
+        }
+
+        if (decision === 'APPROVE' || decision === 'APPROVED') {
+          if (this.tools?.permissionManager.getApproval(approvalId)) {
+            this.tools.permissionManager.approve(approvalId, approver);
+          }
+          if (this.workflowFabric && typeof (this.workflowFabric as any).submitApprovalDecision === 'function') {
+            try {
+              (this.workflowFabric as any).submitApprovalDecision(approvalId, 'approve', reason, approver);
+            } catch {}
+          }
+          this.sendJson(res, 200, {
+            success: true,
+            id: approvalId,
+            status: 'APPROVED',
+            message: `Approval request '${approvalId}' approved.`
+          });
+          return;
+        } else if (decision === 'DENY' || decision === 'REJECT' || decision === 'DENIED' || decision === 'REJECTED') {
+          if (this.tools?.permissionManager.getApproval(approvalId)) {
+            this.tools.permissionManager.reject(approvalId, reason, approver);
+          }
+          if (this.workflowFabric && typeof (this.workflowFabric as any).submitApprovalDecision === 'function') {
+            try {
+              (this.workflowFabric as any).submitApprovalDecision(approvalId, 'reject', reason, approver);
+            } catch {}
+          }
+          this.sendJson(res, 200, {
+            success: true,
+            id: approvalId,
+            status: 'DENIED',
+            message: `Approval request '${approvalId}' denied.`
+          });
+          return;
+        } else {
+          this.sendJson(res, 400, { success: false, error: "Decision must be 'APPROVE' or 'DENY'." });
+          return;
+        }
+      } catch (err) {
+        this.sendJson(res, 400, {
+          success: false,
+          error: err instanceof Error ? err.message : String(err)
+        });
+      }
       return;
     }
 
@@ -2084,27 +2167,53 @@ Maintain your authentic domain focus.`;
       return;
     }
 
-    // GET /tools/audit
-    if (pathname === '/tools/audit' && method === 'GET') {
-      if (!this.tools) {
-        this.sendJson(res, 503, { error: 'Tool execution bus is not enabled.' });
-        return;
-      }
+    // GET /audit (and /api/audit, /tools/audit)
+    if ((pathname === '/audit' || pathname === '/tools/audit') && method === 'GET') {
       const limitParam = url.searchParams.get('limit');
       const toolIdParam = url.searchParams.get('toolId') || undefined;
-      const statusParam = url.searchParams.get('status') as any || undefined;
+      const statusParam = (url.searchParams.get('status') as any) || undefined;
       const limit = limitParam ? parseInt(limitParam, 10) : 50;
 
-      const records = this.tools.toolAudit.listRecords({
+      const toolRecords = this.tools?.toolAudit.listRecords({
         limit,
         toolId: toolIdParam,
         status: statusParam
-      });
+      }) || [];
+
+      const modelRecords = this.persistence?.modelAuditRepo?.findRecent(limit) || [];
+
+      const toolLogs = toolRecords.map((r) => ({
+        id: r.id,
+        timestamp: r.timestamp,
+        actor: r.userId || 'system',
+        action: r.toolId,
+        dangerTier: r.riskLevel,
+        status: (r.executionStatus === 'success' ? 'SUCCESS' : r.executionStatus === 'failed' ? 'FAILURE' : r.permissionDecision === 'DENY' ? 'DENIED' : 'BLOCKED') as 'SUCCESS' | 'FAILURE' | 'BLOCKED' | 'DENIED',
+        details: r.inputSummary,
+        durationMs: r.durationMs
+      }));
+
+      const modelLogs = modelRecords.map((m) => ({
+        id: m.id || `aud_model_${m.createdAt}`,
+        timestamp: m.createdAt,
+        actor: m.agentId || 'kernel',
+        action: `model.${m.providerId}.${m.modelId}`,
+        dangerTier: 0,
+        status: (m.success ? 'SUCCESS' : 'FAILURE') as 'SUCCESS' | 'FAILURE' | 'BLOCKED' | 'DENIED',
+        details: { promptTokens: m.promptTokens, completionTokens: m.completionTokens, costUsd: m.estimatedCostUsd, durationMs: m.latencyMs },
+        durationMs: m.latencyMs
+      }));
+
+      const allLogs = [...toolLogs, ...modelLogs]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
 
       this.sendJson(res, 200, {
-        totalLogged: this.tools.toolAudit.count(),
-        records,
-        returnedCount: records.length,
+        success: true,
+        logs: allLogs,
+        records: toolRecords,
+        totalLogged: (this.tools?.toolAudit.count() || 0) + modelRecords.length,
+        returnedCount: allLogs.length,
         timestamp: new Date().toISOString()
       });
       return;

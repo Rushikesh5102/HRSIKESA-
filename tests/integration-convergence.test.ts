@@ -8,8 +8,13 @@ describe('HṚṢĪKEŚA Integration Convergence & Contract Hardening Suite', ()
   const PORT = Math.floor(Math.random() * 1000) + 5200;
 
   before(async () => {
+    process.env.HRISEKESA_PORT = String(PORT);
     process.env.PORT = String(PORT);
-    kernel = new HrisekesaKernel({ PORT: String(PORT) });
+    kernel = new HrisekesaKernel({
+      HRISEKESA_PORT: String(PORT),
+      PORT: String(PORT),
+      HRISEKESA_LOG_LEVEL: 'warn'
+    });
     await kernel.start();
   });
 
@@ -107,4 +112,29 @@ describe('HṚṢĪKEŚA Integration Convergence & Contract Hardening Suite', ()
     const res2 = await get('/api/mcp');
     assert.equal(res2.status, 200);
   });
+
+  test('8. /approvals and /api/approvals dual prefix returns 200 OK and JSON', async () => {
+    const res1 = await get('/approvals');
+    assert.equal(res1.status, 200);
+    assert.equal(res1.body.success, true);
+    assert.ok(Array.isArray(res1.body.approvals));
+
+    const res2 = await get('/api/approvals');
+    assert.equal(res2.status, 200);
+    assert.equal(res2.body.success, true);
+    assert.ok(Array.isArray(res2.body.approvals));
+  });
+
+  test('9. /audit and /api/audit dual prefix returns 200 OK and JSON', async () => {
+    const res1 = await get('/audit');
+    assert.equal(res1.status, 200);
+    assert.equal(res1.body.success, true);
+    assert.ok(Array.isArray(res1.body.logs));
+
+    const res2 = await get('/api/audit');
+    assert.equal(res2.status, 200);
+    assert.equal(res2.body.success, true);
+    assert.ok(Array.isArray(res2.body.logs));
+  });
 });
+
