@@ -21,6 +21,7 @@ import { GroqProvider } from '../models/providers/groq.provider.js';
 import { OpenRouterProvider } from '../models/providers/openrouter.provider.js';
 import { NvidiaProvider } from '../models/providers/nvidia.provider.js';
 import { OrcaProvider } from '../models/providers/orca.provider.js';
+import { OfficeTicketEngine, OfficeOrchestrator } from '../office/index.js';
 import { HttpServer } from '../api/http.server.js';
 import { AppConfig } from '../core/configuration/config.types.js';
 import { SessionManager } from '../conversation/session.manager.js';
@@ -550,6 +551,8 @@ export class HrisekesaKernel {
   public readonly operator: ApplicationOperator;
   public readonly missionRuntime: UniversalAgenticMissionRuntime;
   public readonly ecosystemFabric: UniversalEcosystemFabric;
+  public readonly officeTicketEngine: OfficeTicketEngine;
+  public readonly officeOrchestrator: OfficeOrchestrator;
   public readonly server: HttpServer;
   private refreshTimer?: ReturnType<typeof setTimeout>;
 
@@ -1319,6 +1322,17 @@ export class HrisekesaKernel {
     this.conversation.setCompanyService(this.companyService);
     this.conversation.setKnowledgeContextAssembler(this.knowledgeContextAssembler);
 
+    // Virtual Agent Office & Real-Time Orchestrator
+    this.officeTicketEngine = new OfficeTicketEngine(this.db, this.logger);
+    this.officeOrchestrator = new OfficeOrchestrator({
+      ticketEngine: this.officeTicketEngine,
+      agentRegistry: this.agentRegistry,
+      modelRouter: this.router,
+      toolBus: this.toolBus,
+      eventBus: this.eventBus,
+      logger: this.logger
+    });
+
     // 6. Initialize HTTP Gateway with Persistence, Tool & Agent Contexts
     this.server = new HttpServer(
       config.server,
@@ -1573,6 +1587,10 @@ export class HrisekesaKernel {
     this.server.setMissionRuntime(this.missionRuntime);
     this.server.setEcosystemFabric(this.ecosystemFabric);
     this.server.setEvolutionEngine(this.evolutionEngine, this.resourceGovernor);
+    this.server.setOffice({
+      orchestrator: this.officeOrchestrator,
+      ticketEngine: this.officeTicketEngine
+    });
 
     this.setupLifecycleHooks(config);
   }

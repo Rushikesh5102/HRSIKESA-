@@ -46,6 +46,7 @@ export type NavTab =
   | 'knowledge'
   | 'agent-town'
   | 'agents'
+  | 'office'
   | 'tasks'
   | 'tools'
   | 'approvals'
@@ -114,6 +115,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Home',
       icon: <Home size={17} />,
       isActive: isHomeActive,
+    },
+    {
+      id: 'office',
+      label: 'Virtual Office',
+      icon: <Building2 size={17} />,
+      badge: '17 Desks (Live)',
+      isActive: currentTab === 'office',
     },
     {
       id: 'agents',

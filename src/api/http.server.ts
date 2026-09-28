@@ -240,9 +240,15 @@ export interface SelfImprovementContext {
   readonly coordinator: import('../self-improvement/services/self-improvement-coordinator.js').SelfImprovementCoordinator;
 }
 
+export interface OfficeContext {
+  readonly orchestrator: import('../office/engine/office.orchestrator.js').OfficeOrchestrator;
+  readonly ticketEngine: import('../office/tickets/ticket.engine.js').OfficeTicketEngine;
+}
+
 export class HttpServer {
   private server: http.Server | null = null;
   private readonly openSockets = new Set<import('node:net').Socket>();
+  private office?: OfficeContext;
   private readonly config: ServerConfig;
   private readonly identity: IdentityManager;
   private readonly lifecycle: LifecycleManager;
@@ -357,6 +363,10 @@ export class HttpServer {
 
   public setCapabilityFabric(fabric: import('../capabilities/fabric/universal.capability.fabric.js').UniversalCapabilityFabric): void {
     this.capabilityFabric = fabric;
+  }
+
+  public setOffice(office: OfficeContext): void {
+    this.office = office;
   }
 
   public setCognitiveContextEngine(engine: import('../context/services/cognitive-context-engine.js').CognitiveContextEngine): void {
@@ -2325,6 +2335,110 @@ Maintain your authentic domain focus.`;
           error: 'Failed to process mission',
           details: err instanceof Error ? err.message : String(err)
         });
+      }
+      return;
+    }
+
+    // =========================================================================
+    // VIRTUAL AGENT OFFICE & SSE STREAMING ENDPOINTS (/office/*)
+    // =========================================================================
+    if (pathname === '/office/state' && method === 'GET') {
+      if (!this.office) {
+        this.sendJson(res, 503, { error: 'Office subsystem is not initialized.' });
+        return;
+      }
+      const floor = this.office.orchestrator.getFloorState();
+      this.sendJson(res, 200, { success: true, floor });
+      return;
+    }
+
+    if (pathname === '/office/stream' && method === 'GET') {
+      if (!this.office) {
+        this.sendJson(res, 503, { error: 'Office subsystem is not initialized.' });
+        return;
+      }
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.write(`data: ${JSON.stringify({ type: 'CONNECTED', data: { status: 'online' }, timestamp: new Date().toISOString() })}\n\n`);
+
+      const unsubscribe = this.office.orchestrator.subscribe((event) => {
+        try {
+          res.write(`data: ${JSON.stringify(event)}\n\n`);
+        } catch { /* connection closed */ }
+      });
+
+      req.on('close', () => {
+        unsubscribe();
+      });
+      return;
+    }
+
+    if (pathname === '/office/tickets' && method === 'POST') {
+      if (!this.office) {
+        this.sendJson(res, 503, { error: 'Office subsystem is not initialized.' });
+        return;
+      }
+      try {
+        const body = (await this.readJsonBody(req)) as Record<string, any>;
+        const title = String(body.title || '').trim();
+        const description = String(body.description || '').trim();
+        const priority = (body.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') || 'MEDIUM';
+        const initialAgentId = String(body.initialAgentId || 'rahu');
+        const initialRole = String(body.initialRole || 'Product Manager & Strategist');
+        const autoAdvance = Boolean(body.autoAdvance);
+
+        if (!title) {
+          this.sendJson(res, 400, { error: 'Ticket title is required.' });
+          return;
+        }
+
+        const ticket = this.office.ticketEngine.createTicket({
+          title,
+          description,
+          priority,
+          initialAgentId,
+          initialRole
+        });
+
+        this.office.orchestrator.broadcast({
+          type: 'TICKET_UPDATED',
+          ticketId: ticket.id,
+          data: ticket,
+          timestamp: new Date().toISOString()
+        });
+
+        if (autoAdvance) {
+          this.office.orchestrator.advanceTicketAutonomous(ticket.id).catch((err) => {
+            this.logger?.error(`Error auto-advancing ticket ${ticket.id}`, err);
+          });
+        }
+
+        this.sendJson(res, 201, { success: true, ticket });
+      } catch (err: any) {
+        this.sendJson(res, 400, { error: err.message || String(err) });
+      }
+      return;
+    }
+
+    if (pathname.startsWith('/office/tickets/') && pathname.endsWith('/advance') && method === 'POST') {
+      if (!this.office) {
+        this.sendJson(res, 503, { error: 'Office subsystem is not initialized.' });
+        return;
+      }
+      const ticketId = pathname.replace('/office/tickets/', '').replace('/advance', '').trim();
+      try {
+        const updated = await this.office.orchestrator.advanceTicketAutonomous(ticketId);
+        if (!updated) {
+          this.sendJson(res, 404, { error: `Ticket '${ticketId}' not found.` });
+          return;
+        }
+        this.sendJson(res, 200, { success: true, ticket: updated });
+      } catch (err: any) {
+        this.sendJson(res, 500, { error: err.message || String(err) });
       }
       return;
     }

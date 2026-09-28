@@ -397,6 +397,68 @@ export const api = {
       body: JSON.stringify({ topic, agentIds, mode }),
     }),
 
+  // Virtual Agent Office & Pipeline
+  getOfficeState: () =>
+    fetchJson<{
+      success: boolean;
+      floor: {
+        desks: Array<{
+          agentId: string;
+          displayName: string;
+          role: string;
+          avatar: string;
+          deskNumber: number;
+          activity: string;
+          currentTicketId?: string;
+          activeModel: string;
+          thoughtBubble?: string;
+          tokensProcessed: number;
+          tasksCompleted: number;
+          lastActiveIso: string;
+        }>;
+        tickets: Array<{
+          id: string;
+          title: string;
+          description: string;
+          priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+          stage: 'BACKLOG' | 'PLANNING' | 'IN_PROGRESS' | 'CODE_REVIEW' | 'QA_TESTING' | 'COMPLETED' | 'BLOCKED';
+          currentAgentId: string;
+          assignedRole: string;
+          progressPercent: number;
+          liveThought?: string;
+          activeTool?: string;
+          artifacts: Array<{ id: string; type: string; title: string; content: string; path?: string; createdAt: string; createdByAgentId: string }>;
+          handoffHistory: Array<{ fromAgentId: string; toAgentId: string; summary: string; timestamp: string; artifactsProduced: string[] }>;
+          logs: string[];
+          createdAt: string;
+          updatedAt: string;
+          completedAt?: string;
+        }>;
+        activeTicketCount: number;
+        completedTicketCount: number;
+        systemThroughputTokensPerSec: number;
+        activeProviderFleet: string[];
+      };
+    }>(`${API_BASE}/office/state`),
+
+  createOfficeTicket: (ticket: {
+    title: string;
+    description: string;
+    priority?: string;
+    initialAgentId?: string;
+    initialRole?: string;
+    autoAdvance?: boolean;
+  }) =>
+    fetchJson<{ success: boolean; ticket: any }>(`${API_BASE}/office/tickets`, {
+      method: 'POST',
+      body: JSON.stringify(ticket),
+    }),
+
+  advanceOfficeTicket: (ticketId: string) =>
+    fetchJson<{ success: boolean; ticket: any }>(`${API_BASE}/office/tickets/${ticketId}/advance`, {
+      method: 'POST',
+    }),
+
   convertCouncilToMission: (objective: string, tasks?: any[]) =>
     fetchJson<{ success: boolean; missionId: string; status: string; message: string }>(`${API_BASE}/council/convert-mission`, {
       method: 'POST',

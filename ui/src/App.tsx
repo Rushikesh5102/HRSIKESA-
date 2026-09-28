@@ -42,6 +42,7 @@ import { EcosystemView } from './views/EcosystemView';
 import { CreationStudioView } from './views/CreationStudioView';
 import { PersistentOperationsView } from './views/PersistentOperationsView';
 import { EvolutionMonitorView } from './views/EvolutionMonitorView';
+import { VirtualOfficeView } from './views/VirtualOfficeView';
 
 import {
   HealthResponse,
@@ -63,7 +64,7 @@ import { api } from './services/api';
 
 const VALID_TABS: NavTab[] = [
   'home', 'command-center', 'chat', 'council-chat', 'work', 'goals', 'missions', 'research', 'knowledge',
-  'agent-town', 'agents', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
+  'agent-town', 'agents', 'office', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
   'environment', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'ecosystem', 'creation', 'persistent-ops', 'evolution'
 ];
 
@@ -360,8 +361,14 @@ export const App: React.FC = () => {
           {currentTab === 'computer' && <ComputerOperatorView envStatus={envStatus} />}
 
           {currentTab === 'agents' && (
-            <AgentsView agents={agents} onOpenAgentTown={() => setCurrentTab('agent-town')} />
+            <AgentsView
+              agents={agents}
+              onOpenAgentTown={() => setCurrentTab('agent-town')}
+              onOpenOffice={() => setCurrentTab('office')}
+            />
           )}
+
+          {currentTab === 'office' && <VirtualOfficeView />}
 
           {currentTab === 'agent-town' && <AgentTown agents={agents} onNavigate={setCurrentTab} />}
 

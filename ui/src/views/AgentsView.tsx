@@ -6,6 +6,7 @@ import { AgentAvatar } from '../components/AgentAvatar';
 interface AgentsViewProps {
   agents: AgentInfo[];
   onOpenAgentTown?: () => void;
+  onOpenOffice?: () => void;
 }
 
 interface AgentProfile {
@@ -29,7 +30,7 @@ interface AgentProfile {
 import { api } from '../services/api';
 import { TaskInfo } from '../types/api.types';
 
-export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown }) => {
+export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown, onOpenOffice }) => {
   const [selectedAgentId, setSelectedAgentId] = useState<string>('rahu');
   const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'knowledge' | 'memory' | 'performance'>('overview');
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
@@ -99,7 +100,7 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown 
           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>
             SELECT AGENT:
           </span>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0', maxWidth: '680px' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0', maxWidth: '580px' }}>
             {agents.map((ag) => {
               const isSelected = ag.id.toLowerCase() === selectedAgentId.toLowerCase();
               return (
@@ -130,16 +131,35 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown 
           </div>
         </div>
 
-        {onOpenAgentTown && (
-          <button
-            className="btn btn-secondary"
-            onClick={onOpenAgentTown}
-            style={{ fontSize: '11.5px', padding: '6px 14px', flexShrink: 0 }}
-          >
-            <Network size={14} />
-            <span>Agent Town 3D</span>
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          {onOpenOffice && (
+            <button
+              className="btn btn-primary"
+              onClick={onOpenOffice}
+              style={{
+                fontSize: '11.5px',
+                padding: '6px 14px',
+                background: 'linear-gradient(135deg, #D4AF37, #996515)',
+                color: '#150E06',
+                fontWeight: 800,
+                boxShadow: '0 0 12px rgba(212,175,55,0.35)',
+              }}
+            >
+              <span>🏢 Virtual Office Floor (Live SSE)</span>
+            </button>
+          )}
+
+          {onOpenAgentTown && (
+            <button
+              className="btn btn-secondary"
+              onClick={onOpenAgentTown}
+              style={{ fontSize: '11.5px', padding: '6px 14px' }}
+            >
+              <Network size={14} />
+              <span>Agent Town 3D</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Panel 3: Individual Agent Workspace Parchment Card */}
