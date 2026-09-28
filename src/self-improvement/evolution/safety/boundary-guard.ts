@@ -37,7 +37,7 @@ export class BoundaryGuard {
   // Common credential patterns to detect and redact
   private readonly secretPatterns: Array<{ pattern: RegExp; replacement: string }> = [
     { pattern: /(?:api[_-]?key|apikey|secret|token|password|auth|jwt)\s*[:=]\s*['"]?([a-zA-Z0-9_\-\.]{16,})['"]?/gi, replacement: '[REDACTED_CREDENTIAL]' },
-    { pattern: /ghp_[a-zA-Z0-9]{36}/g, replacement: '[REDACTED_GITHUB_TOKEN]' },
+    { pattern: /(?:ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{50,})/g, replacement: '[REDACTED_GITHUB_TOKEN]' },
     { pattern: /sk-[a-zA-Z0-9]{20,}/g, replacement: '[REDACTED_API_KEY]' },
     { pattern: /-----BEGIN\s+[A-Z\s]+PRIVATE\s+KEY-----[\s\S]*?-----END\s+[A-Z\s]+PRIVATE\s+KEY-----/g, replacement: '[REDACTED_PRIVATE_KEY]' },
     { pattern: /xox[baprs]-[0-9a-zA-Z]{10,48}/g, replacement: '[REDACTED_SLACK_TOKEN]' },

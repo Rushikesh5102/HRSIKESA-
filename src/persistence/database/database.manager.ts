@@ -157,4 +157,33 @@ export class DatabaseManager {
   public getPath(): string {
     return this.dbPath;
   }
+
+  /**
+   * Creates an atomic timestamped snapshot backup of the SQLite database.
+   */
+  public createBackup(targetDir: string = 'data/backups'): string {
+    if (this.dbPath === ':memory:') {
+      throw new Error('Cannot backup an in-memory database');
+    }
+    const resolvedDir = path.resolve(process.cwd(), targetDir);
+    if (!fs.existsSync(resolvedDir)) {
+      fs.mkdirSync(resolvedDir, { recursive: true });
+    }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFile = path.join(resolvedDir, `hrisekesa-backup-${timestamp}.db`);
+    
+    // Checkpoint WAL before backup to ensure full data flush
+    if (this.db) {
+      try {
+        this.db.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+      } catch (err) {
+        this.logger?.warn(`WAL checkpoint before backup warning: ${String(err)}`);
+      }
+    }
+
+    fs.copyFileSync(this.dbPath, backupFile);
+    this.logger?.info(`Database successfully backed up to [${backupFile}]`);
+    return backupFile;
+  }
 }
+

@@ -20,9 +20,9 @@ export const VirtualOfficeView: React.FC = () => {
         margin: '0 auto',
         borderRadius: isFullscreen ? '0' : '12px',
         overflow: 'hidden',
-        border: isFullscreen ? 'none' : '1px solid #E5DFD5',
-        boxShadow: isFullscreen ? 'none' : '0 8px 30px rgba(0,0,0,0.06)',
-        background: '#FDFFF8',
+        border: isFullscreen ? 'none' : '1px solid rgba(212, 175, 55, 0.28)',
+        boxShadow: isFullscreen ? 'none' : '0 8px 30px rgba(0,0,0,0.5)',
+        background: '#160E08',
         display: 'flex',
         flexDirection: 'column'
       }}
@@ -37,11 +37,12 @@ export const VirtualOfficeView: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          background: 'rgba(253, 255, 248, 0.85)',
-          backdropFilter: 'blur(8px)',
-          padding: '4px 8px',
+          background: 'rgba(34, 22, 14, 0.92)',
+          backdropFilter: 'blur(10px)',
+          padding: '5px 10px',
           borderRadius: '20px',
-          border: '1px solid rgba(21, 20, 20, 0.1)'
+          border: '1px solid rgba(212, 175, 55, 0.35)',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.45)'
         }}
       >
         <button
@@ -50,7 +51,7 @@ export const VirtualOfficeView: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#151414',
+            color: '#F3C05A',
             cursor: 'pointer',
             padding: '4px',
             display: 'flex',
@@ -70,7 +71,7 @@ export const VirtualOfficeView: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#151414',
+            color: '#F3C05A',
             cursor: 'pointer',
             padding: '4px',
             display: 'flex',
@@ -89,7 +90,7 @@ export const VirtualOfficeView: React.FC = () => {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#151414',
+            color: '#F3C05A',
             cursor: 'pointer',
             padding: '4px',
             display: 'flex',
@@ -106,13 +107,13 @@ export const VirtualOfficeView: React.FC = () => {
       <iframe
         ref={iframeRef}
         src="/agents-office/index.html"
-        title="Agents Office v3"
+        title="HṚṢĪKEŚA Sovereign Office"
         style={{
           width: '100%',
           height: '100%',
           border: 'none',
           display: 'block',
-          background: '#FDFFF8'
+          background: '#160E08'
         }}
       />
     </div>

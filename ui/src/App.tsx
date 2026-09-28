@@ -310,9 +310,8 @@ export const App: React.FC = () => {
           activeGoalCount={activeGoalsCount}
           pendingApprovalsCount={pendingApprovalsCount}
           onOpenApprovals={() => setCurrentTab('approvals')}
-          onSearch={(q) => {
-            handleStartPromptFromHome(q);
-          }}
+          onNavigate={setCurrentTab}
+          onSearchPrompt={handleStartPromptFromHome}
         />
 
         <main ref={contentAreaRef} className="content-area">

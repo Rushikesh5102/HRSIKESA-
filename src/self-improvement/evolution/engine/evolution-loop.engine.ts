@@ -699,6 +699,8 @@ export class EvolutionLoopEngine {
       await this.gateway.evolutionGitRollback(experimentId).catch(() => {});
       this.saveExperiment(experiment);
       throw err;
+    } finally {
+      await this.worktreeManager.deleteWorktree(experimentId).catch(() => {});
     }
   }
 
