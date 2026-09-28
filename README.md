@@ -12,138 +12,165 @@
 > **Official Name:** HṚṢĪKEŚA (हृषीकेश)  
 > **International Filesystem / ASCII Alias:** `HRISEKESA`  
 > **English Self-Reference Name:** `Rishi` ("I’m Rishi")  
-> **Current Status:** FP-19 PERSISTENT DISTRIBUTED EXECUTION & 24/7 OPERATIONS FABRIC (COMPLETED & VERIFIED)  
-> **Inference Backends:** Hardware-Agnostic (Ollama Resident Engine + llama.cpp Intel Arc Vulkan GPU + Multi-threaded CPU + LAN Distributed Worker Nodes)  
-> **Persistent Execution Substrate (FP-19):** Durable 24/7 Operations Fabric across LOCAL, LAN, REMOTE, CLOUD, and HOSTED runtimes underneath Mission, Workflow, Goal, Skill, and Company OS. Monotonic Fencing Tokens (split-brain prevention), Incremental Checkpoint Snapshots & Deterministic Resumption, Cross-Runtime Job Migration, Multi-Queue Priority Scheduling (CRITICAL to BACKGROUND), Autonomous Recovery & Dead-Letter Routing, and Sovereign Cloud Cost Governance (`DENY_PAID_WITHOUT_APPROVAL`).  
-> **Universal Capabilities:** 6 Protocol Connectors (CLI, REST, Browser, Software, MCP, Local Tool), Sub-10ms Intent Matching, Strict Anti-Injection Sandboxing, Zero Plaintext Secrets (`vault://`), Invariant Verification (`EXECUTED != VERIFIED`)  
-> **Creative Capabilities:** Local-First Multimodal Creation Studio (Image, Video, Audio, Music, Voice, 3D Assets, Documents, Presentations, Design Assets, Compound Packages) with Bounded Iteration & QA Verification  
-> **Decision Intelligence:** ResearchCase Lifecycle, Bounded Research Plans, Evidence Ledger & Claim Normalization, Multi-Source Contradiction Resolution, Temporal Intelligence, Environment-Aware Hardware Evaluation, Qualitative Candidate Comparison, 16-Section Decision Briefs, Immutable Decision History & Reviews, and Governed Action Bridge (Missions, Goals, Workflows, Skills, Environment Changes)  
-> **Interactive Latency:** T0 Deterministic Fast-Gate (<38ms) | T2 Warm Interactive Chat (TTFT 253–314ms, Wall 2.4–6.1s)  
-> **Distributed Fabric:** Multi-Worker Execution Fabric (Dedicated TLS 1.3 Port 4300 Transport, Concurrent Streaming, Model Residency Awareness +40 Bonus, Queue-Aware Scheduling, Graceful Draining, Zero Remote Shell)  
-> **Response Modes:** CONCISE (40–75 tok) | NORMAL (150–256 tok, Default) | DETAILED (384–512 tok) | DEEP (768–1024 tok)  
+> **Authority / Sole Creator:** Rushikesh Pattiwar  
+> **Current Status:** PRODUCTION READY · FULL SOVEREIGN FABRIC (PERSISTENT & 24/7 OPS)  
+> **Inference Backends:** Hardware-Agnostic Hybrid (Local Ollama Qwen 7B Resident Engine + Groq LPU + Gemini AI Studio + NVIDIA NIM + OpenRouter Fleet)  
+> **Voice Subsystem:** Local Dual-Engine (Piper Neural ONNX TTS in English/Hindi + Windows SAPI + Faster-Whisper / Windows Speech Recognition)  
+> **3D Sovereign Control Center:** Procedural 3D Isometric Command Office in Sovereign Brown (`#160E08`), Warm Beige (`#DFC6AA`), and Gold (`#D4AF37`)  
+> **UI Control Center:** React 18 + Vite + TypeScript Single Page Application with Universal IDE, Agent Town, Workflow Engine, and Hardware Telemetry  
+> **Persistent Storage:** Local SQLite (`node:sqlite` in WAL Mode, `data/hrisekesa.db`) + Vector Math Memory Retrieval  
 > **Primary Development IDE:** Antigravity  
 
 ---
 
-## 🌟 Vision & Mission
+## 🌟 Vision & Architecture Overview
 
-**HṚṢĪKEŚA** is an autonomous personal AI operating system and enterprise-grade workforce designed specifically for its creator, **Rushikesh Pattiwar**.
-
-HṚṢĪKEŚA is **not** a new foundation model. It is an orchestration, cognition, and execution control plane designed to unify:
-- Multi-tier AI models (local zero-cost inference via Ollama + frontier cloud providers)
-- Long-term structured memory & personal identity governance
-- Full Autonomous Company Operations (Phase 25) coordinating the authoritative 17-agent workforce across the complete business operating loop (`MARKET NEED -> STRATEGY -> ORG -> PRODUCT -> QA -> MARKETING -> SALES -> ORDERS -> FULFILLMENT -> SUPPORT -> BILLING -> OPS -> IMPROVEMENT -> EXPANSION -> RETIREMENT`)
-- Multimodal Vision + Advanced Voice (Phase 24) unifying auditory, visual, textual, and desktop environmental perceptions (`HEAR -> UNDERSTAND -> SEE -> REASON -> ACT -> OBSERVE -> SPEAK -> VERIFY -> REMEMBER`)
-- External / Enterprise Environments (Phase 23) for cross-environment execution fabric (SSH, WinRM, Linux, RDP/VDI, Cloud, Containers, CI/CD, Remote Browser) with zero credential harvesting
-- Advanced Computer Operator (Phase 22) for semantic UI automation, coordinate-free accessibility control, and multi-app desktop workflows
-- Dynamic Model Context Protocol (MCP) & Capability Ecosystem (Phase 21) for zero-trust sandboxing, static inspection, drift detection, and immediate capability revocation
-- Skills & Procedural Intelligence (Phase 20) for compiling reusable operational knowledge into native DAGs with deterministic verification, human authority governance, and safe self-evolution
-- Advanced Memory & Knowledge Graph (Phase 19) for structured, temporal, provenance-aware graph intelligence and 3D visualization
-- Advanced Model Router & Intelligence Gateway (Phase 18) for provider- and model-agnostic intelligent routing
-- Advanced Research & Web Intelligence Subsystem (Phase 17) for evidence-grounded research, cross-source verification, contradiction detection, and citation generation
-- Persistent Autonomous Operations & Reusable Open-Source Capabilities (Phase 16) for continuous multi-day goals
-- Autonomous Goal Management & Independent Verification Engine (Phase 15) for sovereign objective-driven execution
-- Company & Project Operating System (Phase 14) for persistent enterprise entities, departments, and products
-- Multi-agent autonomous workforces organized into specialized departmental hierarchies (17 specialized agents)
-- Browser automation and web inspection via `playwright-core`
-- Windows desktop & GUI automation via `WindowsComputerAdapter`
-- Semantic Windows UI Automation via .NET `UIAutomationClient` (`WindowsUiaAdapter`)
-- Local voice input & output pipeline (Faster-Whisper / Windows STT + Piper / SAPI TTS)
-- Software & Environment Manager for safe software discovery, executable verification, process tracking, and `winget` integration
-- Push-to-talk interactive voice and shell execution environments
-
----
-
-## 🏛️ Core Philosophy
+**HṚṢĪKEŚA** is an autonomous personal AI operating system and enterprise-grade workforce designed specifically for its creator, **Rushikesh Pattiwar**. It unifies multi-tier AI cognition, operating system automation, real-world research, procedural skills, and a persistent 17-agent workforce into a cohesive command center.
 
 ```
-  LLM                    = Brain
-  Tools / MCP            = Hands
-  Structured Memory      = Long-Term Knowledge
-  Agent Runtime          = Nervous System
-  Multi-Agent Workforce  = Specialized Departments
-  Computer / Environment = World
-  Voice & Audio Pipeline = Ears & Voice
-  HṚṢĪKEŚA               = The Sovereign Control & Orchestration Layer
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       HṚṢĪKEŚA CONTROL PLANE & UI                           │
+│  3D Sovereign Office │ Universal IDE │ Agent Town │ Workflow DAG │ Chat/Voice│
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│                         COGNITIVE & REASONING LAYER                         │
+│  Model Router │ Local Ollama 7B │ Groq LPU │ Gemini Studio │ NVIDIA NIM    │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│                         AGENT & WORKFORCE FABRIC                            │
+│  17 Department Agents │ Mission Orchestrator │ Blackboard │ Shared Memory   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│                         SYSTEM & HARDWARE EXECUTION                         │
+│  Gandiva OS Operator │ Windows UIA │ Resource Governor │ SQLite WAL Memory  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 👥 Specialized Agent Workforce (Phase 5-10 Roster)
+## 🏛️ Core Subsystems & Capabilities
 
-HṚṢĪKEŚA commands a specialized internal workforce governed by strict role definitions, capability tags, and tool whitelists:
+### 1. 🏢 3D Sovereign Virtual Office
+- **Procedural 3D Architecture:** Three.js-powered isometric department pods (Marketing, Emails, Delivery, Operations, Finance, Sales) connected by suspended bridges.
+- **Sovereign Palette:** Rendered in **Sovereign Brown** (`#160E08`), **Warm Beige** (`#DFC6AA`), and **Gold** (`#D4AF37`).
+- **Live Fleet & Tool Connectivity:** Automatically synchronizes with `/api/mcp` to display live provider statuses, connected LLMs, and real tool adapters.
+- **Interactive Desks & Monitors:** Interactive camera zooming, agent inspection, and live virtual monitor textures showing real execution logs.
 
-| Agent | Name | Role | Primary Domain | Max Danger Tier | Key Allowed Tools |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`arjuna`** | Arjuna | Software Engineering | Code construction, refactoring, semantic UI automation, environment | `TIER_1` | `filesystem.*`, `terminal.execute`, `browser.*`, `computer.*`, `environment.*`, `ollama.*` |
-| **`chanakya`** | Chanakya | Strategy & Planning | Mission decomposition, task delegation, coordination | `TIER_1` | `filesystem.*`, `browser.*`, `ollama.chat`, `time.now` |
-| **`arya`** | Arya | Research & Analysis | Knowledge synthesis, architectural evaluation, web browsing | `TIER_1` | `filesystem.*`, `browser.*`, `ollama.chat`, `time.now` |
-| **`aditi`** | Aditi | Testing & Verification | Test execution, QA gates, validation | `TIER_1` | `filesystem.*`, `terminal.execute`, `ollama.chat` |
-| **`agastya`** | Agastya | Systems & Infrastructure | Environment diagnostics, performance, UI inspection, process discovery | `TIER_1` | `system.info`, `filesystem.*`, `computer.*`, `environment.applications.*`, `environment.process.*`, `terminal.execute`, `ollama.models` |
+### 2. 💻 Universal IDE & Digital Workspace
+- **Integrated Workspace Explorer:** Tree browser for real workspace directories (`workspace/`).
+- **Full-Featured Code Editor:** Syntax highlighting, code construction, diff inspection, and live file modifications.
+- **Embedded Terminal:** Secure local terminal execution with strict Danger Tier validation.
+
+### 3. 🧠 Multi-Model Intelligence & Routing
+- **Local Resident Engine:** Zero-cost offline inference via local Ollama (`qwen2.5-coder:7b` / `qwen2.5:7b`).
+- **Cloud Frontier Fleet:** High-speed streaming via Groq LPU, Google Gemini AI Studio, NVIDIA NIM, and OpenRouter.
+- **Token Redaction & Guard:** Fine-grained token masking (`github_pat_*`, `sk-*`, `ghp_*`) across logs and supervisor evaluations.
+
+### 4. 🎙️ Neural Voice & Multimodal Audio
+- **Piper Neural TTS:** Low-latency offline voice synthesis using ONNX models with phonetic pronunciation normalization for English, Hindi, and Marathi.
+- **Windows SAPI Fallback:** Native Windows speech synthesizer.
+- **Real-Time Speech Recognition:** Faster-Whisper neural STT for push-to-talk voice commands.
+
+### 5. ⚙️ Autonomous Evolution & Self-Improvement
+- **Isolated Evolution Worktrees:** Sandboxed workspace mutations with automated typecheck and preflight verification.
+- **Zero-Storage Leak Cleanup:** Automatic lifecycle worktree pruning in `finally` blocks, preventing disk accumulation.
+- **Multi-Supervisor Review:** Unanimous quorum gating before code improvements are checkpointed or promoted.
+
+### 6. 🗄️ Embedded SQLite Persistence & Vector Retrieval
+- **Atomic WAL Database:** Single source of truth in `data/hrisekesa.db`.
+- **Hybrid Semantic Memory:** SQLite cosine vector similarity + BM25 keyword retrieval for conversation context and long-term knowledge.
 
 ---
 
-## 💻 Host Environment & Target Hardware
+## 👥 Authoritative 17-Agent Workforce
 
-HṚṢĪKEŚA is engineered to operate fluidly within the physical envelope of Rushikesh's primary machine:
-
-| Component | Specification |
-| :--- | :--- |
-| **Model** | Acer Swift SFG14-73T |
-| **Processor** | Intel Core Ultra 5 125H (14 physical cores / 18 logical threads, integrated NPU) |
-| **Memory** | 15.7 GB Physical RAM (~5.1 GB active for Ollama + Qwen 7B, ~76 MB Node.js runtime) |
-| **Graphics** | Intel Arc Graphics (~2 GB dedicated pool) |
-| **Operating System** | Windows 11 (64-bit) |
-| **Local Runtimes** | Node.js v24.21.0, npm 11.19.0, Python 3.14.7, pip 26.2.1, Git 2.55.0, Ollama 0.34.2 |
-| **Local Model** | `qwen2.5:7b` (Q4_K_M, 4.7 GB on disk, 4096 context tokens tested) |
-| **Voice Subsystem**| Dual-Engine STT (Faster-Whisper / Windows Speech) + Dual-Engine TTS (Piper / Windows SAPI) |
-| **UI Automation**  | Native .NET `UIAutomationClient` (`WindowsUiaAdapter`) with coordinate fallback |
-| **Environment Mgmt**| Multi-source discovery (Catalog, Start Menu, App Paths, PATH) + PID lifecycle tracking + `winget` |
-| **Persistence** | Embedded SQLite (`node:sqlite` in WAL mode, `data/hrisekesa.db`) |
+| Department | Agent ID | Agent Title | Role & Primary Focus |
+| :--- | :--- | :--- | :--- |
+| **Marketing** | `mlead` | Marketing Lead | Campaigns, market intelligence, messaging |
+| | `riley` | Research | Market research, competitive analysis |
+| | `newt` | Newsletter | Audience communications & copy |
+| | `ada` | Meta Ads | Paid campaign synthesis & targeting |
+| | `iggy` | Instagram Organic | Social content strategy & media assets |
+| | `gfx` | Graphics Designer | Visual layouts & brand design kit |
+| | `vid` | Video Editor | Video transcripts, cuts & pacing |
+| **Sales** | `lexi` | Sales Lead | Deal strategy & pipeline oversight |
+| | `enzo` | Lead Enricher | Account enrichment & prospect scoring |
+| | `pros` | Prospector | Cold outreach & qualifying |
+| | `ilm` | Inbound Leads Manager | Triage and lead routing |
+| | `folo` | Follow Ups | Cadence management & proposals |
+| **Delivery** | `dlead` | Delivery Lead | Client operations & SLA tracking |
+| | `pco` | Project Co-ordinator | Milestone schedules & asset delivery |
+| | `ona` | Onboarder | Client onboarding & setup checklists |
+| **Operations** | `olead` | Operations Lead | Infrastructure, system diagnostics, audits |
+| **Finance** | `alead` | Accounting Lead | Invoicing, reconciliation, ledger metrics |
 
 ---
 
-## 🚀 Quick Start & Development
+## 🚀 Quick Start & Launch
 
-### 1. Run Automated Test Suite
+### Prerequisites
+- **Node.js**: v20+ or v24+
+- **Operating System**: Windows 11 (64-bit) recommended for full OS automation
+- **Optional Local AI**: Ollama running locally at `http://127.0.0.1:11434`
+
+### 1. Installation
 ```bash
-npm test
-```
-*Executes full test suite across 301 test suites covering Identity, Config, Lifecycle, Event Bus, Logger, Hardware, Registry, Router, Sessions, Conversation, Ollama (with live inference), Cloud Adapters, HTTP Gateway, SQLite Persistence, Creator Profile, Context Assembly, Tool Registry, Danger Tiers & Permissions, Built-in Tools, Security Sandboxing & Redaction, MCP Client Adapter, Tool Execution Bus, Agent Registry & Runtime, Task & Mission Persistence, Delegation Guardrails, Shared Blackboard, Mission Orchestrator, Browser Automation & URL Sandboxing, Windows Computer / Desktop Control, Local Voice Subsystem (STT, TTS, Pipeline, Security), Semantic Windows UI Automation, Software & Environment Management, Control Center & Agent Town, Long-Term Semantic Memory & Hybrid Retrieval, Autonomous Goal Management & Verification Engine, Persistent Autonomous Operations, Research Intelligence, Model Router & Intelligence Gateway, Advanced Memory & Knowledge Graph, Skills & Procedural Intelligence, Dynamic MCP & Capability Ecosystem, Advanced Computer Operator, External / Enterprise Environments, Multimodal Vision + Voice, Full Autonomous Company Operations, Safe Self-Improvement & Self-Maintenance, Demonstration Learning & Workflow Acquisition (FP-16), Universal Digital Creation & Media Studio (FP-17), Universal Real-World Research, Knowledge & Decision Intelligence Fabric (FP-18), and Persistent Distributed Execution & 24/7 Operations Fabric (FP-19).*
+# Clone the repository
+git clone https://github.com/Rushikesh5102/HRSIKESA-.git
+cd HRSIKESA-
 
-### 2. Build for Production
+# Install root dependencies
+npm install
+
+# Install UI frontend dependencies
+cd ui && npm install && cd ..
+```
+
+### 2. Configure Environment
+Copy `.env.example` to `.env` and fill in your optional API keys:
+```env
+HRISEKESA_PORT=4200
+HRISEKESA_HOST=127.0.0.1
+HRISEKESA_DB_PATH=data/hrisekesa.db
+
+# Model Providers (Fill as desired)
+GEMINI_API_KEY=your_gemini_key
+GROQ_API_KEY=your_groq_key
+OPENROUTER_API_KEY=your_openrouter_key
+GITHUB_TOKEN=your_github_token
+```
+
+### 3. Build Production Bundles
 ```bash
+# Build backend TypeScript
 npm run build
+
+# Build frontend UI
+npm --prefix ui run build
 ```
 
-### 3. Launch the Runtime Gateway
+### 4. Start HṚṢĪKEŚA
 ```bash
 npm start
 ```
-*Binds securely to `http://127.0.0.1:4200` with 47 registered tools across 8 categories [system, filesystem, ollama, terminal, browser, computer, environment, company].*
+- **Backend API:** `http://127.0.0.1:4200`
+- **Frontend Dashboard & 3D Control Center:** Open your browser to `http://127.0.0.1:4200` or launch the Vite dev server with `npm --prefix ui run dev`.
 
 ---
 
-## 🔌 Verified HTTP API Endpoints
+## 🔒 Security & Sovereign Governance
 
-All endpoints are bound strictly to `127.0.0.1`:
-
-| Method | Endpoint | Description | Sample Output |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/health` | Service health, lifecycle status, uptime | `{"status": "ok", "lifecycleState": "READY", "uptimeSeconds": 13}` |
-| `GET` | `/identity` | Sovereign system & Rushikesh Pattiwar identity | `{"authorityContext": {"system": {"name": "HṚṢĪKEŚA"}, "owner": {"fullName": "Rushikesh Pattiwar"}}}` |
-| `GET` | `/status` | Complete hardware specs, RAM utilization, providers | Returns CPU, RAM, GPU, active locks, and provider records |
-| `GET` | `/models` | Real-time registry of local and cloud models | Real-time status for Ollama, OpenAI, Anthropic, Gemini |
-| `POST` | `/chat` | Conversational turn with tool calling & memory | `{ "success": true, "response": "...", "toolCallsExecuted": [...], "model": "qwen2.5:7b" }` |
-| `GET` | `/tools` | List 41 registered tools across 7 categories | `{"success": true, "count": 41, "tools": [...]}` |
-| `POST` | `/tools/:id/execute` | Execute tool through validation, permissions & audit | `{"success": true, "result": {"output": {...}, "durationMs": 4}}` |
-| `GET` | `/tools/audit` | Query append-only execution audit trail with secret masking | `{"success": true, "count": 12, "audit": [...]}` |
-| `GET` | `/agents` | List all registered workforce agents, roles & tier limits | `{"success": true, "count": 5, "agents": [...]}` |
-| `POST` | `/missions` | Create and orchestrate an autonomous multi-agent mission | `{"success": true, "mission": {"id": "msn_789", ...}, "result": {...}}` |
+HṚṢĪKEŚA operates under strict sovereign human governance:
+1. **Zero Plaintext Secrets:** Sensitive API tokens are stored strictly in local `.env` (git-ignored) and dynamically masked.
+2. **Danger Tier Authority:** System-level modifications, destructive commands, or external network requests require interactive human confirmation.
+3. **Isolated Worktrees:** Autonomous code improvements execute strictly in isolated scratch worktrees and are wiped clean after verification.
 
 ---
 
-## 🔒 Governance & Security Notice
+## 📜 License & Copyright
 
-HṚṢĪKEŚA recognizes **Rushikesh Pattiwar** as its sole authorized master. No autonomous actions in higher danger tiers (system modifications, package installations, process terminations) execute without explicit interactive confirmation. The system is designed for authorized computer-use and never includes mechanisms to bypass enterprise security, DLP, or MFA.
-
+Copyright © 2026 **Rushikesh Pattiwar**. All rights reserved.  
+HṚṢĪKEŚA (हृषीकेश) is proprietary sovereign software built for personal and enterprise autonomous operations.
