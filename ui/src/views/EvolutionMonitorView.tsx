@@ -53,6 +53,13 @@ export const EvolutionMonitorView: React.FC = () => {
   });
 
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
+  const [authPromotionState, setAuthPromotionState] = useState<{
+    isOpen: boolean;
+    targetId: string;
+    approver: string;
+    authToken: string;
+    loading: boolean;
+  } | null>(null);
   const [promotionModal, setPromotionModal] = useState<{
     isOpen: boolean;
     success: boolean;
@@ -248,20 +255,40 @@ export const EvolutionMonitorView: React.FC = () => {
     }
   };
 
-  const handlePromote = async (targetId?: string) => {
+  const handlePromote = (targetId?: string) => {
     const idToPromote = targetId || selectedObjective?.id || selectedExperiment?.id;
     if (!idToPromote) return;
-    if (!window.confirm(`Push changes for [${idToPromote}] to production HEAD? This fast-forward merges the sandboxed worktree with human sovereign authority.`)) {
+    setAuthPromotionState({
+      isOpen: true,
+      targetId: idToPromote,
+      approver: 'Rushikesh Pattiwar',
+      authToken: '',
+      loading: false,
+    });
+  };
+
+  const handleConfirmPromotion = async () => {
+    if (!authPromotionState) return;
+    const { targetId, approver, authToken } = authPromotionState;
+    if (!approver.trim()) {
+      alert('Explicit Human Approver name is required.');
       return;
     }
+
+    setAuthPromotionState((prev) => (prev ? { ...prev, loading: true } : null));
     try {
-      const res = await api.promoteEvolutionExperiment(idToPromote);
+      const res = await api.promoteEvolutionExperiment(targetId, {
+        approver: approver.trim(),
+        authToken: authToken.trim() || undefined,
+      });
+
+      setAuthPromotionState(null);
       if (res.success !== false) {
         setPromotionModal({
           isOpen: true,
           success: true,
           title: 'Successfully Pushed to Production!',
-          message: res.message || `Objective [${idToPromote}] has been fast-forward merged into production HEAD.`,
+          message: res.message || `Objective [${targetId}] has been fast-forward merged into production HEAD with verified human authority (${approver}).`,
           commitSha: res.commitSha || 'HEAD (Fast-Forwarded)',
           promotedAt: res.promotedAt || new Date().toLocaleString(),
         });
@@ -277,6 +304,7 @@ export const EvolutionMonitorView: React.FC = () => {
       }
       loadData();
     } catch (err: any) {
+      setAuthPromotionState(null);
       setPromotionModal({
         isOpen: true,
         success: false,
@@ -287,9 +315,7 @@ export const EvolutionMonitorView: React.FC = () => {
     }
   };
 
-
   const handleCreateObjective = async (e: React.FormEvent) => {
-
     e.preventDefault();
     try {
       const payload = {
@@ -332,16 +358,21 @@ export const EvolutionMonitorView: React.FC = () => {
   const isPaused = status?.safety?.isPaused;
   const selectedObjective = objectives.find((o) => o.id === selectedObjectiveId) || objectives[0] || null;
 
+  const supervisorRaw = status?.supervisors?.[0]?.status;
   const supervisorStatus = isEmergency
     ? 'LOCKED'
     : isPaused
     ? 'PAUSED'
-    : isLiveConnected || status
-    ? (status?.supervisors?.[0]?.status || 'ONLINE')
+    : supervisorRaw
+    ? supervisorRaw
+    : isLiveConnected
+    ? 'LOCAL_FALLBACK'
     : 'DISCONNECTED';
 
-  const supervisorColor = supervisorStatus === 'ONLINE'
+  const supervisorColor = supervisorStatus === 'EXTERNAL_CONNECTED' || supervisorStatus === 'ONLINE'
     ? '#059669'
+    : supervisorStatus === 'LOCAL_FALLBACK'
+    ? '#38bdf8'
     : supervisorStatus === 'PAUSED'
     ? '#d97706'
     : supervisorStatus === 'LOCKED'
@@ -842,29 +873,73 @@ export const EvolutionMonitorView: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', margin: '16px 0' }}>
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Build & Typecheck</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.testResults?.success || selectedExperiment.status === 'ACCEPTED' || selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'SUPERVISOR_REVIEW') ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {(selectedExperiment.testResults?.success || selectedExperiment.status === 'ACCEPTED' || selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'SUPERVISOR_REVIEW') ? '✓ Passed' : '✗ Failed'}
+                    <div
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color:
+                          selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'RUNNING'
+                            ? '#60a5fa'
+                            : selectedExperiment.status === 'SUPERVISOR_REVIEW'
+                            ? '#f59e0b'
+                            : selectedExperiment.testResults?.success === true || selectedExperiment.decision === 'ACCEPTED'
+                            ? '#10b981'
+                            : selectedExperiment.testResults?.success === false || selectedExperiment.decision === 'REJECTED'
+                            ? '#ef4444'
+                            : '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      {selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'RUNNING'
+                        ? '⏳ Running...'
+                        : selectedExperiment.status === 'SUPERVISOR_REVIEW'
+                        ? '⚖️ In Review'
+                        : selectedExperiment.testResults?.success === true || selectedExperiment.decision === 'ACCEPTED'
+                        ? '✓ Passed'
+                        : selectedExperiment.testResults?.success === false || selectedExperiment.decision === 'REJECTED'
+                        ? '✗ Failed'
+                        : '⚪ Pending'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Regressions</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.testResults?.success || selectedExperiment.testResults?.passed > 0) ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.testResults?.passed !== undefined ? `✓ ${selectedExperiment.testResults.passed} Passed` : selectedExperiment.testResults?.success ? '✓ 0 Regressions' : '✗ Regressions Found'}
+                    <div
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color:
+                          selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'RUNNING'
+                            ? '#60a5fa'
+                            : (selectedExperiment.testResults?.failed || 0) > 0
+                            ? '#ef4444'
+                            : selectedExperiment.testResults?.success
+                            ? '#10b981'
+                            : '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      {selectedExperiment.status === 'TESTING' || selectedExperiment.status === 'RUNNING'
+                        ? '⏳ Testing Suite'
+                        : selectedExperiment.testResults?.passed !== undefined
+                        ? `✓ ${selectedExperiment.testResults.passed} Passed`
+                        : selectedExperiment.testResults?.success
+                        ? '✓ 0 Regressions'
+                        : '⚪ Awaiting Run'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Benchmark Metric</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.benchmarkResults?.overallPassed !== false ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {selectedExperiment.benchmarkResults?.overallPassed !== false ? '✓ Target Advancing' : '✗ Metric Regressed'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.benchmarkResults?.overallPassed === true ? '#10b981' : selectedExperiment.benchmarkResults?.overallPassed === false ? '#ef4444' : '#94a3b8', marginTop: '4px' }}>
+                      {selectedExperiment.benchmarkResults?.overallPassed === true ? '✓ Target Advancing' : selectedExperiment.benchmarkResults?.overallPassed === false ? '✗ Metric Regressed' : '⚪ Benchmarking'}
                     </div>
                   </div>
 
                   <div style={{ background: 'rgba(30, 41, 59, 0.5)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>Security & Boundary</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: (selectedExperiment.securityResults?.passed !== false) ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                      {(selectedExperiment.securityResults?.passed !== false) ? '✓ Secure (In-Scope)' : '✗ Boundary Trigger'}
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: selectedExperiment.securityResults?.passed === true ? '#10b981' : selectedExperiment.securityResults?.passed === false ? '#ef4444' : '#94a3b8', marginTop: '4px' }}>
+                      {selectedExperiment.securityResults?.passed === true ? '✓ Secure (In-Scope)' : selectedExperiment.securityResults?.passed === false ? '✗ Boundary Trigger' : '⚪ Verifying'}
                     </div>
                   </div>
                 </div>
@@ -1097,6 +1172,112 @@ export const EvolutionMonitorView: React.FC = () => {
                 style={{ background: '#dc2626', border: 'none', color: '#fff', padding: '10px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 0 15px rgba(220, 38, 38, 0.6)' }}
               >
                 <ShieldAlert size={16} /> KILL TASKS & LOCK HṚṢĪKEŚA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Authenticated Push to Production Dialog */}
+      {authPromotionState && authPromotionState.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, animation: 'fadeIn 0.2s ease' }}>
+          <div style={{
+            background: '#0f172a',
+            border: '2px solid #10b981',
+            borderRadius: '16px',
+            padding: '28px',
+            maxWidth: '520px',
+            width: '90%',
+            boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                background: 'rgba(16, 185, 129, 0.2)',
+                border: '1px solid #10b981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#10b981',
+                fontSize: '22px'
+              }}>
+                👑
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#34d399' }}>
+                  Sovereign Production Promotion Gate
+                </h3>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  Target: <strong style={{ color: '#60a5fa' }}>{authPromotionState.targetId}</strong>
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5', margin: 0 }}>
+              Promoting this verified experiment will fast-forward merge the sandboxed mutations directly into production HEAD (<code style={{ color: '#38bdf8' }}>main</code>). This action requires human sovereign authorization.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(30, 41, 59, 0.6)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div>
+                <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                  HUMAN APPROVER IDENTITY *
+                </label>
+                <input
+                  type="text"
+                  value={authPromotionState.approver}
+                  onChange={(e) => setAuthPromotionState({ ...authPromotionState, approver: e.target.value })}
+                  placeholder="e.g. Rushikesh Pattiwar or ROOT_RUSHIKESH"
+                  style={{ width: '100%', padding: '8px 10px', background: '#0b1120', border: '1px solid #3b82f6', borderRadius: '6px', color: '#fff', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                  MASTER AUTHORIZATION KEY / PIN (IF CONFIGURED)
+                </label>
+                <input
+                  type="password"
+                  value={authPromotionState.authToken}
+                  onChange={(e) => setAuthPromotionState({ ...authPromotionState, authToken: e.target.value })}
+                  placeholder="Enter HRISEKESA_MASTER_KEY or leave blank for local identity sign-off"
+                  style={{ width: '100%', padding: '8px 10px', background: '#0b1120', border: '1px solid #475569', borderRadius: '6px', color: '#fff', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+              <button
+                onClick={() => setAuthPromotionState(null)}
+                disabled={authPromotionState.loading}
+                style={{ background: 'transparent', border: '1px solid #475569', color: '#94a3b8', padding: '9px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPromotion}
+                disabled={authPromotionState.loading || !authPromotionState.approver.trim()}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '9px 20px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)'
+                }}
+              >
+                <Award size={16} />
+                <span>{authPromotionState.loading ? 'Promoting...' : 'Authorize & Merge to Production'}</span>
               </button>
             </div>
           </div>

@@ -6,14 +6,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root,
-[data-theme="dark"],
-[data-theme="cosmic"],
-[data-theme="mahabharata"],
-[data-theme="shiva"],
-[data-theme="surya"],
-[data-theme="light"] {
-
-  /* Core Palette from Create Web UI Design */
+[data-theme="cosmic"] {
+  /* Core Palette: Traditional Amber Temple Stone & Imperial Gold */
   --color-background:     #0e0804;
   --color-surface:        #1a0f06;
   --color-surface-2:      #251508;
@@ -107,12 +101,207 @@
   --radius-lg: 18px;
   --radius-xl: 26px;
 
-  /* Vedic Cyberpunk & Temple Glow Tokens */
   --glow-cyan: 0 0 20px rgba(0, 196, 168, 0.45), 0 0 40px rgba(0, 196, 168, 0.2);
   --glow-gold: 0 0 20px rgba(200, 146, 14, 0.45), 0 0 40px rgba(232, 184, 48, 0.2);
   --parchment-bg: #FBF6EC;
   --parchment-border: #D8C3A0;
   --parchment-text: #2A1B0E;
+}
+
+/* Light Sandstone Theme */
+[data-theme="light"] {
+  --color-background:     #FBF6EA;
+  --color-surface:        #F4ECDA;
+  --color-surface-2:      #EBDDC2;
+  --color-surface-3:      #DFCCA6;
+  --color-border:         #D4BFA0;
+  --color-border-bright:  #BFA27E;
+  --color-gold:           #9A6A0B;
+  --color-gold-light:     #C8920E;
+  --color-gold-dim:       #6B4905;
+  --color-teal:           #008375;
+  --color-teal-dim:       #00574D;
+  --color-text:           #2A1B0E;
+  --color-text-muted:     #6B543D;
+  --color-text-bright:    #140B04;
+  --color-accent-red:     #C23B22;
+  --color-accent-blue:    #1A5699;
+
+  --bg-primary:       #FBF6EA;
+  --bg-secondary:     #F4ECDA;
+  --bg-tertiary:      #EBDDC2;
+  --bg-card:          rgba(244, 236, 218, 0.96);
+  --bg-card-hover:    rgba(235, 221, 194, 0.98);
+  --bg-elevated:      #EBDDC2;
+  --bg-glass:         rgba(244, 236, 218, 0.92);
+  --bg-input:         #FFFDF9;
+
+  --border-subtle:    rgba(212, 191, 160, 0.65);
+  --border-color:     #D4BFA0;
+  --border-accent:    #BFA27E;
+  --border-glow:      rgba(154, 106, 11, 0.30);
+  --border-gold:      #9A6A0B;
+  --border-teal:      #008375;
+
+  --text-primary:     #140B04;
+  --text-secondary:   #2A1B0E;
+  --text-muted:       #6B543D;
+  --text-highlight:   #9A6A0B;
+  --text-gold:        #9A6A0B;
+  --text-teal:        #008375;
+  --text-sanskrit:    #9A6A0B;
+  --text-cyan:        #008375;
+
+  --accent-saffron:         #9A6A0B;
+  --accent-saffron-light:   #C8920E;
+  --accent-saffron-glow:    rgba(154, 106, 11, 0.30);
+  --accent-gold:            #9A6A0B;
+  --accent-gold-bright:     #C8920E;
+  --accent-gold-glow:       rgba(154, 106, 11, 0.35);
+
+  --app-gradient: radial-gradient(ellipse at 50% 25%, #FFFDF7 0%, #F8F1DF 60%, #EFE3CE 100%);
+  --shadow-card: 0 4px 20px rgba(100, 70, 30, 0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Dark Obsidian Theme */
+[data-theme="dark"] {
+  --color-background:     #080604;
+  --color-surface:        #110C07;
+  --color-surface-2:      #19120B;
+  --color-surface-3:      #21180E;
+  --color-border:         #2B1F13;
+  --color-border-bright:  #42301D;
+  --color-gold:           #B8860B;
+  --color-gold-light:     #DAA520;
+  --color-gold-dim:       #6B4F06;
+  --color-teal:           #009688;
+  --color-teal-dim:       #004D40;
+  --color-text:           #D9CDB8;
+  --color-text-muted:     #786754;
+  --color-text-bright:    #F5ECD7;
+
+  --bg-primary:       #080604;
+  --bg-secondary:     #110C07;
+  --bg-tertiary:      #19120B;
+  --bg-card:          rgba(17, 12, 7, 0.96);
+  --bg-card-hover:    rgba(25, 18, 11, 0.98);
+  --bg-elevated:      #19120B;
+  --bg-glass:         rgba(17, 12, 7, 0.92);
+  --bg-input:         #0C0804;
+
+  --border-subtle:    rgba(43, 31, 19, 0.70);
+  --border-color:     #2B1F13;
+  --border-accent:    #42301D;
+  --text-primary:     #F5ECD7;
+  --text-secondary:   #D9CDB8;
+  --text-muted:       #786754;
+
+  --app-gradient: radial-gradient(ellipse at 50% 25%, #140E08 0%, #0B0805 60%, #050402 100%);
+}
+
+/* Palm Leaf Manuscript Theme */
+[data-theme="mahabharata"] {
+  --color-background:     #EFE3CE;
+  --color-surface:        #E4D4BB;
+  --color-surface-2:      #D7C2A3;
+  --color-surface-3:      #C9AE8B;
+  --color-border:         #B89A6E;
+  --color-border-bright:  #9E7E52;
+  --color-gold:           #8B5E0E;
+  --color-gold-light:     #B5801B;
+  --color-text:           #3D2712;
+  --color-text-muted:     #705437;
+  --color-text-bright:    #241508;
+
+  --bg-primary:       #EFE3CE;
+  --bg-secondary:     #E4D4BB;
+  --bg-tertiary:      #D7C2A3;
+  --bg-card:          rgba(228, 212, 187, 0.96);
+  --bg-elevated:      #D7C2A3;
+  --bg-input:         #FAF3E6;
+
+  --text-primary:     #241508;
+  --text-secondary:   #3D2712;
+  --text-muted:       #705437;
+  --text-highlight:   #8B5E0E;
+  --border-color:     #B89A6E;
+
+  --app-gradient: radial-gradient(ellipse at 50% 25%, #F7EFE0 0%, #EFE3CE 60%, #DFCCA6 100%);
+}
+
+/* Sacred Cosmic Indigo (Shiva) */
+[data-theme="shiva"] {
+  --color-background:     #080B14;
+  --color-surface:        #0F1523;
+  --color-surface-2:      #172036;
+  --color-surface-3:      #212E4D;
+  --color-border:         #1E293B;
+  --color-border-bright:  #334155;
+  --color-gold:           #60A5FA;
+  --color-gold-light:     #93C5FD;
+  --color-teal:           #38BDF8;
+  --color-text:           #CBD5E1;
+  --color-text-muted:     #64748B;
+  --color-text-bright:    #F8FAFC;
+
+  --bg-primary:       #080B14;
+  --bg-secondary:     #0F1523;
+  --bg-tertiary:      #172036;
+  --bg-card:          rgba(15, 21, 35, 0.95);
+  --bg-elevated:      #172036;
+  --bg-input:         #0A0E1A;
+
+  --text-primary:     #F8FAFC;
+  --text-secondary:   #CBD5E1;
+  --text-muted:       #64748B;
+  --border-color:     #1E293B;
+
+  --app-gradient: radial-gradient(ellipse at 50% 25%, #151D33 0%, #0B0E1B 60%, #05070D 100%);
+}
+
+/* Solar Amber (Surya) */
+[data-theme="surya"] {
+  --color-background:     #140A00;
+  --color-surface:        #241200;
+  --color-surface-2:      #331A00;
+  --color-border:         #4D2600;
+  --color-gold:           #FF9900;
+  --color-gold-light:     #FFB84D;
+  --color-text:           #FFE5B4;
+  --color-text-muted:     #B36B00;
+  --color-text-bright:    #FFF5E6;
+
+  --bg-primary:       #140A00;
+  --bg-secondary:     #241200;
+  --bg-tertiary:      #331A00;
+  --bg-card:          rgba(36, 18, 0, 0.95);
+  --bg-elevated:      #331A00;
+  --bg-input:         #1A0D00;
+
+  --text-primary:     #FFF5E6;
+  --text-secondary:   #FFE5B4;
+  --border-color:     #4D2600;
+
+  --app-gradient: radial-gradient(ellipse at 50% 25%, #2E1700 0%, #170C00 60%, #0A0500 100%);
+}
+
+/* Color Palette Overrides */
+[data-palette="beige-cyan"] {
+  --accent-saffron: #00E5FF;
+  --accent-gold: #00C4A8;
+  --text-gold: #00E5FF;
+}
+
+[data-palette="royal-blue"] {
+  --accent-saffron: #38BDF8;
+  --accent-gold: #1D4ED8;
+  --text-gold: #60A5FA;
+}
+
+[data-palette="earth-tones"] {
+  --accent-saffron: #D97706;
+  --accent-gold: #B45309;
+  --text-gold: #F59E0B;
 }
 
 /* Animations for Cosmic Yantra & Hologram */
@@ -204,7 +393,7 @@ body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
-  user-select: none;
+  user-select: text;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
@@ -1075,3 +1264,40 @@ tbody td { padding: 11px 14px; color: var(--text-secondary); vertical-align: mid
 .modal-overlay { position:fixed;inset:0;background:rgba(10,6,2,0.82);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center; }
 .modal-panel { background:var(--bg-elevated);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:30px;box-shadow:var(--shadow-lg),0 0 60px rgba(0,0,0,0.90);max-width:560px;width:100%;position:relative; }
 .modal-panel::before { content:'';position:absolute;top:0;left:24px;right:24px;height:2px;background:linear-gradient(90deg,transparent,var(--accent-gold),var(--accent-teal),transparent); }
+
+/* Accessibility: Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive Layout System */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    width: 200px !important;
+  }
+  .content-area {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column !important;
+  }
+  .app-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+  .content-area {
+    padding: 12px !important;
+  }
+}

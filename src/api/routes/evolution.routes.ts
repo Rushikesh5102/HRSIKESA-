@@ -6,6 +6,8 @@
  */
 
 import { IncomingMessage, ServerResponse } from 'node:http';
+import os from 'node:os';
+import fs from 'node:fs';
 import { EvolutionLoopEngine } from '../../self-improvement/evolution/engine/evolution-loop.engine.js';
 import { EventBus } from '../../core/events/event-bus.js';
 import { ResourceGovernor } from '../../core/hardware/resource.governor.js';
@@ -59,15 +61,49 @@ export class EvolutionRoutes {
         const rejectedCount = experiments.filter((e) => e.decision === 'REJECTED').length;
         const rolledBackCount = experiments.filter((e) => e.decision === 'ROLLED_BACK').length;
 
+        // Compute real CPU percentage from host CPU cores
+        let cpuPercent = 0;
+        try {
+          const cpus = os.cpus();
+          if (cpus && cpus.length > 0) {
+            let totalUser = 0;
+            let totalSys = 0;
+            let totalIdle = 0;
+            for (const cpu of cpus) {
+              totalUser += cpu.times.user;
+              totalSys += cpu.times.sys;
+              totalIdle += cpu.times.idle;
+            }
+            const total = totalUser + totalSys + totalIdle;
+            cpuPercent = total > 0 ? Number((((totalUser + totalSys) / total) * 100).toFixed(1)) : 0;
+          }
+        } catch {
+          cpuPercent = 0;
+        }
+
+        // Compute real disk usage in MB
+        let diskMb = 0;
+        try {
+          if (typeof (fs as any).statfsSync === 'function') {
+            const stats = (fs as any).statfsSync(process.cwd());
+            const usedBytes = (stats.blocks - stats.bfree) * stats.bsize;
+            diskMb = Math.round(usedBytes / (1024 * 1024));
+          } else {
+            diskMb = Math.round((hostMetrics ? hostMetrics.processRssMb : 0) * 2);
+          }
+        } catch {
+          diskMb = 0;
+        }
+
         const statusPayload = {
           activeObjective: activeObj || null,
           currentExperiment: latestExp || null,
           safety: safetyStatus,
           hostMetrics,
           resourceUsage: {
-            cpuPercent: hostMetrics ? (hostMetrics.usedMemoryPercentage > 0 ? hostMetrics.usedMemoryPercentage : 0) : 0,
-            memoryMb: hostMetrics ? (hostMetrics.totalMemoryBytes - hostMetrics.freeMemoryBytes) / (1024 * 1024) : 0,
-            diskMb: 128,
+            cpuPercent,
+            memoryMb: hostMetrics ? Math.round((hostMetrics.totalMemoryBytes - hostMetrics.freeMemoryBytes) / (1024 * 1024)) : 0,
+            diskMb,
           },
           metrics: {
             totalExperiments: experiments.length,
@@ -77,11 +113,14 @@ export class EvolutionRoutes {
           },
         };
 
+        const hasExternalEndpoint = Boolean(process.env.ANTIGRAVITY_SUPERVISOR_ENDPOINT);
         const supervisorStatus = safetyStatus.isEmergencyStopped
           ? 'LOCKED'
           : safetyStatus.isPaused
           ? 'PAUSED'
-          : 'ONLINE';
+          : hasExternalEndpoint
+          ? 'EXTERNAL_CONNECTED'
+          : 'LOCAL_FALLBACK';
 
         this.sendJson(res, 200, {
           success: true,
@@ -97,6 +136,7 @@ export class EvolutionRoutes {
               name: 'antigravity',
               status: supervisorStatus,
               focus: 'Code, Architecture, Regressions, Folder Scope & Sovereign Lock',
+              isExternal: hasExternalEndpoint,
             },
           ],
         });
@@ -240,17 +280,58 @@ export class EvolutionRoutes {
       }
 
       // 6d. GET /api/evolution/experiments/:id - Experiment Drill-Down
-      const expMatch = pathname.match(/^\/api\/evolution\/experiments\/([a-zA-Z0-9_-]+)$/);
-      if (method === 'GET' && expMatch) {
+      const expMatch = pathname.match(/^\/api\/evolution\/experiments\/([a-zA-Z0-9_-]+)(?:\/(promote))?$/);
+      if (expMatch) {
         const expId = expMatch[1];
-        const experiment = this.evolutionEngine.getExperiment(expId);
-        if (!experiment) {
-          this.sendJson(res, 404, { success: false, error: `Experiment '${expId}' not found.` });
+        const action = expMatch[2];
+
+        if (method === 'POST' && action === 'promote') {
+          const body = await this.parseJsonBody(req);
+          const authHeader = req.headers['authorization'] || '';
+          const providedToken = String(body.authToken || body.token || (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader) || '').trim();
+          const approver = String(body.approver || '').trim();
+
+          if (!approver) {
+            this.sendJson(res, 400, {
+              success: false,
+              error: 'Explicit human approver identity (e.g. "Rushikesh Pattiwar" or "ROOT_RUSHIKESH") is required for production promotion.',
+            });
+            return true;
+          }
+
+          // Enforce master authorization secret check if configured
+          const masterSecret = process.env.HRISEKESA_MASTER_KEY || process.env.HRISEKESA_PROMOTION_SECRET;
+          if (masterSecret && providedToken !== masterSecret) {
+            this.sendJson(res, 401, {
+              success: false,
+              error: 'Unauthorized: Production promotion requires valid human master authorization token.',
+            });
+            return true;
+          }
+
+          const resPromote = await this.evolutionEngine.promoteExperiment(expId, approver);
+          this.eventBus?.emit('audit.log' as any, {
+            type: 'PRODUCTION_PROMOTION',
+            targetId: expId,
+            approver,
+            timestamp: new Date().toISOString(),
+            ip: req.socket?.remoteAddress || '127.0.0.1',
+          });
+
+          this.sendJson(res, 200, resPromote);
           return true;
         }
-        const reviews = this.evolutionEngine.supervisorGateway.getReviewsForExperiment(expId);
-        this.sendJson(res, 200, { success: true, experiment, reviews });
-        return true;
+
+        if (method === 'GET' && !action) {
+          const experiment = this.evolutionEngine.getExperiment(expId);
+          if (!experiment) {
+            this.sendJson(res, 404, { success: false, error: `Experiment '${expId}' not found.` });
+            return true;
+          }
+          const reviews = this.evolutionEngine.supervisorGateway.getReviewsForExperiment(expId);
+          this.sendJson(res, 200, { success: true, experiment, reviews });
+          return true;
+        }
       }
 
       // 7. POST /api/evolution/experiments - Trigger experiment

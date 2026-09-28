@@ -542,10 +542,21 @@ export class HttpServer {
     const pathname = url.pathname;
     const method = req.method?.toUpperCase();
 
-    // CORS Headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // Restrict CORS Headers to localhost / local dev origins
+    const origin = req.headers.origin;
+    const isAllowedOrigin = typeof origin === 'string' && (
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.startsWith('http://[::1]:') ||
+      origin.startsWith('https://localhost:') ||
+      origin.startsWith('https://127.0.0.1:') ||
+      origin === 'http://localhost' ||
+      origin === 'http://127.0.0.1'
+    );
+    res.setHeader('Access-Control-Allow-Origin', isAllowedOrigin ? origin : 'http://localhost:5173');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
 
     if (method === 'OPTIONS') {
       res.writeHead(204);

@@ -61,43 +61,79 @@ export class EvolutionLoopEngine {
   private readonly eventBus?: EventBus;
   private readonly logger?: ILogger;
 
-  constructor(options: {
-    db: DatabaseManager;
-    gateway: SelfDevelopmentGateway;
-    worktreeManager: EvolutionWorktreeManager;
-    objectiveEngine: EvolutionObjectiveEngine;
-    supervisorGateway: SupervisorGateway;
-    safetyController: SafetyController;
-    trustTiers: TrustTierManager;
-    boundaryGuard: BoundaryGuard;
-    convergenceEngine?: EvolutionConvergenceEngine;
-    reportGenerator?: EvolutionReportGenerator;
-    codeSynthesizer?: EvolutionCodeSynthesizer;
-    modelRouter?: ModelRouter;
-    resourceGovernor?: ResourceGovernor;
-    eventBus?: EventBus;
-    logger?: ILogger;
-  }) {
-    this.db = dbManagerOrFallback(options.db);
-    this.gateway = options.gateway;
-    this.worktreeManager = options.worktreeManager;
-    this.objectiveEngine = options.objectiveEngine;
-    this.supervisorGateway = options.supervisorGateway;
-    this.safetyController = options.safetyController;
-    this.trustTiers = options.trustTiers;
-    this.boundaryGuard = options.boundaryGuard;
-    this.convergenceEngine = options.convergenceEngine || new EvolutionConvergenceEngine();
-    this.reportGenerator = options.reportGenerator || new EvolutionReportGenerator();
-    this.codeSynthesizer = options.codeSynthesizer || new EvolutionCodeSynthesizer({
-      repoRoot: options.gateway.repoRoot,
-      trustTiers: options.trustTiers,
-      boundaryGuard: options.boundaryGuard,
-      modelRouter: options.modelRouter,
-      logger: options.logger,
-    });
-    this.resourceGovernor = options.resourceGovernor;
-    this.eventBus = options.eventBus;
-    this.logger = typeof options.logger?.child === 'function' ? options.logger.child('EvolutionLoopEngine') : options.logger;
+  constructor(
+    optionsOrRepoRoot:
+      | {
+          db?: DatabaseManager;
+          gateway?: SelfDevelopmentGateway;
+          worktreeManager?: EvolutionWorktreeManager;
+          objectiveEngine?: EvolutionObjectiveEngine;
+          supervisorGateway?: SupervisorGateway;
+          safetyController?: SafetyController;
+          trustTiers?: TrustTierManager;
+          boundaryGuard?: BoundaryGuard;
+          convergenceEngine?: EvolutionConvergenceEngine;
+          reportGenerator?: EvolutionReportGenerator;
+          codeSynthesizer?: EvolutionCodeSynthesizer;
+          modelRouter?: ModelRouter;
+          resourceGovernor?: ResourceGovernor;
+          eventBus?: EventBus;
+          logger?: ILogger;
+        }
+      | string,
+    gateway?: SelfDevelopmentGateway,
+    worktreeManager?: EvolutionWorktreeManager,
+    supervisorGateway?: SupervisorGateway,
+    safetyController?: SafetyController,
+    objectiveEngine?: EvolutionObjectiveEngine,
+    convergenceEngine?: EvolutionConvergenceEngine,
+    reportGenerator?: EvolutionReportGenerator,
+    resourceGovernor?: ResourceGovernor,
+    db?: DatabaseManager,
+    eventBus?: EventBus
+  ) {
+    if (typeof optionsOrRepoRoot === 'string') {
+      const repoRoot = optionsOrRepoRoot;
+      this.db = db!;
+      this.gateway = gateway!;
+      this.worktreeManager = worktreeManager!;
+      this.supervisorGateway = supervisorGateway!;
+      this.safetyController = safetyController!;
+      this.objectiveEngine = objectiveEngine!;
+      this.trustTiers = (gateway as any)?.trustTiers || new TrustTierManager();
+      this.boundaryGuard = (gateway as any)?.boundaryGuard || new BoundaryGuard(repoRoot);
+      this.convergenceEngine = convergenceEngine || new EvolutionConvergenceEngine();
+      this.reportGenerator = reportGenerator || new EvolutionReportGenerator(repoRoot);
+      this.codeSynthesizer = new EvolutionCodeSynthesizer({
+        repoRoot,
+        trustTiers: this.trustTiers,
+        boundaryGuard: this.boundaryGuard,
+      });
+      this.resourceGovernor = resourceGovernor;
+      this.eventBus = eventBus;
+    } else {
+      const opts = optionsOrRepoRoot || {};
+      this.db = opts.db!;
+      this.gateway = opts.gateway!;
+      this.worktreeManager = opts.worktreeManager!;
+      this.objectiveEngine = opts.objectiveEngine!;
+      this.supervisorGateway = opts.supervisorGateway!;
+      this.safetyController = opts.safetyController!;
+      this.trustTiers = opts.trustTiers || (opts.gateway as any)?.trustTiers || new TrustTierManager();
+      this.boundaryGuard = opts.boundaryGuard || (opts.gateway as any)?.boundaryGuard || new BoundaryGuard(opts.gateway?.repoRoot || process.cwd());
+      this.convergenceEngine = opts.convergenceEngine || new EvolutionConvergenceEngine();
+      this.reportGenerator = opts.reportGenerator || new EvolutionReportGenerator(opts.gateway?.repoRoot);
+      this.codeSynthesizer = opts.codeSynthesizer || new EvolutionCodeSynthesizer({
+        repoRoot: opts.gateway?.repoRoot || process.cwd(),
+        trustTiers: this.trustTiers,
+        boundaryGuard: this.boundaryGuard,
+        modelRouter: opts.modelRouter,
+        logger: opts.logger,
+      });
+      this.resourceGovernor = opts.resourceGovernor;
+      this.eventBus = opts.eventBus;
+      this.logger = typeof opts.logger?.child === 'function' ? opts.logger.child('EvolutionLoopEngine') : opts.logger;
+    }
   }
 
   private readonly activeLoops: Set<string> = new Set();
@@ -964,8 +1000,4 @@ export class EvolutionLoopEngine {
       timestamp: new Date().toISOString(),
     });
   }
-}
-
-function dbManagerOrFallback(db: DatabaseManager): DatabaseManager {
-  return db;
 }

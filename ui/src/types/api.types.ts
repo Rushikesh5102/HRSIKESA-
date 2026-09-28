@@ -1,6 +1,8 @@
 export interface HealthResponse {
   status: string;
   uptime: number;
+  lifecycleState?: string;
+  model?: string;
   memory: {
     rss: number;
     heapTotal: number;
@@ -52,11 +54,23 @@ export interface SystemStatusResponse {
       heapUsedMb: number;
       heapTotalMb: number;
     };
+    gpu?: any;
+    governorState?: string;
   };
   metrics?: {
     cpuPercent?: number;
     freeMemMB?: number;
     totalMemMB?: number;
+  };
+  workers?: {
+    active?: number;
+    total?: number;
+    max?: number;
+  };
+  models?: {
+    active?: string;
+    default?: string;
+    provider?: string;
   };
 }
 
@@ -86,6 +100,7 @@ export interface TaskInfo {
   dependencies?: string[];
   retryCount?: number;
   maxRetries?: number;
+  model?: string;
   verificationStrategy?: {
     type: string;
     target?: string;

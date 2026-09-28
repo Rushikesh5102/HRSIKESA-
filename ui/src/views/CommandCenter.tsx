@@ -193,10 +193,10 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                   ⚡ ACTIVE EXECUTION
                 </span>
                 <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)', fontFamily: 'monospace' }}>
-                  tool: {activeTask?.toolUsage?.[0] || 'filesystem.write'}
+                  tool: {activeTask?.toolUsage?.[0] || 'active execution'}
                 </span>
                 <span style={{ fontSize: '11px', color: 'var(--text-gold)', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)', fontFamily: 'monospace' }}>
-                  model: qwen2.5:7b (Ollama)
+                  model: {activeTask?.model || status?.models?.active || 'Runtime Default'}
                 </span>
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -540,7 +540,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
               alignItems: 'center',
               transition: 'color 0.2s',
             }}
-            title="Voice Input"
+            title="Voice Input (Navigate to Chat Voice Interface)"
           >
             <Mic size={19} />
           </button>
@@ -639,14 +639,14 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                   <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>
                     {'progress' in currentWorkItem && typeof currentWorkItem.progress === 'number'
                       ? `${Math.round(currentWorkItem.progress)}%`
-                      : 'In Progress'}
+                      : 'Awaiting measurement'}
                   </span>
                 </div>
                 <div style={{ width: '100%', height: '7px', background: 'var(--bg-elevated)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div
                     style={{
                       height: '100%',
-                      width: `${'progress' in currentWorkItem && typeof currentWorkItem.progress === 'number' ? currentWorkItem.progress : 50}%`,
+                      width: `${'progress' in currentWorkItem && typeof currentWorkItem.progress === 'number' ? Math.min(100, Math.max(0, currentWorkItem.progress)) : 0}%`,
                       background: 'linear-gradient(90deg, var(--accent-saffron), var(--accent-gold))',
                       borderRadius: '4px',
                     }}
@@ -772,23 +772,27 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
           <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Primary Control Node</div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-              Intel Core Ultra 125H (14C/18T)
+              {status?.hardware?.cpu?.model || 'Sovereign Host Processor'}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#10b981', marginTop: '2px' }}>Vulkan Intel Arc Active</div>
+            <div style={{ fontSize: '11.5px', color: '#10b981', marginTop: '2px' }}>
+              {status?.hardware?.gpu?.name ? `${status.hardware.gpu.name} Active` : 'Hardware Acceleration Active'}
+            </div>
           </div>
           <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Host Memory State</div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
               {status?.hardware?.memory?.usedPercentage ? `${status.hardware.memory.usedPercentage}% Committed` : 'Nominal (~16GB)'}
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-gold)', marginTop: '2px' }}>Governor: NORMAL</div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-gold)', marginTop: '2px' }}>
+              {status?.hardware?.governorState ? `Governor: ${status.hardware.governorState}` : 'Governor: ACTIVE'}
+            </div>
           </div>
           <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Worker Nodes</div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-              Local Node Active
+              {status?.workers?.active !== undefined ? `${status.workers.active} Workers Connected` : 'Local Compute Fabric'}
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>LAN Auto-pairing Ready</div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>Local & LAN Mesh Ready</div>
           </div>
           <div style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Execution Policy</div>
@@ -823,7 +827,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Model Engine</div>
             <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              {health?.status === 'ok' ? 'qwen2.5:7b (Local)' : 'Local LLM Active'}
+              {status?.models?.active || health?.model || 'Adaptive Model Router'}
             </div>
           </div>
         </div>

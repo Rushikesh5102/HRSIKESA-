@@ -138,18 +138,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       isActive: currentTab === 'companies',
     },
     {
-      id: 'missions',
-      label: 'Projects',
-      icon: <Target size={17} />,
-      badge: projectsCount > 0 ? `${projectsCount} Active` : activeMissionsCount > 0 ? `${activeMissionsCount} Active` : '0',
-      isActive: currentTab === 'missions',
-    },
-    {
       id: 'work',
-      label: 'Missions',
+      label: 'Work & Goals',
       icon: <CheckSquare size={17} />,
       badge: activeWorkTotal > 0 ? `${activeWorkTotal} Run.` : '0',
       isActive: isWorkActive,
+    },
+    {
+      id: 'missions',
+      label: 'Mission Control',
+      icon: <Target size={17} />,
+      badge: activeMissionsCount > 0 ? `${activeMissionsCount} Active` : projectsCount > 0 ? `${projectsCount} Proj.` : '0',
+      isActive: currentTab === 'missions',
     },
     {
       id: 'knowledge',

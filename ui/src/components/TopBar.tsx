@@ -534,7 +534,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               cursor: 'pointer',
             }}
           >
-            ⌘K
+            {typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘K' : 'Ctrl K'}
           </span>
         </div>
 

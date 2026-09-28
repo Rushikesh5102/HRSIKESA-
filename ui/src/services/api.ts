@@ -78,7 +78,8 @@ export const api = {
     preferredModel: string | undefined,
     preferredProvider: string | undefined,
     onToken: (token: string) => void,
-    responseMode?: 'CONCISE' | 'NORMAL' | 'DETAILED' | 'DEEP'
+    responseMode?: 'CONCISE' | 'NORMAL' | 'DETAILED' | 'DEEP',
+    signal?: AbortSignal
   ): Promise<{ response: string; sessionId: string; model?: string; provider?: string; durationMs?: number; responseMode?: string; metrics?: any }> => {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -93,7 +94,8 @@ export const api = {
         preferredProvider,
         responseMode,
         stream: true
-      })
+      }),
+      signal
     });
 
     if (!response.ok) {
@@ -167,9 +169,9 @@ export const api = {
   getConversation: (id: string) =>
     fetchJson<{ success: boolean; session: any; messages: any[] }>(`${API_BASE}/conversations/${encodeURIComponent(id)}`),
   deleteConversation: (id: string) =>
-    fetchJson<{ success: boolean }>(`${API_BASE}/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => ({ success: true })),
+    fetchJson<{ success: boolean }>(`${API_BASE}/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   clearAllConversations: () =>
-    fetchJson<{ success: boolean; deletedCount?: number }>(`${API_BASE}/conversations`, { method: 'DELETE' }).catch(() => ({ success: true })),
+    fetchJson<{ success: boolean; deletedCount?: number }>(`${API_BASE}/conversations`, { method: 'DELETE' }),
 
   // Agents
   getAgents: () => fetchJson<{ agents: AgentInfo[] }>(`${API_BASE}/agents`),
@@ -1362,8 +1364,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ reason: reason || 'Sovereign Creator Directive: Instant Emergency Stop (RUSHIKESH)' }),
     }),
-  promoteEvolutionExperiment: (id: string) =>
-    fetchJson<any>(`${API_BASE}/api/evolution/experiments/${id}/promote`, { method: 'POST' }),
+  promoteEvolutionExperiment: (id: string, payload?: { approver?: string; authToken?: string }) =>
+    fetchJson<any>(`${API_BASE}/api/evolution/experiments/${id}/promote`, {
+      method: 'POST',
+      body: JSON.stringify(payload || {}),
+    }),
   subscribeEvolutionEvents: (onMessage: (event: any) => void, onError?: (err: any) => void) => {
     const eventSource = new EventSource(`${API_BASE}/api/evolution/events`);
     

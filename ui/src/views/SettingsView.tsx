@@ -43,10 +43,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onSetTheme,
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('APPEARANCE');
-  const [sanskritLabels, setSanskritLabels] = useState(true);
-  const [ambientSounds, setAmbientSounds] = useState(true);
-  const [animatedEffects, setAnimatedEffects] = useState(true);
-  const [activePalette, setActivePalette] = useState('saffron-gold');
+  const [sanskritLabels, setSanskritLabels] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hrisekesa_sanskrit_labels');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+  const [ambientSounds, setAmbientSounds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hrisekesa_ambient_sounds');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+  const [animatedEffects, setAnimatedEffects] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hrisekesa_animated_effects');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+  const [activePalette, setActivePalette] = useState(() => {
+    try {
+      return localStorage.getItem('hrisekesa_palette') || 'saffron-gold';
+    } catch {
+      return 'saffron-gold';
+    }
+  });
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('hrisekesa_sanskrit_labels', String(sanskritLabels));
+    } catch (e) {
+      console.warn('Failed to save sanskritLabels to localStorage', e);
+    }
+  }, [sanskritLabels]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('hrisekesa_ambient_sounds', String(ambientSounds));
+    } catch (e) {
+      console.warn('Failed to save ambientSounds to localStorage', e);
+    }
+  }, [ambientSounds]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('hrisekesa_animated_effects', String(animatedEffects));
+    } catch (e) {
+      console.warn('Failed to save animatedEffects to localStorage', e);
+    }
+  }, [animatedEffects]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('hrisekesa_palette', activePalette);
+      document.documentElement.setAttribute('data-palette', activePalette);
+    } catch (e) {
+      console.warn('Failed to save palette to localStorage', e);
+    }
+  }, [activePalette]);
 
   const categories: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'GENERAL', label: 'General', icon: <User size={15} /> },
@@ -106,9 +166,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                 Settings
               </h1>
-              <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                विन्यास
-              </span>
+              {sanskritLabels && (
+                <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
+                  विन्यास
+                </span>
+              )}
             </div>
             <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
               Configure appearance, theme palettes, audio engines, and sovereign kernel behavior.
@@ -402,14 +464,157 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <VoiceSettingsSection />
           )}
 
-          {activeTab !== 'APPEARANCE' && activeTab !== 'AUDIO' && (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
-                {activeTab} Settings
+          {activeTab === 'GENERAL' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  General System Configuration
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  Sovereign runtime identification, uptime metrics, and process telemetry
+                </span>
               </div>
-              <p style={{ fontSize: '13px' }}>
-                All sovereign kernel parameters for {activeTab.toLowerCase()} are verified and operational.
-              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', fontWeight: 700 }}>SOVEREIGN KERNEL</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#2A1A0B', marginTop: '4px' }}>HṚṢĪKEŚA v1.0.0</div>
+                  <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>● Status: Operational</div>
+                </div>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', fontWeight: 700 }}>ENVIRONMENT RUNTIME</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#2A1A0B', marginTop: '4px' }}>Node.js / Vite + React</div>
+                  <div style={{ fontSize: '11px', color: '#5C4028', marginTop: '2px' }}>Architecture: x64 Sovereign</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'AGENTS' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  Agent Workforce Governance
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  Autonomy ceilings, concurrency governors, and heartbeat policies
+                </span>
+              </div>
+              <div style={{ background: '#F5ECE0', padding: '16px', borderRadius: '8px', border: '1px solid #D6BC97', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#2A1A0B' }}>Council Deliberation Quorum</div>
+                    <div style={{ fontSize: '11px', color: '#7A5B36' }}>Minimum agent consensus required for autonomous mission initiation</div>
+                  </div>
+                  <span style={{ fontWeight: 800, color: '#996515', fontSize: '14px' }}>3 Agents</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E8D8BE', paddingTop: '10px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#2A1A0B' }}>Max Concurrent Active Subagents</div>
+                    <div style={{ fontSize: '11px', color: '#7A5B36' }}>Upper bound on parallel worker thread execution</div>
+                  </div>
+                  <span style={{ fontWeight: 800, color: '#996515', fontSize: '14px' }}>8 Workers</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'COMPANIES' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  Corporate & Organizational Structure
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  Multi-entity enterprise hierarchies and divisional sandboxes
+                </span>
+              </div>
+              <div style={{ background: '#F5ECE0', padding: '16px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#2A1A0B' }}>Active Operating Entities</div>
+                <div style={{ fontSize: '11px', color: '#7A5B36', marginTop: '2px' }}>Isolated workspaces for multi-company operations and sovereign subsidiaries.</div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'MODELS' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  Model Routing & Inference Engines
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  Local Ollama instances, cloud fallbacks, and embedding models
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', fontWeight: 700 }}>LOCAL INFERENCE</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#2A1A0B', marginTop: '4px' }}>Ollama Local Engine</div>
+                  <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>Default Endpoint: localhost:11434</div>
+                </div>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', fontWeight: 700 }}>VECTOR EMBEDDINGS</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#2A1A0B', marginTop: '4px' }}>Nomic / HuggingFace Local</div>
+                  <div style={{ fontSize: '11px', color: '#5C4028', marginTop: '2px' }}>Fallback: Hybrid BM25 SQLite</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'SECURITY' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  Security & Human-in-the-Loop Authority
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  Authentication gates, elevation secrets, and promotion verification
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Shield size={16} color="#D4820A" />
+                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#2A1A0B' }}>Self-Evolution Promotion Gate</div>
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#7A5B36', marginTop: '4px' }}>
+                    Requires explicit human signature and HRISEKESA_MASTER_KEY or HRISEKESA_PROMOTION_SECRET before any autonomous code mutation is merged to production.
+                  </div>
+                </div>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Shield size={16} color="#10B981" />
+                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#2A1A0B' }}>Local Origin Restriction (CORS)</div>
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#7A5B36', marginTop: '4px' }}>
+                    API endpoints strictly bound to local origin addresses (localhost, 127.0.0.1) to prevent external cross-origin exploitation.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'INTEGRATIONS' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ borderBottom: '1.5px solid #D6BC97', paddingBottom: '12px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)' }}>
+                  External Bridges & Integrations
+                </h2>
+                <span style={{ fontSize: '12px', color: '#7A5B36' }}>
+                  MCP Server nodes, GitHub Git sync, and communication bridges
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#2A1A0B' }}>Model Context Protocol (MCP)</div>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', marginTop: '2px' }}>Standardized JSON-RPC tool bridge</div>
+                  <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px' }}>● Ready for connection</div>
+                </div>
+                <div style={{ background: '#F5ECE0', padding: '14px', borderRadius: '8px', border: '1px solid #D6BC97' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#2A1A0B' }}>Git Version Control</div>
+                  <div style={{ fontSize: '11px', color: '#7A5B36', marginTop: '2px' }}>Local repository tracking</div>
+                  <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px' }}>● Worktree isolation active</div>
+                </div>
+              </div>
             </div>
           )}
         </div>

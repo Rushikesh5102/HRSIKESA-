@@ -145,6 +145,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const shouldKeepListeningRef = useRef(false);
   const isVoiceToVoiceRef = useRef(isVoiceToVoice);
   isVoiceToVoiceRef.current = isVoiceToVoice;
@@ -366,6 +367,32 @@ export const ChatView: React.FC<ChatViewProps> = ({
     return () => clearInterval(interval);
   }, [loading]);
 
+  // Cancel in-flight model execution
+  const handleStopExecution = useCallback(() => {
+    stopSpeech();
+    stopListening();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+    setMessages((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last && last.role === 'assistant' && last.streaming) {
+        return [
+          ...updated.slice(0, -1),
+          {
+            ...last,
+            streaming: false,
+            content: (last.content || '') + '\n\n*(Generation stopped by user)*',
+          },
+        ];
+      }
+      return updated;
+    });
+  }, [stopSpeech, stopListening]);
+
   // Send message
   const handleSendMessage = async (textToSend: string) => {
     const trimmed = textToSend.trim();
@@ -382,6 +409,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     // If a non-English Indian language is chosen, append guidance to response in that language
     let promptWithLang = trimmed;
@@ -414,7 +444,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
             prev.map((m) => (m.id === astMsgId ? { ...m, content: m.content + token } : m))
           );
         },
-        responseMode
+        responseMode,
+        abortController.signal
       );
 
       const durationMs = Date.now() - startTime;
@@ -445,6 +476,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
         });
       }
     } catch (err: any) {
+      if (err.name === 'AbortError' || abortController.signal.aborted) {
+        return;
+      }
       const errMsg = err.message || 'I had trouble formulating a response.';
       setError(errMsg);
       setMessages((prev) =>
@@ -464,6 +498,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         startListening();
       }
     } finally {
+      abortControllerRef.current = null;
       setLoading(false);
     }
   };
@@ -477,6 +512,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const handleNewChat = () => {
     stopSpeech();
     stopListening();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     const newSession = `session-${Date.now()}`;
     setSessionId(newSession);
     setMessages([
@@ -485,7 +523,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
         role: 'assistant',
         content: 'HṚṢĪKEŚA Sovereign Control Plane online. Multi-agent workforce and governed tool bus active. How may I serve you, Master Rushikesh?',
         timestamp: new Date().toISOString(),
-        model: 'qwen2.5:7b',
       },
     ]);
   };
@@ -495,6 +532,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
     if (sId === sessionId) return;
     stopSpeech();
     stopListening();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setSessionId(sId);
     setLoading(true);
     try {
@@ -517,7 +557,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
             role: 'assistant',
             content: `Switched to workspace session: "${matched?.title || sId}". Ready to continue.`,
             timestamp: new Date().toISOString(),
-            model: 'gpt-4o',
           },
         ]);
       }
@@ -1372,15 +1411,38 @@ export const ChatView: React.FC<ChatViewProps> = ({
               disabled={loading}
             />
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ padding: '9px 18px', fontSize: '13.5px' }}
-              disabled={!input.trim() || loading}
-            >
-              <span>Send</span>
-              <Send size={15} />
-            </button>
+            {loading ? (
+              <button
+                type="button"
+                onClick={handleStopExecution}
+                className="btn"
+                style={{
+                  padding: '9px 16px',
+                  fontSize: '13.5px',
+                  background: 'linear-gradient(135deg, #dc2626, #991b1b)',
+                  color: '#fff',
+                  border: '1px solid #ef4444',
+                  boxShadow: '0 0 12px rgba(220, 38, 38, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+                title="Interrupt and cancel model generation"
+              >
+                <StopCircle size={15} />
+                <span>Stop</span>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ padding: '9px 18px', fontSize: '13.5px' }}
+                disabled={!input.trim()}
+              >
+                <span>Send</span>
+                <Send size={15} />
+              </button>
+            )}
           </form>
         </IndianFrame>
       </div>

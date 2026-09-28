@@ -145,9 +145,10 @@ export const App: React.FC = () => {
       content:
         'HṚṢĪKEŚA Sovereign Control Plane online. Multi-agent workforce and governed tool bus active. How may I serve you, Master Rushikesh?',
       timestamp: new Date().toISOString(),
-      model: 'qwen2.5:7b',
     },
   ]);
+
+  const [projectsCount, setProjectsCount] = useState<number>(0);
 
   const loadAllData = useCallback(async () => {
     try {
@@ -167,6 +168,7 @@ export const App: React.FC = () => {
         auditRes,
         companiesRes,
         knowledgeRes,
+        projectsRes,
       ] = await Promise.allSettled([
         api.getHealth(),
         api.getStatus(),
@@ -183,9 +185,14 @@ export const App: React.FC = () => {
         api.getAudit(),
         api.getCompanies(),
         api.getKnowledgeEntities(),
+        api.getProjects(),
       ]);
 
-      if (healthRes.status === 'fulfilled') setHealth(healthRes.value);
+      let isHealthy = false;
+      if (healthRes.status === 'fulfilled' && healthRes.value) {
+        setHealth(healthRes.value);
+        isHealthy = healthRes.value.status === 'ok' || healthRes.value.lifecycleState === 'READY';
+      }
       if (statusRes.status === 'fulfilled') setStatus(statusRes.value);
       if (agentsRes.status === 'fulfilled') setAgents(agentsRes.value.agents || []);
       if (missionsRes.status === 'fulfilled') setMissions(missionsRes.value.missions || []);
@@ -200,8 +207,10 @@ export const App: React.FC = () => {
       if (auditRes.status === 'fulfilled') setAuditLogs(auditRes.value.logs || []);
       if (companiesRes.status === 'fulfilled') setCompaniesCount(companiesRes.value.companies?.length || 0);
       if (knowledgeRes.status === 'fulfilled') setKnowledgeCount(knowledgeRes.value.entities?.length || 0);
+      if (projectsRes.status === 'fulfilled') setProjectsCount(projectsRes.value.projects?.length || 0);
 
-      setSystemOnline(true);
+      // System online is derived strictly from real /health response
+      setSystemOnline(isHealthy);
     } catch (err) {
       console.error('Failed to load system data', err);
       setSystemOnline(false);
@@ -228,7 +237,13 @@ export const App: React.FC = () => {
 
     // Conservative polling for health & approvals every 10 seconds
     const interval = setInterval(() => {
-      api.getHealth().then(setHealth).catch(() => setSystemOnline(false));
+      api
+        .getHealth()
+        .then((res) => {
+          setHealth(res);
+          setSystemOnline(res.status === 'ok' || res.lifecycleState === 'READY');
+        })
+        .catch(() => setSystemOnline(false));
       api.getApprovals().then((res) => setApprovals(res.approvals || [])).catch(() => {});
     }, 10000);
 
@@ -246,7 +261,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // Seamless prompt handover from Home screen command box to Chat
+  // Seamless prompt handover from Home screen command box to Chat (streaming enabled)
   const handleStartPromptFromHome = (promptText: string) => {
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -255,31 +270,52 @@ export const App: React.FC = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const astMsgId = `ast-${Date.now()}`;
+    const initialAssistantMsg: ChatMessage = {
+      id: astMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
+      streaming: true,
+    };
+
+    setMessages((prev) => [...prev, userMsg, initialAssistantMsg]);
     setCurrentTab('chat');
 
     api
-      .sendChat(promptText, sessionId)
+      .streamChat(promptText, sessionId, undefined, undefined, (token) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === astMsgId ? { ...m, content: m.content + token } : m))
+        );
+      })
       .then((res) => {
-        const assistantMsg: ChatMessage = {
-          id: `ast-${Date.now()}`,
-          role: 'assistant',
-          content: res.response,
-          timestamp: new Date().toISOString(),
-          model: res.model || 'qwen2.5:7b',
-          durationMs: res.durationMs,
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === astMsgId
+              ? {
+                  ...m,
+                  content: res.response || m.content,
+                  model: res.model,
+                  durationMs: res.durationMs,
+                  streaming: false,
+                }
+              : m
+          )
+        );
       })
       .catch((err) => {
-        const errorMsg: ChatMessage = {
-          id: `err-${Date.now()}`,
-          role: 'assistant',
-          content: `Something went wrong.\n\nWhat happened:\n${err.message || String(err)}`,
-          timestamp: new Date().toISOString(),
-          error: true,
-        };
-        setMessages((prev) => [...prev, errorMsg]);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === astMsgId
+              ? {
+                  ...m,
+                  content: `Something went wrong.\n\nWhat happened:\n${err.message || String(err)}`,
+                  error: true,
+                  streaming: false,
+                }
+              : m
+          )
+        );
       });
   };
 
@@ -295,10 +331,11 @@ export const App: React.FC = () => {
         onSelectTab={setCurrentTab}
         pendingApprovalsCount={pendingApprovalsCount}
         activeAgentsCount={activeAgentsCount}
-        totalAgentsCount={agents.length || 17}
+        totalAgentsCount={agents.length}
         activeGoalsCount={activeGoalsCount}
         activeMissionsCount={activeMissionsCount}
         companiesCount={companiesCount}
+        projectsCount={projectsCount}
         knowledgeCount={knowledgeCount}
       />
 
