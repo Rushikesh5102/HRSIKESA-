@@ -16,7 +16,7 @@ import { ChatMessage, ChatRequest, ToolDefinition } from '../../models/interface
 import { ILogger } from '../../core/logging/logger.types.js';
 import { EventBus } from '../../core/events/event-bus.js';
 
-const MAX_TOOL_ITERATIONS = 3;
+const MAX_TOOL_ITERATIONS = 25;
 
 export class AgentRuntime {
   private readonly agentRegistry: AgentRegistry;
@@ -209,7 +209,7 @@ export class AgentRuntime {
           preferredModel: agent.modelPreference.preferredModelId,
           preferredProvider: agent.modelPreference.preferredProviderId,
           tools: permittedTools.length > 0 ? permittedTools : undefined,
-          maxTokens: 256,
+          maxTokens: 4096,
           timeoutMs: 90000
         };
 

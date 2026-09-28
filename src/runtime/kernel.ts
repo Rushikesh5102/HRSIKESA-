@@ -17,6 +17,10 @@ import { OllamaProvider } from '../models/providers/ollama.provider.js';
 import { OpenAIProvider } from '../models/providers/openai.provider.js';
 import { AnthropicProvider } from '../models/providers/anthropic.provider.js';
 import { GeminiProvider } from '../models/providers/gemini.provider.js';
+import { GroqProvider } from '../models/providers/groq.provider.js';
+import { OpenRouterProvider } from '../models/providers/openrouter.provider.js';
+import { NvidiaProvider } from '../models/providers/nvidia.provider.js';
+import { OrcaProvider } from '../models/providers/orca.provider.js';
 import { HttpServer } from '../api/http.server.js';
 import { AppConfig } from '../core/configuration/config.types.js';
 import { SessionManager } from '../conversation/session.manager.js';
@@ -1671,11 +1675,19 @@ export class HrisekesaKernel {
       const openaiProvider = new OpenAIProvider(config.cloud.openaiApiKey);
       const anthropicProvider = new AnthropicProvider(config.cloud.anthropicApiKey);
       const geminiProvider = new GeminiProvider(config.cloud.geminiApiKey);
+      const groqProvider = new GroqProvider(config.cloud.groqApiKey);
+      const openrouterProvider = new OpenRouterProvider(config.cloud.openrouterApiKey);
+      const nvidiaProvider = new NvidiaProvider(config.cloud.nvidiaApiKey);
+      const orcaProvider = new OrcaProvider(config.cloud.orcaApiKey, config.cloud.orcaBackupApiKey);
 
       await this.registry.registerProvider(ollamaProvider);
       await this.registry.registerProvider(openaiProvider);
       await this.registry.registerProvider(anthropicProvider);
       await this.registry.registerProvider(geminiProvider);
+      await this.registry.registerProvider(groqProvider);
+      await this.registry.registerProvider(openrouterProvider);
+      await this.registry.registerProvider(nvidiaProvider);
+      await this.registry.registerProvider(orcaProvider);
 
       // Phase 12: Initialize semantic indexer (non-blocking)
       await this.semanticIndexer.initialize();

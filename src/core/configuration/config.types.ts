@@ -22,6 +22,11 @@ export interface CloudCredentialsConfig {
   readonly openaiApiKey?: string;
   readonly anthropicApiKey?: string;
   readonly geminiApiKey?: string;
+  readonly openrouterApiKey?: string;
+  readonly nvidiaApiKey?: string;
+  readonly groqApiKey?: string;
+  readonly orcaApiKey?: string;
+  readonly orcaBackupApiKey?: string;
 }
 
 export interface HardwareLimitsConfig {

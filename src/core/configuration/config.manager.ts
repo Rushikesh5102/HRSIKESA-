@@ -43,7 +43,12 @@ export class ConfigManager {
       cloud: Object.freeze({
         openaiApiKey: env.OPENAI_API_KEY?.trim() || undefined,
         anthropicApiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
-        geminiApiKey: env.GEMINI_API_KEY?.trim() || undefined
+        geminiApiKey: env.GEMINI_API_KEY?.trim() || env.GOOGLE_API_KEY?.trim() || undefined,
+        openrouterApiKey: env.OPENROUTER_API_KEY?.trim() || undefined,
+        nvidiaApiKey: env.NVIDIA_API_KEY?.trim() || undefined,
+        groqApiKey: env.GROQ_API_KEY?.trim() || undefined,
+        orcaApiKey: env.ORCA_API_KEY?.trim() || undefined,
+        orcaBackupApiKey: env.ORCA_BACKUP_KEY?.trim() || undefined
       }),
       hardwareLimits: Object.freeze({
         maxConcurrentLocalInference: 1, // Strict ADR-006 budget
