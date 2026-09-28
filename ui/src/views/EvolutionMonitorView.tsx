@@ -249,7 +249,7 @@ export const EvolutionMonitorView: React.FC = () => {
   };
 
   const handlePromote = async (targetId?: string) => {
-    const idToPromote = targetId || selectedExperiment?.id || selectedObjective?.id;
+    const idToPromote = targetId || selectedObjective?.id || selectedExperiment?.id;
     if (!idToPromote) return;
     if (!window.confirm(`Push changes for [${idToPromote}] to production HEAD? This fast-forward merges the sandboxed worktree with human sovereign authority.`)) {
       return;

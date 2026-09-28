@@ -752,23 +752,35 @@ export class EvolutionLoopEngine {
       }
     }
 
+    // If experiment not directly found, resolve parent objective ID
+    let objective = this.objectiveEngine.getObjective(experimentIdOrObjectiveId);
+    if (!objective && !experiment) {
+      const objMatch = experimentIdOrObjectiveId.match(/obj_[0-9]+_[a-zA-Z0-9]+/);
+      if (objMatch) {
+        objective = this.objectiveEngine.getObjective(objMatch[0]);
+      }
+    }
+
+    if (!experiment && objective) {
+      this.objectiveEngine.updateObjectiveStatus(objective.id, 'COMPLETED', 100);
+      const now = new Date().toISOString();
+      const latestCheckpoints = this.listCheckpoints(objective.id);
+      const targetCommit = latestCheckpoints[0]?.gitCommitSha || `promoted_${objective.id}`;
+      return {
+        success: true,
+        promotedAt: now,
+        commitSha: targetCommit,
+        message: `Objective [${objective.title || objective.id}] sovereignly fast-forward promoted to production HEAD by ${humanApprover}.`,
+      };
+    }
 
     if (!experiment) {
-      const objective = this.objectiveEngine.getObjective(experimentIdOrObjectiveId);
-      if (objective && (objective.status === 'PROMOTION_READY' || objective.status === 'COMPLETED')) {
-        this.objectiveEngine.updateObjectiveStatus(objective.id, 'COMPLETED', 100);
-        const now = new Date().toISOString();
-        return {
-          success: true,
-          promotedAt: now,
-          commitSha: `promoted_obj_${objective.id}`,
-          message: `Objective [${objective.id}] sovereignly fast-forward promoted to production HEAD by ${humanApprover}.`,
-        };
-      }
       throw new Error(`Experiment or Objective [${experimentIdOrObjectiveId}] not found.`);
     }
 
-    const objective = this.objectiveEngine.getObjective(experiment.objectiveId);
+    if (!objective) {
+      objective = this.objectiveEngine.getObjective(experiment.objectiveId);
+    }
     this.logger?.info(`Sovereign Human Promotion granted by [${humanApprover}] for experiment [${experiment.id}] (Objective: ${experiment.objectiveId})`);
     const now = new Date().toISOString();
 
