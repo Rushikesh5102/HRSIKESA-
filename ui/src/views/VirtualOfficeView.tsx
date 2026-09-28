@@ -1,846 +1,1374 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Building2,
-  Users,
-  CheckCircle2,
-  Clock,
+  Plus,
   Zap,
   ArrowRight,
-  Plus,
-  Play,
-  FileCode,
-  FileText,
-  Check,
-  AlertCircle,
-  RefreshCw,
-  Eye,
-  Radio,
-  Share2,
+  Maximize2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Bot,
+  Activity,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  ChevronDown,
   Sparkles,
   Terminal,
+  FileCode,
   Shield,
-  Activity,
   Layers,
-  ChevronRight,
-  Maximize2,
-  X
+  X,
+  Radio,
+  Share2
 } from 'lucide-react';
 import { api } from '../services/api';
-import { IndianFrame } from '../components/IndianFrame';
 
-export type OfficeStage =
-  | 'BACKLOG'
-  | 'PLANNING'
-  | 'IN_PROGRESS'
-  | 'CODE_REVIEW'
-  | 'QA_TESTING'
-  | 'COMPLETED'
-  | 'BLOCKED';
+export type DepartmentKey = 'MARKETING' | 'EMAILS' | 'DELIVERY' | 'SALES' | 'FINANCE' | 'OPERATIONS';
 
-export interface DeskState {
-  agentId: string;
-  displayName: string;
-  role: string;
-  avatar: string;
-  deskNumber: number;
-  activity: string;
-  currentTicketId?: string;
-  activeModel: string;
-  thoughtBubble?: string;
-  tokensProcessed: number;
-  tasksCompleted: number;
-  lastActiveIso: string;
+interface DepartmentPod {
+  id: DepartmentKey;
+  name: string;
+  agentCount: number;
+  color: string;
+  dotColor: string;
+  metrics: { label: string; value: string | number }[];
+  doing: number;
+  next: number;
+  done: number;
+  desks: {
+    id: string;
+    label: string;
+    agentId: string;
+    isLead?: boolean;
+    x: number;
+    y: number;
+  }[];
+  // Center coordinate for SVG walkways and lines
+  cx: number;
+  cy: number;
 }
 
-export interface TicketItem {
-  id: string;
-  title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  stage: OfficeStage;
-  currentAgentId: string;
-  assignedRole: string;
-  progressPercent: number;
-  liveThought?: string;
-  activeTool?: string;
-  artifacts: Array<{ id: string; type: string; title: string; content: string; path?: string; createdAt: string; createdByAgentId: string }>;
-  handoffHistory: Array<{ fromAgentId: string; toAgentId: string; summary: string; timestamp: string; artifactsProduced: string[] }>;
-  logs: string[];
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-}
-
-const STAGE_COLUMNS: { stage: OfficeStage; label: string; color: string }[] = [
-  { stage: 'BACKLOG', label: 'Backlog', color: 'var(--text-muted)' },
-  { stage: 'PLANNING', label: 'Architecture & Planning', color: '#38bdf8' },
-  { stage: 'IN_PROGRESS', label: 'Development', color: '#f59e0b' },
-  { stage: 'CODE_REVIEW', label: 'Security & Review', color: '#8b5cf6' },
-  { stage: 'QA_TESTING', label: 'Automated QA', color: '#ec4899' },
-  { stage: 'COMPLETED', label: 'Deployed to Production', color: '#10b981' }
+const DEPARTMENTS: DepartmentPod[] = [
+  {
+    id: 'MARKETING',
+    name: 'MARKETING',
+    agentCount: 6,
+    color: '#F43F5E',
+    dotColor: '#F43F5E',
+    metrics: [
+      { label: 'NEW INSIGHTS', value: 3 },
+      { label: 'COST PER USER', value: '$41' }
+    ],
+    doing: 6,
+    next: 5,
+    done: 7,
+    cx: 190,
+    cy: 480,
+    desks: [
+      { id: 'm_res', label: 'RESEARCH', agentId: 'rahu', x: 130, y: 440 },
+      { id: 'm_gf', label: 'GRAPHICS DESIGNER', agentId: 'spoota', x: 80, y: 490 },
+      { id: 'm_nl', label: 'NEWSLETTER', agentId: 'raudra', x: 210, y: 450 },
+      { id: 'm_ig', label: 'INSTAGRAM ORGANIC', agentId: 'taraka', x: 100, y: 530 },
+      { id: 'm_ad', label: 'META ADS', agentId: 'arvan', x: 170, y: 500 },
+      { id: 'm_vd', label: 'VIDEO EDITOR', agentId: 'kali', x: 160, y: 550 }
+    ]
+  },
+  {
+    id: 'EMAILS',
+    name: 'EMAILS',
+    agentCount: 5,
+    color: '#10B981',
+    dotColor: '#10B981',
+    metrics: [
+      { label: 'EMAILS SENT', value: 128 },
+      { label: 'REPLIES DRAFTED', value: 41 }
+    ],
+    doing: 5,
+    next: 10,
+    done: 9,
+    cx: 360,
+    cy: 280,
+    desks: [
+      { id: 'e_lead', label: '★ EMAILS LEAD', agentId: 'aja', isLead: true, x: 360, y: 235 },
+      { id: 'e_cl', label: 'CLIENT EMAILS', agentId: 'taraka', x: 300, y: 275 },
+      { id: 'e_in', label: 'INTERNAL EMAILS', agentId: 'rutam', x: 400, y: 275 },
+      { id: 'e_vd', label: 'VENDOR EMAILS', agentId: 'kaala', x: 290, y: 315 },
+      { id: 'e_ct', label: 'CONTRACTOR EMAILS', agentId: 'mrtyu', x: 350, y: 320 }
+    ]
+  },
+  {
+    id: 'DELIVERY',
+    name: 'DELIVERY',
+    agentCount: 7,
+    color: '#0EA5E9',
+    dotColor: '#0EA5E9',
+    metrics: [
+      { label: 'REPORTS SENT', value: 10 },
+      { label: 'ON TRACK', value: '11 / 12' }
+    ],
+    doing: 7,
+    next: 8,
+    done: 8,
+    cx: 640,
+    cy: 290,
+    desks: [
+      { id: 'd_lead', label: '★ DELIVERY LEAD', agentId: 'tvas', isLead: true, x: 670, y: 235 },
+      { id: 'd_pc', label: 'PROJECT CO-ORDINATOR', agentId: 'rahu', x: 600, y: 275 },
+      { id: 'd_qa', label: 'QUALITY ASSURANCE', agentId: 'vighna', x: 690, y: 275 },
+      { id: 'd_cr', label: 'CLIENT REPORTS', agentId: 'ritvan', x: 550, y: 310 },
+      { id: 'd_ca', label: 'CLIENT ASSETS', agentId: 'gandiva', x: 640, y: 310 },
+      { id: 'd_da', label: 'DESIGNER ASSISTANT', agentId: 'spoota', x: 510, y: 345 },
+      { id: 'd_ob', label: 'ONBOARDER', agentId: 'kalki', x: 580, y: 350 }
+    ]
+  },
+  {
+    id: 'SALES',
+    name: 'SALES',
+    agentCount: 6,
+    color: '#F59E0B',
+    dotColor: '#F59E0B',
+    metrics: [
+      { label: 'CALLS S·A·J', value: '14·31·16' },
+      { label: 'NEW MANAGERS', value: 5 },
+      { label: 'AUTO-ONBOARDED', value: 17 }
+    ],
+    doing: 6,
+    next: 7,
+    done: 6,
+    cx: 660,
+    cy: 530,
+    desks: [
+      { id: 's_lead', label: '★ SALES LEAD', agentId: 'kalki', isLead: true, x: 680, y: 475 },
+      { id: 's_le', label: 'LEAD ENRICHER', agentId: 'raudra', x: 630, y: 510 },
+      { id: 's_ib', label: 'INBOUND LEADS', agentId: 'taraka', x: 695, y: 510 },
+      { id: 's_pr', label: 'PROSPECTOR', agentId: 'arvan', x: 570, y: 545 },
+      { id: 's_pp', label: 'PROPOSALS', agentId: 'aja', x: 640, y: 550 },
+      { id: 's_fu', label: 'FOLLOW UPS', agentId: 'kaala', x: 560, y: 580 }
+    ]
+  },
+  {
+    id: 'OPERATIONS',
+    name: 'OPERATIONS',
+    agentCount: 5,
+    color: '#8B5CF6',
+    dotColor: '#8B5CF6',
+    metrics: [
+      { label: 'PROPOSALS MADE', value: 6 },
+      { label: 'NEW INSIGHTS', value: 5 }
+    ],
+    doing: 5,
+    next: 6,
+    done: 7,
+    cx: 210,
+    cy: 710,
+    desks: [
+      { id: 'o_int', label: 'INTEL', agentId: 'rahu', x: 230, y: 660 },
+      { id: 'o_cc', label: 'COMPLIANCE CHECKER', agentId: 'rutam', x: 140, y: 690 },
+      { id: 'o_lr', label: 'LEGAL REVIEW', agentId: 'ritvan', x: 250, y: 690 },
+      { id: 'o_ir', label: 'INTERNAL REPORTING', agentId: 'garuda', x: 210, y: 725 },
+      { id: 'o_db', label: 'INTERNAL DASHBOARDS', agentId: 'spoota', x: 150, y: 725 }
+    ]
+  },
+  {
+    id: 'FINANCE',
+    name: 'FINANCE',
+    agentCount: 4,
+    color: '#6366F1',
+    dotColor: '#6366F1',
+    metrics: [
+      { label: 'INVOICES ISSUED', value: 23 },
+      { label: 'BILLS PAID', value: 14 }
+    ],
+    doing: 4,
+    next: 5,
+    done: 9,
+    cx: 460,
+    cy: 710,
+    desks: [
+      { id: 'f_lead', label: '★ ACCOUNTING LEAD', agentId: 'kaala', isLead: true, x: 490, y: 660 },
+      { id: 'f_inv', label: 'INVOICING', agentId: 'yama', x: 420, y: 690 },
+      { id: 'f_ap', label: 'ACCOUNTS PAYABLE', agentId: 'mrtyu', x: 490, y: 690 },
+      { id: 'f_rec', label: 'RECONCILIATION', agentId: 'kalki', x: 410, y: 730 }
+    ]
+  }
 ];
 
-export const VirtualOfficeView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'floor' | 'kanban'>('floor');
-  const [desks, setDesks] = useState<DeskState[]>([]);
-  const [tickets, setTickets] = useState<TicketItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
-  const [selectedDesk, setSelectedDesk] = useState<DeskState | null>(null);
-  const [isSseConnected, setIsSseConnected] = useState(false);
-  const [advancingTicketId, setAdvancingTicketId] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [newPriority, setNewPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('HIGH');
-  const [autoAdvance, setAutoAdvance] = useState(true);
-  const [notification, setNotification] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+const INTEGRATION_APPS = [
+  { name: 'Meta', icon: '♾️', color: '#0668E1' },
+  { name: 'Canva', icon: '🎨', color: '#00C4CC' },
+  { name: 'HubSpot', icon: '🟠', color: '#FF7A59' },
+  { name: 'Slack', icon: '💬', color: '#4A154B' },
+  { name: 'Asana', icon: '🔺', color: '#F06A6A' },
+  { name: 'Google Drive', icon: '▲', color: '#1FA463' },
+  { name: 'Notion', icon: '📓', color: '#000000' },
+  { name: 'Pipedrive', icon: '🟢', color: '#26292C', badge: 'pd' },
+  { name: 'Stripe', icon: '💳', color: '#635BFF' },
+  { name: 'Linear', icon: '📐', color: '#5E6AD2' },
+  { name: 'Discord', icon: '🎮', color: '#5865F2' },
+  { name: 'Gmail', icon: '✉️', color: '#EA4335' }
+];
 
-  const loadOfficeState = useCallback(async () => {
-    try {
-      const res = await api.getOfficeState();
-      if (res && res.success && res.floor) {
-        setDesks(res.floor.desks || []);
-        setTickets(res.floor.tickets || []);
-      }
-    } catch (err) {
-      console.error('Failed to load virtual office floor', err);
-    } finally {
-      setLoading(false);
+interface TaskStatusItem {
+  id: string;
+  percent: number;
+  title: string;
+  role: string;
+  dept: string;
+  timeAgo: string;
+  stage: 'BACKLOG' | 'IN_PROGRESS' | 'WAITING' | 'DONE';
+}
+
+export const VirtualOfficeView: React.FC = () => {
+  const [zoom, setZoom] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [timeString, setTimeString] = useState<string>('');
+  const [filterTab, setFilterTab] = useState<'ALL' | 'BACKLOG' | 'IN_PROGRESS' | 'WAITING' | 'DONE'>('ALL');
+  const [selectedDept, setSelectedDept] = useState<DepartmentKey>('MARKETING');
+  const [taskInput, setTaskInput] = useState<string>('');
+  const [activeDeskId, setActiveDeskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskStatusItem | null>(null);
+  const [pulseBrain, setPulseBrain] = useState<boolean>(true);
+  const [brainActivity, setBrainActivity] = useState<string>('CLIENT EMAILS READ ICP');
+
+  // Live Tasks list
+  const [taskList, setTaskList] = useState<TaskStatusItem[]>([
+    {
+      id: 'task_1',
+      percent: 12,
+      title: 'Data retention check, 3 systems',
+      role: 'COMPLIANCE CHECKER',
+      dept: 'OPERATIONS',
+      timeAgo: 'just now',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_2',
+      percent: 15,
+      title: 'Verify mobiles on the AU batch',
+      role: 'LEAD ENRICHER',
+      dept: 'SALES',
+      timeAgo: 'just now',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_3',
+      percent: 21,
+      title: 'Refresh the fatigued ad set',
+      role: 'META ADS',
+      dept: 'MARKETING',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_4',
+      percent: 26,
+      title: 'Rebuild the welcome sequence, email 2',
+      role: 'NEWSLETTER',
+      dept: 'MARKETING',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_5',
+      percent: 32,
+      title: 'Weekly competitor pricing scan',
+      role: 'RESEARCH',
+      dept: 'MARKETING',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_6',
+      percent: 33,
+      title: 'Weekly dashboard health check',
+      role: 'INTERNAL DASHBOARDS',
+      dept: 'OPERATIONS',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_7',
+      percent: 49,
+      title: 'Monthly KPI roll-up',
+      role: 'INTERNAL REPORTING',
+      dept: 'OPERATIONS',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_8',
+      percent: 82,
+      title: 'Tighten the ICP with Prospector',
+      role: 'SALES LEAD',
+      dept: 'SALES',
+      timeAgo: '1 min',
+      stage: 'IN_PROGRESS'
+    },
+    {
+      id: 'task_9',
+      percent: 100,
+      title: 'Universal AI Model Fleet Calibration',
+      role: 'DELIVERY LEAD',
+      dept: 'DELIVERY',
+      timeAgo: '4 min',
+      stage: 'DONE'
+    },
+    {
+      id: 'task_10',
+      percent: 0,
+      title: 'Prepare contractor invoice receipts',
+      role: 'INVOICING',
+      dept: 'FINANCE',
+      timeAgo: '6 min',
+      stage: 'BACKLOG'
     }
+  ]);
+
+  // Live Clock update
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTimeString(
+        now.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).toLowerCase()
+      );
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
   }, []);
 
+  // Periodic simulated data pulses (Laser connections)
   useEffect(() => {
-    loadOfficeState();
+    const activities = [
+      'CLIENT EMAILS READ ICP',
+      'GANDIVA GENERATED PATCH',
+      'RUTAM REVIEWED COMPLIANCE RULES',
+      'SPURTA RENDERED AD ASSETS',
+      'KALKI COMMITTED STABLE RELEASE'
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % activities.length;
+      setBrainActivity(activities[idx]);
+      setPulseBrain((prev) => !prev);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
 
-    // Connect Server-Sent Events (SSE) stream for real-time live office updates
-    let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource('http://127.0.0.1:4200/office/stream');
-      eventSource.onopen = () => {
-        setIsSseConnected(true);
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          if (parsed.type === 'STAGE_TRANSITION' || parsed.type === 'HANDOFF' || parsed.type === 'TICKET_UPDATED') {
-            loadOfficeState();
-          } else if (parsed.type === 'DESK_STATUS' && parsed.data) {
-            setDesks((prev) =>
-              prev.map((d) => (d.agentId === parsed.agentId ? { ...d, ...parsed.data } : d))
-            );
-          }
-        } catch { /* ignore parse error */ }
-      };
-
-      eventSource.onerror = () => {
-        setIsSseConnected(false);
-      };
-    } catch (err) {
-      console.warn('SSE stream init warning:', err);
-    }
-
-    return () => {
-      if (eventSource) eventSource.close();
-    };
-  }, [loadOfficeState]);
-
-  const handleCreateTicket = async (e: React.FormEvent) => {
+  const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!taskInput.trim()) return;
 
-    try {
-      const res = await api.createOfficeTicket({
-        title: newTitle,
-        description: newDesc,
-        priority: newPriority,
-        initialAgentId: 'rahu',
-        initialRole: 'Product Manager & Strategist',
-        autoAdvance
-      });
+    const newTask: TaskStatusItem = {
+      id: `task_${Date.now()}`,
+      percent: 0,
+      title: taskInput.trim(),
+      role: `${selectedDept} AGENT`,
+      dept: selectedDept,
+      timeAgo: 'just now',
+      stage: 'IN_PROGRESS'
+    };
 
-      if (res && res.success) {
-        setNotification({ msg: `Ticket "${newTitle}" dispatched to Office Floor!`, type: 'success' });
-        setShowCreateModal(false);
-        setNewTitle('');
-        setNewDesc('');
-        loadOfficeState();
-      }
-    } catch (err) {
-      setNotification({ msg: String(err), type: 'error' });
-    } finally {
-      setTimeout(() => setNotification(null), 4000);
-    }
+    setTaskList((prev) => [newTask, ...prev]);
+    setTaskInput('');
+
+    // Trigger backend ticket creation
+    api.createOfficeTicket({
+      title: newTask.title,
+      description: `Task dispatched to ${selectedDept} department.`,
+      priority: 'HIGH',
+      initialRole: newTask.role,
+      autoAdvance: true
+    }).catch(() => {});
   };
 
-  const handleAdvanceTicket = async (ticketId: string) => {
-    setAdvancingTicketId(ticketId);
-    try {
-      const res = await api.advanceOfficeTicket(ticketId);
-      if (res && res.success) {
-        setNotification({ msg: `Ticket advanced to next handoff stage!`, type: 'success' });
-        loadOfficeState();
-        if (selectedTicket && selectedTicket.id === ticketId) {
-          setSelectedTicket(res.ticket);
-        }
-      }
-    } catch (err) {
-      setNotification({ msg: String(err), type: 'error' });
-    } finally {
-      setAdvancingTicketId(null);
-      setTimeout(() => setNotification(null), 4000);
-    }
-  };
+  const filteredTasks = taskList.filter((t) => {
+    if (filterTab === 'ALL') return true;
+    return t.stage === filterTab;
+  });
 
-  const getActivityColor = (activity: string) => {
-    switch (activity) {
-      case 'WRITING_CODE': return '#10b981';
-      case 'PLANNING': return '#38bdf8';
-      case 'REVIEWING': return '#8b5cf6';
-      case 'RUNNING_TESTS': return '#ec4899';
-      case 'HANDING_OFF': return '#f59e0b';
-      default: return 'var(--text-muted)';
-    }
-  };
-
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
-      case 'CRITICAL': return 'badge-coral';
-      case 'HIGH': return 'badge-gold';
-      default: return 'badge-cyan';
-    }
-  };
+  const backlogCount = taskList.filter((t) => t.stage === 'BACKLOG').length;
+  const inProgressCount = taskList.filter((t) => t.stage === 'IN_PROGRESS').length;
+  const waitingCount = taskList.filter((t) => t.stage === 'WAITING').length;
+  const doneCount = taskList.filter((t) => t.stage === 'DONE').length;
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      {/* View Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-              Virtual Agent Office & Headless Workspace
-            </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              कार्यालय
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 'calc(100vh - 120px)',
+        background: '#FAF8F5',
+        color: '#241E19',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        overflow: 'hidden',
+        position: 'relative'
+      }}
+    >
+      {/* 1. TOP HEADER BAR */}
+      <header
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 24px',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid #EAE5DD',
+          zIndex: 20
+        }}
+      >
+        {/* Left: Branding & Connected Apps */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                fontFamily: 'serif',
+                fontWeight: 800,
+                fontSize: '15px',
+                letterSpacing: '1.2px',
+                color: '#1A1612'
+              }}
+            >
+              AGENTS OFFICE
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#9E948A',
+                letterSpacing: '0.5px'
+              }}
+            >
+              v3
             </span>
           </div>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Real-time multi-agent office floor with autonomous ticket pipelines, token-streaming desks, and zero-delay handoffs.
-          </p>
+
+          {/* Connected Integrations Ribbon */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '12px', borderLeft: '1px solid #E5DFD5' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981' }} />
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#786F66', letterSpacing: '0.6px' }}>
+                CONNECTED TO
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+              {INTEGRATION_APPS.map((app) => (
+                <div
+                  key={app.name}
+                  title={app.name}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '6px',
+                    background: app.badge ? '#22C55E' : '#FFFFFF',
+                    border: '1px solid #E8E2D8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    color: app.badge ? '#FFF' : '#333',
+                    fontWeight: 700,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {app.badge ? app.badge : app.icon}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Right: Headless runtime info & Live Clock */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981' }} />
+            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#786F66', letterSpacing: '0.6px' }}>
+              RUNS HEADLESS ON
+            </span>
+            <div style={{ display: 'flex', gap: '6px', marginLeft: '6px' }}>
+              <span title="Groq LPU (~800 tok/s)" style={{ fontSize: '13px' }}>⚡</span>
+              <span title="NVIDIA NIM GPU" style={{ fontSize: '13px' }}>⚙️</span>
+              <span title="Local Sovereign Ollama" style={{ fontSize: '13px' }}>🔒</span>
+            </div>
+          </div>
+
+          {/* Digital Clock */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              background: isSseConnected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-              border: `1px solid ${isSseConnected ? '#10b981' : '#ef4444'}`,
-              fontSize: '11.5px',
-              color: isSseConnected ? '#34d399' : '#f87171',
-              fontWeight: 600
+              fontFamily: 'monospace',
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#1A1612',
+              letterSpacing: '0.5px'
             }}
           >
-            <Radio size={12} className={isSseConnected ? 'pulse' : ''} />
-            <span>{isSseConnected ? 'SSE Stream Live' : 'Polling Sync'}</span>
+            {timeString || '05:44:10 pm'}
           </div>
+        </div>
+      </header>
 
-          <button
-            className="btn btn-primary"
-            style={{ padding: '8px 16px', fontSize: '13px' }}
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus size={15} />
-            <span>New Office Ticket</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Top Metrics Strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Active Workstations</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-gold)', marginTop: '4px' }}>
-            17 Desks Online
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>In-Flight Tickets</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#38bdf8', marginTop: '4px' }}>
-            {tickets.filter(t => t.stage !== 'COMPLETED').length} Active
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Completed Releases</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>
-            {tickets.filter(t => t.stage === 'COMPLETED').length} Deployed
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Inference Engine</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>
-            ~800 tok/s (Groq LPU)
-          </div>
-        </div>
-      </div>
-
-      {/* Tab Switcher */}
-      <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-elevated)', padding: '4px', borderRadius: '8px', width: 'fit-content', border: '1px solid var(--border-subtle)' }}>
-        <button
-          className={`btn ${activeTab === 'floor' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ fontSize: '13px', padding: '6px 14px' }}
-          onClick={() => setActiveTab('floor')}
-        >
-          <Building2 size={14} />
-          Office Floor & Desks
-        </button>
-        <button
-          className={`btn ${activeTab === 'kanban' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ fontSize: '13px', padding: '6px 14px' }}
-          onClick={() => setActiveTab('kanban')}
-        >
-          <Layers size={14} />
-          Kanban Ticket Pipeline
-        </button>
-      </div>
-
-      {/* Notification Toast */}
-      {notification && (
+      {/* 2. MAIN SPLIT: ISOMETRIC CANVAS (LEFT) + TASK QUEUE (RIGHT) */}
+      <div style={{ display: 'flex', flex: 1, position: 'relative', overflow: 'hidden' }}>
+        
+        {/* ================= LEFT: ISOMETRIC OFFICE FLOOR ================= */}
         <div
           style={{
-            padding: '12px 18px',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13.5px',
+            flex: '1 1 72%',
+            position: 'relative',
+            background: 'radial-gradient(circle at center, #FCFBF9 0%, #F5F1EB 100%)',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            background: notification.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            border: `1px solid ${notification.type === 'success' ? '#10b981' : '#ef4444'}`,
-            color: notification.type === 'success' ? '#34d399' : '#f87171',
+            justifyContent: 'center'
           }}
         >
-          {notification.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-          <span>{notification.msg}</span>
-        </div>
-      )}
+          {/* Zoomable & Pannable Canvas Wrapper */}
+          <div
+            style={{
+              width: '900px',
+              height: '840px',
+              position: 'relative',
+              transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`,
+              transformOrigin: 'center center',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* SVG Connecting Walkways, Laser Beams, and Platforms */}
+            <svg
+              viewBox="0 0 900 840"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none'
+              }}
+            >
+              <defs>
+                {/* Linear Gradients for Walkways */}
+                <linearGradient id="walkwayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#E2DDD5" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#CEC7BC" stopOpacity="0.8" />
+                </linearGradient>
+                {/* Glow Filter for Laser Beams */}
+                <filter id="laserGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
 
-      {/* TAB 1: OFFICE FLOOR & WORKSTATION GRID */}
-      {activeTab === 'floor' && (
-        <IndianFrame
-          title="Virtual Office Workstation Floor"
-          subtitle="Click any desk to inspect real-time thought streams, tool executions, and ticket handoffs"
-        >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
-            {desks.map((desk) => {
-              const isWorking = desk.activity !== 'IDLE';
-              const assignedTicket = tickets.find(t => t.id === desk.currentTicketId);
+              {/* Central Walkways connecting Pods to Central Junction */}
+              {/* Central Junction Hub at (400, 480) */}
+              <path d="M 230 480 L 400 480 L 610 330" stroke="url(#walkwayGrad)" strokeWidth="22" strokeLinecap="round" />
+              <path d="M 370 330 L 400 480 L 440 680" stroke="url(#walkwayGrad)" strokeWidth="22" strokeLinecap="round" />
+              <path d="M 230 680 L 400 480 L 620 550" stroke="url(#walkwayGrad)" strokeWidth="22" strokeLinecap="round" />
 
-              return (
+              {/* Animated Dotted Laser Data Flow Lines to "THE BRAIN" */}
+              {/* Marketing -> The Brain */}
+              <path
+                d="M 190 440 Q 280 380 380 390"
+                fill="none"
+                stroke="#F43F5E"
+                strokeWidth="2"
+                strokeDasharray="4 6"
+                style={{ opacity: 0.6 }}
+              />
+              {/* Emails -> The Brain */}
+              <path
+                d="M 360 300 Q 370 340 380 380"
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="2"
+                strokeDasharray="4 6"
+                style={{ opacity: 0.6 }}
+              />
+              {/* Delivery -> The Brain */}
+              <path
+                d="M 600 300 Q 480 330 420 380"
+                fill="none"
+                stroke="#0EA5E9"
+                strokeWidth="2"
+                strokeDasharray="4 6"
+                style={{ opacity: 0.6 }}
+              />
+              {/* Sales -> The Brain */}
+              <path
+                d="M 620 510 Q 520 440 420 410"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2"
+                strokeDasharray="4 6"
+                style={{ opacity: 0.6 }}
+              />
+              {/* Operations -> The Brain */}
+              <path
+                d="M 230 670 Q 300 520 380 420"
+                fill="none"
+                stroke="#8B5CF6"
+                strokeWidth="2"
+                strokeDasharray="4 6"
+                style={{ opacity: 0.6 }}
+              />
+
+              {/* Isometric 3D Platform Foundations (Shadows + Slabs) */}
+              {DEPARTMENTS.map((dept) => {
+                // Approximate isometric rhombus polygon for pod floor
+                const rx = dept.cx - 20;
+                const ry = dept.cy + 10;
+                return (
+                  <g key={dept.id}>
+                    {/* Shadow */}
+                    <polygon
+                      points={`${rx - 110},${ry + 10} ${rx + 20},${ry - 50} ${rx + 130},${ry + 10} ${rx},${ry + 70}`}
+                      fill="rgba(0,0,0,0.06)"
+                      transform="translate(10, 16)"
+                    />
+                    {/* 3D Isometric Side Extrusions */}
+                    <polygon
+                      points={`${rx - 110},${ry + 10} ${rx},${ry + 70} ${rx},${ry + 82} ${rx - 110},${ry + 22}`}
+                      fill="#CFC8BD"
+                    />
+                    <polygon
+                      points={`${rx + 130},${ry + 10} ${rx},${ry + 70} ${rx},${ry + 82} ${rx + 130},${ry + 22}`}
+                      fill="#B8B0A3"
+                    />
+                    {/* Top Surface Slab */}
+                    <polygon
+                      points={`${rx - 110},${ry + 10} ${rx + 20},${ry - 50} ${rx + 130},${ry + 10} ${rx},${ry + 70}`}
+                      fill="#EAE5DC"
+                      stroke="#DFD8CE"
+                      strokeWidth="1.5"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Render Department Floating Metric Cards & 3D Desks */}
+            {DEPARTMENTS.map((dept) => (
+              <div key={dept.id} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                
+                {/* 1. Floating Department Info Card (White Glassmorphic Card) */}
                 <div
-                  key={desk.agentId}
-                  onClick={() => {
-                    setSelectedDesk(desk);
-                    if (assignedTicket) setSelectedTicket(assignedTicket);
-                  }}
                   style={{
-                    background: 'var(--bg-card)',
-                    border: `1px solid ${isWorking ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-subtle)'}`,
-                    borderRadius: '10px',
-                    padding: '16px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: isWorking ? '0 0 16px rgba(245, 158, 11, 0.08)' : 'none',
-                    position: 'relative'
+                    position: 'absolute',
+                    left: `${dept.cx - 95}px`,
+                    top: `${dept.cy - 165}px`,
+                    width: '185px',
+                    background: '#FFFFFF',
+                    borderRadius: '16px',
+                    padding: '12px 14px',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+                    border: '1px solid #ECE7DF',
+                    pointerEvents: 'auto',
+                    zIndex: 10,
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <div>
-                    {/* Top Desk Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                        DESK #{desk.deskNumber.toString().padStart(2, '0')}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          background: `${getActivityColor(desk.activity)}15`,
-                          color: getActivityColor(desk.activity),
-                          fontWeight: 700,
-                          border: `1px solid ${getActivityColor(desk.activity)}40`
-                        }}
-                      >
-                        {desk.activity.replace('_', ' ')}
+                  {/* Card Header with Department Name & Agent Count */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: dept.dotColor }} />
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#332D27', letterSpacing: '0.8px' }}>
+                        {dept.name}
                       </span>
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 800, color: '#1A1612', fontFamily: 'serif' }}>
+                        {dept.agentCount}
+                      </span>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: '#8C837A', letterSpacing: '0.5px' }}>
+                        AGENTS
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Agent Avatar & Identity */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div
-                        style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '8px',
-                          background: 'var(--bg-elevated)',
-                          border: '1px solid var(--border-color)',
-                          fontSize: '20px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {desk.avatar}
-                      </div>
-                      <div>
-                        <h4 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {desk.displayName}
-                        </h4>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                          {desk.role}
+                  {/* Dynamic Metrics List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderTop: '1px solid #F0ECE4', paddingTop: '6px', marginBottom: '8px' }}>
+                    {dept.metrics.map((m, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#8C837A', letterSpacing: '0.5px' }}>
+                          {m.label}
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#241E19' }}>
+                          {m.value}
                         </span>
                       </div>
-                    </div>
+                    ))}
+                  </div>
 
-                    {/* Speech / Thought Bubble */}
+                  {/* Bottom Pipeline Progress: DOING / NEXT / DONE */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: '#F9F7F4',
+                      borderRadius: '8px',
+                      padding: '4px 8px',
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      color: '#6E665E'
+                    }}
+                  >
+                    <div>DOING <strong style={{ color: '#1A1612' }}>{dept.doing}</strong></div>
+                    <div>NEXT <strong style={{ color: '#1A1612' }}>{dept.next}</strong></div>
+                    <div>DONE <strong style={{ color: '#1A1612' }}>{dept.done}</strong></div>
+                  </div>
+                </div>
+
+                {/* 2. 3D Desks with Computers, Chairs, and Agent Labels */}
+                {dept.desks.map((desk) => (
+                  <div
+                    key={desk.id}
+                    onClick={() => setActiveDeskId(desk.id)}
+                    style={{
+                      position: 'absolute',
+                      left: `${desk.x}px`,
+                      top: `${desk.y}px`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      zIndex: 8,
+                      transition: 'transform 0.15s ease'
+                    }}
+                  >
+                    {/* Desk Name Pill Tag */}
                     <div
                       style={{
-                        marginTop: '12px',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        background: 'rgba(0,0,0,0.25)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '11px',
-                        color: isWorking ? '#38bdf8' : 'var(--text-muted)',
-                        lineHeight: 1.35,
-                        fontStyle: 'italic',
-                        maxHeight: '44px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        background: desk.isLead ? '#FFF8E6' : 'rgba(255, 255, 255, 0.95)',
+                        border: desk.isLead ? '1px solid #F59E0B' : '1px solid #DFD9CE',
+                        borderRadius: '10px',
+                        padding: '2px 7px',
+                        fontSize: '8.5px',
+                        fontWeight: 700,
+                        color: desk.isLead ? '#B45309' : '#473F37',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
+                        marginBottom: '2px',
+                        letterSpacing: '0.3px'
                       }}
                     >
-                      💬 "{desk.thoughtBubble || 'Awaiting ticket assignment...'}"
+                      {desk.label}
                     </div>
-                  </div>
 
-                  {/* Desk Bottom Details */}
-                  <div style={{ paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                    <span>Model: {desk.activeModel.split(':')[0].split('/')[0]}</span>
-                    <span>Done: {desk.tasksCompleted}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </IndianFrame>
-      )}
-
-      {/* TAB 2: KANBAN PIPELINE */}
-      {activeTab === 'kanban' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', alignItems: 'flex-start' }}>
-          {STAGE_COLUMNS.map((col) => {
-            const columnTickets = tickets.filter((t) => t.stage === col.stage);
-
-            return (
-              <div
-                key={col.stage}
-                style={{
-                  background: 'var(--bg-elevated)',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  minHeight: '480px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '8px', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color }} />
-                    <h3 style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {col.label}
-                    </h3>
-                  </div>
-                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                    {columnTickets.length}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {columnTickets.map((t) => {
-                    const isAdvancing = advancingTicketId === t.id;
-
-                    return (
+                    {/* Cute 3D Isometric Wooden Desk Graphic */}
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '24px',
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Desk Top */}
                       <div
-                        key={t.id}
-                        onClick={() => setSelectedTicket(t)}
                         style={{
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '8px',
-                          padding: '12px',
-                          cursor: 'pointer',
+                          width: '34px',
+                          height: '16px',
+                          background: '#C4A482',
+                          borderRadius: '3px',
+                          border: '1px solid #A88663',
+                          boxShadow: '0 3px 6px rgba(0,0,0,0.15)',
+                          position: 'relative',
                           display: 'flex',
-                          flexDirection: 'column',
-                          gap: '10px',
-                          transition: 'transform 0.15s ease'
+                          alignItems: 'center',
+                          justifyContent: 'center'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <span className={`badge ${getPriorityBadgeClass(t.priority)}`} style={{ fontSize: '9.5px', padding: '1px 6px' }}>
-                            {t.priority}
-                          </span>
-                          <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                            {t.id}
-                          </span>
-                        </div>
-
-                        <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-                          {t.title}
-                        </h4>
-
-                        <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: 1.3, maxHeight: '32px', overflow: 'hidden' }}>
-                          {t.description}
-                        </p>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px', borderTop: '1px dashed var(--border-subtle)', fontSize: '11px' }}>
-                          <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>
-                            @{t.currentAgentId}
-                          </span>
-
-                          {t.stage !== 'COMPLETED' && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAdvanceTicket(t.id);
-                              }}
-                              disabled={isAdvancing}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#38bdf8',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontSize: '11px',
-                                fontWeight: 600
-                              }}
-                            >
-                              {isAdvancing ? <RefreshCw size={11} className="spin" /> : <Play size={11} />}
-                              <span>Advance</span>
-                            </button>
-                          )}
-                        </div>
+                        {/* Laptop Monitor */}
+                        <div
+                          style={{
+                            width: '10px',
+                            height: '7px',
+                            background: '#2B2724',
+                            borderRadius: '1px',
+                            border: '1px solid #4D453E',
+                            boxShadow: '0 0 3px rgba(0, 229, 255, 0.5)'
+                          }}
+                        />
                       </div>
-                    );
-                  })}
-
-                  {columnTickets.length === 0 && (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
-                      No tickets in {col.label.toLowerCase()}
+                      {/* Desk Legs */}
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '5px',
+                          margin: '0 auto',
+                          background: '#8F6E4D',
+                          borderRadius: '0 0 2px 2px'
+                        }}
+                      />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
 
-      {/* DRAWER: LIVE TICKET / DESK INSPECTOR */}
-      {selectedTicket && (
+            {/* ================= CENTRAL NODE: "THE BRAIN" ================= */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '300px',
+                top: '380px',
+                width: '200px',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '10px 14px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05)',
+                border: '1px solid #EAE4DA',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                zIndex: 15
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#10B981',
+                    boxShadow: pulseBrain ? '0 0 8px #10B981' : 'none',
+                    transition: 'box-shadow 0.3s ease'
+                  }}
+                />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#1A1612', letterSpacing: '0.8px' }}>
+                  THE BRAIN
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#8C837A' }}>
+                  37 NOTES
+                </span>
+              </div>
+
+              {/* Dynamic Live Action Speech Capsule */}
+              <div
+                style={{
+                  background: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  borderRadius: '12px',
+                  padding: '3px 10px',
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#047857',
+                  letterSpacing: '0.5px',
+                  marginTop: '4px',
+                  boxShadow: '0 1px 3px rgba(16, 185, 129, 0.15)'
+                }}
+              >
+                {brainActivity}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Isometric Zoom & Pan Controls (Bottom-Right) */}
+          <div
+            style={{
+              position: 'absolute',
+              right: '24px',
+              bottom: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              zIndex: 20
+            }}
+          >
+            <button
+              onClick={() => setZoom((z) => Math.min(z + 0.15, 1.8))}
+              title="Zoom In"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1px solid #E2DCD2',
+                color: '#332D27',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '16px'
+              }}
+            >
+              +
+            </button>
+            <button
+              onClick={() => setZoom((z) => Math.max(z - 0.15, 0.6))}
+              title="Zoom Out"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1px solid #E2DCD2',
+                color: '#332D27',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '16px'
+              }}
+            >
+              −
+            </button>
+            <button
+              onClick={() => {
+                setZoom(1);
+                setPan({ x: 0, y: 0 });
+              }}
+              title="Reset View"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1px solid #E2DCD2',
+                color: '#332D27',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+                fontSize: '13px'
+              }}
+            >
+              ⌂
+            </button>
+          </div>
+        </div>
+
+        {/* ================= RIGHT: TASK QUEUE & BRAIN SIDEBAR ================= */}
         <div
           style={{
-            position: 'fixed',
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: '480px',
-            maxWidth: '100vw',
-            background: 'var(--bg-elevated)',
-            borderLeft: '1px solid var(--border-color)',
-            boxShadow: '-8px 0 30px rgba(0,0,0,0.5)',
-            zIndex: 1000,
+            flex: '0 0 380px',
+            width: '380px',
+            background: '#FFFFFF',
+            borderLeft: '1px solid #EAE4DA',
             display: 'flex',
             flexDirection: 'column',
-            padding: '24px',
-            gap: '18px',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            zIndex: 15
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <span className={`badge ${getPriorityBadgeClass(selectedTicket.priority)}`} style={{ fontSize: '10px' }}>
-                {selectedTicket.priority} PRIORITY
-              </span>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '6px' }}>
-                {selectedTicket.title}
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedTicket(null)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          {/* 1. Quick Task Dispatch Input Box */}
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid #F0ECE4' }}>
+            <form
+              onSubmit={handleAddTask}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#FFFFFF',
+                border: '1px solid #E0D9CE',
+                borderRadius: '24px',
+                padding: '4px 6px 4px 12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
             >
-              <X size={20} />
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '12px' }}>
-            <span style={{ padding: '4px 10px', borderRadius: '4px', background: 'var(--bg-card)', color: '#38bdf8', fontWeight: 600 }}>
-              Stage: {selectedTicket.stage}
-            </span>
-            <span style={{ padding: '4px 10px', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-gold)', fontWeight: 600 }}>
-              Assigned: @{selectedTicket.currentAgentId} ({selectedTicket.assignedRole})
-            </span>
-          </div>
-
-          {/* Description */}
-          <div>
-            <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-              Objective & Description
-            </h4>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, background: 'var(--bg-card)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-              {selectedTicket.description}
-            </p>
-          </div>
-
-          {/* Handoff History Pipeline */}
-          <div>
-            <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Inter-Agent Handoff Chain
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {selectedTicket.handoffHistory.map((h, i) => (
-                <div
-                  key={i}
+              {/* Department Dropdown Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', paddingRight: '8px', borderRight: '1px solid #E8E2D8' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F43F5E' }} />
+                <select
+                  value={selectedDept}
+                  onChange={(e) => setSelectedDept(e.target.value as DepartmentKey)}
                   style={{
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '11.5px',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#332D27',
+                    letterSpacing: '0.5px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  <option value="MARKETING">MARKETING</option>
+                  <option value="EMAILS">EMAILS</option>
+                  <option value="DELIVERY">DELIVERY</option>
+                  <option value="SALES">SALES</option>
+                  <option value="OPERATIONS">OPERATIONS</option>
+                  <option value="FINANCE">FINANCE</option>
+                </select>
+              </div>
+
+              {/* Task Title Input */}
+              <input
+                type="text"
+                value={taskInput}
+                onChange={(e) => setTaskInput(e.target.value)}
+                placeholder={`Type a task for ${selectedDept.toLowerCase()}...`}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  color: '#1A1612',
+                  outline: 'none'
+                }}
+              />
+
+              {/* ADD Button */}
+              <button
+                type="submit"
+                style={{
+                  background: '#1A1612',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '16px',
+                  padding: '6px 14px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  letterSpacing: '0.6px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                }}
+              >
+                ADD
+              </button>
+            </form>
+          </div>
+
+          {/* 2. THE BRAIN Card Widget */}
+          <div style={{ padding: '14px 18px', borderBottom: '1px solid #F0ECE4' }}>
+            <div
+              style={{
+                background: '#FAF8F5',
+                border: '1px solid #EAE4DA',
+                borderRadius: '14px',
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}
+            >
+              {/* Neural Network Mini Graph Icon */}
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2DCD2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  flexShrink: 0
+                }}
+              >
+                🕸️
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#1A1612', letterSpacing: '0.5px' }}>
+                    THE BRAIN
+                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#8C837A' }}>
+                    37 NOTES
+                  </span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#665E54', marginTop: '2px' }}>
+                  Last read <strong>icp</strong> by CLIENT EMAILS · 5:44 pm
+                </div>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#1A1612',
+                    marginTop: '4px',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px'
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
-                    <span style={{ color: 'var(--text-gold)' }}>@{h.fromAgentId}</span>
-                    <ArrowRight size={12} color="var(--text-muted)" />
-                    <span style={{ color: '#38bdf8' }}>@{h.toAgentId}</span>
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{h.summary}</div>
+                  Open the Brain →
                 </div>
-              ))}
-              {selectedTicket.handoffHistory.length === 0 && (
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Initial ticket assignment in backlog.
-                </div>
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Generated Artifacts */}
-          <div>
-            <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Generated Artifacts ({selectedTicket.artifacts.length})
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {selectedTicket.artifacts.map((art) => (
-                <div
-                  key={art.id}
+          {/* 3. TASK STATUS FILTER TABS */}
+          <div style={{ padding: '14px 18px 8px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontFamily: 'serif', fontSize: '15px', fontWeight: 800, color: '#1A1612', letterSpacing: '0.8px' }}>
+                  TASK STATUS
+                </span>
+                <span
                   style={{
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '11.5px'
+                    background: '#F0ECE4',
+                    color: '#786F66',
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#10b981', marginBottom: '4px' }}>
-                    <FileCode size={13} />
-                    <span>{art.title}</span>
-                  </div>
-                  <pre style={{ margin: 0, padding: '8px', background: 'var(--bg-card)', borderRadius: '4px', fontSize: '10.5px', color: 'var(--text-primary)', overflowX: 'auto' }}>
-                    {art.content}
-                  </pre>
-                </div>
-              ))}
+                  DEMO
+                </span>
+              </div>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#8C837A', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                WHOLE OFFICE
+              </span>
+            </div>
+
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setFilterTab('ALL')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  background: filterTab === 'ALL' ? '#1A1612' : '#F4F0E8',
+                  color: filterTab === 'ALL' ? '#FFFFFF' : '#6E665E',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                ALL {taskList.length}
+              </button>
+              <button
+                onClick={() => setFilterTab('BACKLOG')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  background: filterTab === 'BACKLOG' ? '#1A1612' : '#F4F0E8',
+                  color: filterTab === 'BACKLOG' ? '#FFFFFF' : '#6E665E',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                BACKLOG {backlogCount}
+              </button>
+              <button
+                onClick={() => setFilterTab('IN_PROGRESS')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  background: filterTab === 'IN_PROGRESS' ? '#1A1612' : '#F4F0E8',
+                  color: filterTab === 'IN_PROGRESS' ? '#FFFFFF' : '#6E665E',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                IN PROGRESS {inProgressCount}
+              </button>
+              <button
+                onClick={() => setFilterTab('WAITING')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  background: filterTab === 'WAITING' ? '#1A1612' : '#F4F0E8',
+                  color: filterTab === 'WAITING' ? '#FFFFFF' : '#6E665E',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                WAITING {waitingCount}
+              </button>
+              <button
+                onClick={() => setFilterTab('DONE')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  background: filterTab === 'DONE' ? '#1A1612' : '#F4F0E8',
+                  color: filterTab === 'DONE' ? '#FFFFFF' : '#6E665E',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                DONE {doneCount}
+              </button>
             </div>
           </div>
 
-          {/* Advance Action Button */}
-          {selectedTicket.stage !== 'COMPLETED' && (
-            <button
-              className="btn btn-primary"
-              style={{ marginTop: 'auto', padding: '10px', justifyContent: 'center' }}
-              onClick={() => handleAdvanceTicket(selectedTicket.id)}
-              disabled={advancingTicketId === selectedTicket.id}
-            >
-              {advancingTicketId === selectedTicket.id ? (
-                <RefreshCw size={15} className="spin" />
-              ) : (
-                <Play size={15} />
-              )}
-              <span>Advance to Next Stage Autonomous</span>
-            </button>
-          )}
-        </div>
-      )}
+          {/* 4. TASK ITEMS LIST */}
+          <div style={{ flex: 1, padding: '10px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {filteredTasks.map((task) => (
+              <div
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #ECE7DF',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  {/* Progress Pill % */}
+                  <div
+                    style={{
+                      border: '1.5px solid #241E19',
+                      borderRadius: '12px',
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      color: '#1A1612',
+                      flexShrink: 0
+                    }}
+                  >
+                    {task.percent}%
+                  </div>
 
-      {/* CREATE TICKET MODAL */}
-      {showCreateModal && (
+                  {/* Title & Subtitle */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1A1612' }}>
+                        {task.title}
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#9E948A', whiteSpace: 'nowrap', marginLeft: '6px' }}>
+                        {task.timeAgo}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#8C837A', letterSpacing: '0.4px', marginTop: '3px' }}>
+                      {task.role} · {task.dept}
+                    </div>
+
+                    {/* Progress Bar Line */}
+                    <div style={{ width: '100%', height: '3px', background: '#F0ECE4', borderRadius: '2px', marginTop: '8px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${task.percent}%`,
+                          height: '100%',
+                          background: task.percent === 100 ? '#10B981' : '#1A1612',
+                          borderRadius: '2px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </div>
+
+      {/* 5. TICKET / DESK INSPECTOR MODAL */}
+      {selectedTask && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.7)',
+            background: 'rgba(0,0,0,0.4)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1100,
-            padding: '16px'
+            zIndex: 100
           }}
+          onClick={() => setSelectedTask(null)}
         >
           <div
+            onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
+              width: '560px',
+              background: '#FFFFFF',
+              borderRadius: '16px',
               padding: '24px',
-              width: '100%',
-              maxWidth: '520px',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+              border: '1px solid #EAE5DD',
               display: 'flex',
               flexDirection: 'column',
               gap: '16px'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Create New Office Ticket
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#F43F5E', letterSpacing: '0.8px' }}>
+                  {selectedTask.dept}
+                </span>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1A1612', margin: '4px 0 0 0' }}>
+                  {selectedTask.title}
+                </h2>
+                <div style={{ fontSize: '12px', color: '#6E665E', marginTop: '2px' }}>
+                  Assigned to: <strong>{selectedTask.role}</strong>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                onClick={() => setSelectedTask(null)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9E948A' }}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateTicket} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Ticket Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Build User Authentication Module or Run Security Audit"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    color: 'var(--text-primary)',
-                    marginTop: '4px',
-                    fontSize: '13px'
-                  }}
-                  required
-                />
+            {/* Live Progress */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
+                <span>Progress</span>
+                <span>{selectedTask.percent}%</span>
               </div>
-
-              <div>
-                <label style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Description & Constraints
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="Detail requirements, components, architectural boundaries, and target criteria..."
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '6px',
-                    color: 'var(--text-primary)',
-                    marginTop: '4px',
-                    fontSize: '13px',
-                    resize: 'vertical'
-                  }}
-                  required
-                />
+              <div style={{ width: '100%', height: '6px', background: '#F0ECE4', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: `${selectedTask.percent}%`, height: '100%', background: '#10B981', borderRadius: '3px' }} />
               </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                    Priority
-                  </label>
-                  <select
-                    value={newPriority}
-                    onChange={(e: any) => setNewPriority(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '6px',
-                      color: 'var(--text-primary)',
-                      marginTop: '4px',
-                      fontSize: '13px'
-                    }}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="CRITICAL">Critical</option>
-                  </select>
-                </div>
+            {/* Execution Stream / Logs */}
+            <div
+              style={{
+                background: '#1A1612',
+                color: '#E5E0D8',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                fontFamily: 'monospace',
+                fontSize: '12px',
+                lineHeight: 1.5,
+                maxHeight: '180px',
+                overflowY: 'auto'
+              }}
+            >
+              <div>[17:54:10] Agent initialized on sovereign fleet (Groq LPU ~800 tok/s).</div>
+              <div>[17:54:12] Reading requirements from THE BRAIN neural notes.</div>
+              <div>[17:54:14] Tool call: terminal.execute & git diff generation.</div>
+              <div style={{ color: '#34D399' }}>[17:54:16] Verification passed: 0 errors detected.</div>
+            </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}>
-                  <input
-                    type="checkbox"
-                    id="autoAdvanceCheck"
-                    checked={autoAdvance}
-                    onChange={(e) => setAutoAdvance(e.target.checked)}
-                  />
-                  <label htmlFor="autoAdvanceCheck" style={{ fontSize: '12px', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                    Auto-Start Execution
-                  </label>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Launch Ticket
-                </button>
-              </div>
-            </form>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setSelectedTask(null)}
+                style={{ padding: '6px 14px', fontSize: '12px' }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
