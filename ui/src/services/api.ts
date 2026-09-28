@@ -168,6 +168,8 @@ export const api = {
     fetchJson<{ success: boolean; session: any; messages: any[] }>(`${API_BASE}/conversations/${encodeURIComponent(id)}`),
   deleteConversation: (id: string) =>
     fetchJson<{ success: boolean }>(`${API_BASE}/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => ({ success: true })),
+  clearAllConversations: () =>
+    fetchJson<{ success: boolean; deletedCount?: number }>(`${API_BASE}/conversations`, { method: 'DELETE' }).catch(() => ({ success: true })),
 
   // Agents
   getAgents: () => fetchJson<{ agents: AgentInfo[] }>(`${API_BASE}/agents`),

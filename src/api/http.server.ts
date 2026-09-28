@@ -1100,6 +1100,25 @@ export class HttpServer {
       return;
     }
 
+    // DELETE /conversations (Clear All Sessions)
+    if (pathname === '/conversations' && method === 'DELETE') {
+      if (!this.persistence) {
+        this.sendJson(res, 503, { error: 'Persistence layer is not enabled.' });
+        return;
+      }
+      try {
+        const sessions = this.persistence.sessionRepo.findAll(1000);
+        for (const s of sessions) {
+          this.persistence.sessionRepo.delete(s.id);
+          this.persistence.messageRepo.deleteBySessionId(s.id);
+        }
+        this.sendJson(res, 200, { success: true, deletedCount: sessions.length });
+      } catch (err) {
+        this.sendJson(res, 500, { success: false, error: String(err) });
+      }
+      return;
+    }
+
     // DELETE /conversations/:id
     if (pathname.startsWith('/conversations/') && method === 'DELETE') {
       if (!this.persistence) {

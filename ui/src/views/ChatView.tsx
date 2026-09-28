@@ -537,6 +537,21 @@ export const ChatView: React.FC<ChatViewProps> = ({
     }
   };
 
+  // Clear all sessions
+  const handleClearAllSessions = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete all chat history? This will permanently remove all stored conversation sessions.')) {
+      return;
+    }
+    try {
+      await api.clearAllConversations();
+      setSessions([]);
+      handleNewChat();
+    } catch (err) {
+      console.error('Failed to clear all sessions', err);
+    }
+  };
+
   // Determine current 3D Core state
   let chatCoreState: AICoreState = 'IDLE';
   if (isListening || isVoiceToVoice) chatCoreState = 'LISTENING';
@@ -576,14 +591,38 @@ export const ChatView: React.FC<ChatViewProps> = ({
               <MessageSquare size={16} color="var(--accent-gold)" />
               <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-primary)' }}>Chat History</span>
             </div>
-            <button
-              onClick={handleNewChat}
-              className="btn btn-primary"
-              style={{ padding: '4px 10px', fontSize: '11px', height: '26px' }}
-              title="New Conversation"
-            >
-              <Plus size={13} /> New
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {sessions.length > 0 && (
+                <button
+                  onClick={handleClearAllSessions}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: '#f87171',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '4px 8px',
+                    fontSize: '11px',
+                    height: '26px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600,
+                  }}
+                  title="Clear All Chat History"
+                >
+                  <Trash2 size={12} /> Clear All
+                </button>
+              )}
+              <button
+                onClick={handleNewChat}
+                className="btn btn-primary"
+                style={{ padding: '4px 10px', fontSize: '11px', height: '26px' }}
+                title="New Conversation"
+              >
+                <Plus size={13} /> New
+              </button>
+            </div>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
