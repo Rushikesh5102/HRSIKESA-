@@ -328,9 +328,9 @@ export const api = {
     }),
 
   // Approvals
-  getApprovals: () => fetchJson<{ approvals: ApprovalRequest[] }>(`${API_BASE}/approvals`),
+  getApprovals: () => fetchJson<{ approvals: ApprovalRequest[] }>(`${API_BASE}/api/approvals`),
   respondApproval: (approvalId: string, decision: 'APPROVE' | 'DENY', reason?: string) =>
-    fetchJson<{ success: boolean; id: string; status: string }>(`${API_BASE}/approvals`, {
+    fetchJson<{ success: boolean; id: string; status: string }>(`${API_BASE}/api/approvals`, {
       method: 'POST',
       body: JSON.stringify({ approvalId, decision, reason }),
     }),
@@ -363,7 +363,7 @@ export const api = {
     fetchJson<{ success: boolean; stats: { totalCalls: number; totalInputTokens: number; totalOutputTokens: number; totalCostUsd: number; fallbackCount: number }; recentAudits: any[] }>(`${API_BASE}/routing/usage?limit=${limit}`),
 
   // Audit
-  getAudit: () => fetchJson<{ logs: AuditRecord[] }>(`${API_BASE}/audit`),
+  getAudit: () => fetchJson<{ logs: AuditRecord[] }>(`${API_BASE}/api/audit`),
 
   // Integrations & API Keys
   getIntegrations: () =>
