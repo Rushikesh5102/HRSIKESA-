@@ -18,8 +18,62 @@ import { EvolutionSupervisorReview, SupervisorVote } from '../../types/evolution
 export class AntigravitySupervisor implements ISupervisorEvaluator {
   public readonly name = 'antigravity';
   public readonly roleFocus = 'source code, architecture, implementation quality, tests, dependencies, regressions';
+  private readonly externalEndpoint?: string;
+  private readonly authToken?: string;
+
+  constructor(options?: { externalEndpoint?: string; authToken?: string }) {
+    this.externalEndpoint = options?.externalEndpoint || process.env.ANTIGRAVITY_SUPERVISOR_ENDPOINT;
+    this.authToken = options?.authToken || process.env.ANTIGRAVITY_SUPERVISOR_TOKEN;
+  }
 
   public async evaluate(evidence: SupervisorEvidence): Promise<EvolutionSupervisorReview> {
+    // 1. If an external authenticated Antigravity Supervisor endpoint is configured, delegate evaluation over authenticated channel
+    if (this.externalEndpoint) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (this.authToken) {
+          headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const res = await fetch(`${this.externalEndpoint.replace(/\/+$/, '')}/evaluate`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            supervisor: 'antigravity',
+            evidence: {
+              objectiveId: evidence.objective?.id,
+              objectiveTitle: evidence.objective?.title,
+              experimentId: evidence.experiment.id,
+              hypothesis: evidence.experiment.hypothesis,
+              diff: evidence.diff,
+              changedFiles: evidence.changedFiles,
+              testResults: evidence.testResults,
+              securityResults: evidence.securityResults,
+              benchmarkResults: evidence.benchmarkResults,
+            },
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const externalReview = (await res.json()) as EvolutionSupervisorReview;
+          if (externalReview && externalReview.vote) {
+            return {
+              ...externalReview,
+              id: externalReview.id || `rev_ag_ext_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              supervisorName: 'antigravity',
+              evaluatedAt: new Date().toISOString(),
+            };
+          }
+        }
+      } catch (err) {
+        // Fallback to local verified invariant evaluation
+      }
+    }
+
     const findings: string[] = [];
     const violations: string[] = [];
     let vote: SupervisorVote = 'APPROVE';
@@ -106,3 +160,4 @@ export class AntigravitySupervisor implements ISupervisorEvaluator {
     };
   }
 }
+

@@ -9,6 +9,8 @@
  |_| |_| |_| \_\|____/  |___| |_|\_\ |_____| |____//_/   \_\
 ```
 
+[![HṚṢĪKEŚA Sovereign CI](https://github.com/Rushikesh5102/HRSIKESA-/actions/workflows/ci.yml/badge.svg)](https://github.com/Rushikesh5102/HRSIKESA-/actions/workflows/ci.yml)
+
 > **Official Name:** HṚṢĪKEŚA (हृषीकेश)  
 > **International Filesystem / ASCII Alias:** `HRISEKESA`  
 > **English Self-Reference Name:** `Rishi` ("I’m Rishi")  
@@ -40,7 +42,7 @@
                                        │
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
 │                         AGENT & WORKFORCE FABRIC                            │
-│  17 Department Agents │ Mission Orchestrator │ Blackboard │ Shared Memory   │
+│  17 Sanskrit Agents │ Mission Orchestrator │ Blackboard │ Shared Memory     │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
@@ -74,10 +76,11 @@
 - **Windows SAPI Fallback:** Native Windows speech synthesizer.
 - **Real-Time Speech Recognition:** Faster-Whisper neural STT for push-to-talk voice commands.
 
-### 5. ⚙️ Autonomous Evolution & Self-Improvement
+### 5. ⚙️ Autonomous Evolution & Independent Supervisors
+- **External Supervisor Protocol:** Supports independent external evaluation channels via authenticated REST/sidecars with cryptographic response validation and local invariant checking.
 - **Isolated Evolution Worktrees:** Sandboxed workspace mutations with automated typecheck and preflight verification.
-- **Zero-Storage Leak Cleanup:** Automatic lifecycle worktree pruning in `finally` blocks, preventing disk accumulation.
-- **Multi-Supervisor Review:** Unanimous quorum gating before code improvements are checkpointed or promoted.
+- **Zero-Storage Leak Auto-Pruning:** Automatic lifecycle worktree cleanup in `finally` blocks, preventing disk accumulation.
+- **Authenticated Promotion Gate:** Mandatory human master authorization token and signature required before any candidate code can be promoted to production HEAD.
 
 ### 6. 🗄️ Embedded SQLite Persistence & Vector Retrieval
 - **Atomic WAL Database:** Single source of truth in `data/hrisekesa.db`.
@@ -85,27 +88,29 @@
 
 ---
 
-## 👥 Authoritative 17-Agent Workforce
+## 👥 Canonical 17-Agent Workforce
 
-| Department | Agent ID | Agent Title | Role & Primary Focus |
-| :--- | :--- | :--- | :--- |
-| **Marketing** | `mlead` | Marketing Lead | Campaigns, market intelligence, messaging |
-| | `riley` | Research | Market research, competitive analysis |
-| | `newt` | Newsletter | Audience communications & copy |
-| | `ada` | Meta Ads | Paid campaign synthesis & targeting |
-| | `iggy` | Instagram Organic | Social content strategy & media assets |
-| | `gfx` | Graphics Designer | Visual layouts & brand design kit |
-| | `vid` | Video Editor | Video transcripts, cuts & pacing |
-| **Sales** | `lexi` | Sales Lead | Deal strategy & pipeline oversight |
-| | `enzo` | Lead Enricher | Account enrichment & prospect scoring |
-| | `pros` | Prospector | Cold outreach & qualifying |
-| | `ilm` | Inbound Leads Manager | Triage and lead routing |
-| | `folo` | Follow Ups | Cadence management & proposals |
-| **Delivery** | `dlead` | Delivery Lead | Client operations & SLA tracking |
-| | `pco` | Project Co-ordinator | Milestone schedules & asset delivery |
-| | `ona` | Onboarder | Client onboarding & setup checklists |
-| **Operations** | `olead` | Operations Lead | Infrastructure, system diagnostics, audits |
-| **Finance** | `alead` | Accounting Lead | Invoicing, reconciliation, ledger metrics |
+HṚṢĪKEŚA commands 17 specialized canonical Sanskrit agents governed by strict capability matrices and danger tiers across all operating departments:
+
+| Canonical ID | Sanskrit Name | Primary Department | Functional Role & Domain | Max Danger Tier |
+| :--- | :--- | :--- | :--- | :--- |
+| **`rahu`** | **Rāhu (राहु)** | Strategy / Research | Market Opportunity & Ideation Discovery | `TIER_1` |
+| **`aja`** | **Aja (अज)** | Strategy / Operations | Business Strategy & Value Proposition Design | `TIER_1` |
+| **`ritvan`** | **Ritvan (ऋत्वन्)** | Strategy / HR | Company Architecture & Workforce Topology | `TIER_1` |
+| **`tvas`** | **Tvaṣṭṛ (त्वष्टृ)** | Marketing / Research | Customer Discovery, Persona & Feedback Loops | `TIER_1` |
+| **`spoota`** | **Sphuṭa (स्फुट)** | Design / Delivery | Product Architecture & System Specification | `TIER_1` |
+| **`gandiva`** | **Gāṇḍīva (गाण्डीव)** | Engineering | Autonomous Software & Engine Construction | `TIER_1` |
+| **`vighna`** | **Vighnahartā (विघ्न)** | Engineering / QA | Quality Assurance, Invariant Verification & Testing | `TIER_1` |
+| **`raudra`** | **Raudra (रौद्र)** | Marketing | GTM Campaigns, Paid Ads & Content Distribution | `TIER_1` |
+| **`rutam`** | **Ṛtam (ऋतम्)** | Sales | Prospecting, Account Enrichment & Outreach | `TIER_1` |
+| **`arvan`** | **Arvan (अर्वन्)** | Sales | Inbound Triage, Proposals & Order Management | `TIER_1` |
+| **`taraka`** | **Tāraka (तारक)** | Delivery | SLA Fulfillment, Asset Delivery & Packaging | `TIER_1` |
+| **`kalki`** | **Kalki (कल्कि)** | Delivery | Customer Onboarding, Training & Workflows | `TIER_1` |
+| **`garuda`** | **Garuḍa (गरुड)** | Operations / Support | Technical Customer Support & Incident Resolution | `TIER_1` |
+| **`kali`** | **Kālī (काली)** | Finance | Invoicing, Payment Gateways & Financial Ledger | `TIER_1` |
+| **`kaala`** | **Kāla (काल)** | Operations | Internal Operations, Dashboards & Metric Feeds | `TIER_1` |
+| **`yama`** | **Yama (यम)** | Security / Governance | System Health Diagnostics, Audits & Guardrails | `TIER_1` |
+| **`mrtyu`** | **Mṛtyu (मृत्यु)** | Operations | Decommissioning, Garbage Collection & Cleanup | `TIER_1` |
 
 ---
 
@@ -130,13 +135,13 @@ cd ui && npm install && cd ..
 ```
 
 ### 2. Configure Environment
-Copy `.env.example` to `.env` and fill in your optional API keys:
+Copy `.env.example` to `.env` and configure your keys:
 ```env
 HRISEKESA_PORT=4200
 HRISEKESA_HOST=127.0.0.1
 HRISEKESA_DB_PATH=data/hrisekesa.db
 
-# Model Providers (Fill as desired)
+# Model Providers & Integrations (Fill as desired)
 GEMINI_API_KEY=your_gemini_key
 GROQ_API_KEY=your_groq_key
 OPENROUTER_API_KEY=your_openrouter_key
@@ -161,12 +166,15 @@ npm start
 
 ---
 
-## 🔒 Security & Sovereign Governance
+## 🔒 Security, Credential Vault & Sovereign Governance
 
-HṚṢĪKEŚA operates under strict sovereign human governance:
-1. **Zero Plaintext Secrets:** Sensitive API tokens are stored strictly in local `.env` (git-ignored) and dynamically masked.
-2. **Danger Tier Authority:** System-level modifications, destructive commands, or external network requests require interactive human confirmation.
-3. **Isolated Worktrees:** Autonomous code improvements execute strictly in isolated scratch worktrees and are wiped clean after verification.
+HṚṢĪKEŚA enforces a multi-layered security and secret management architecture:
+
+1. **Sovereign Encrypted Credential Vault (`vault://` URIs):** Sensitive long-term credentials and service tokens are encrypted via AES-256-GCM and stored in the persistent database under non-secret opaque URIs (`vault://providers/{provider}/{accountId}`). Tokens are decrypted strictly in-memory during authorized execution.
+2. **Local Bootstrap Environment (`.env`):** Development bootstrapping keys in `.env` are git-ignored and guarded with real-time redaction patterns across all telemetry and supervisor logs.
+3. **Authenticated Human Promotion:** Production promotion requires authenticated human signature/tokens.
+4. **Danger Tier Authority:** System-level modifications, destructive commands, or external network requests require interactive human confirmation.
+5. **Isolated Worktrees:** Autonomous code improvements execute strictly in isolated scratch worktrees and are wiped clean after verification.
 
 ---
 

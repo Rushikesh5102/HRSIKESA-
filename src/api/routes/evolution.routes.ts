@@ -150,10 +150,37 @@ export class EvolutionRoutes {
 
         if (method === 'POST' && action === 'promote') {
           const body = await this.parseJsonBody(req);
-          const resPromote = await this.evolutionEngine.promoteExperiment(
-            objId,
-            String(body.approver || 'ROOT_RUSHIKESH')
-          );
+          const authHeader = req.headers['authorization'] || '';
+          const providedToken = String(body.authToken || body.token || (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader) || '').trim();
+          const approver = String(body.approver || '').trim();
+
+          if (!approver) {
+            this.sendJson(res, 400, {
+              success: false,
+              error: 'Explicit human approver identity (e.g. "Rushikesh Pattiwar" or "ROOT_RUSHIKESH") is required for production promotion.',
+            });
+            return true;
+          }
+
+          // Enforce master authorization secret check if configured
+          const masterSecret = process.env.HRISEKESA_MASTER_KEY || process.env.HRISEKESA_PROMOTION_SECRET;
+          if (masterSecret && providedToken !== masterSecret) {
+            this.sendJson(res, 401, {
+              success: false,
+              error: 'Unauthorized: Production promotion requires valid human master authorization token.',
+            });
+            return true;
+          }
+
+          const resPromote = await this.evolutionEngine.promoteExperiment(objId, approver);
+          this.eventBus?.emit('audit.log' as any, {
+            type: 'PRODUCTION_PROMOTION',
+            targetId: objId,
+            approver,
+            timestamp: new Date().toISOString(),
+            ip: req.socket?.remoteAddress || '127.0.0.1',
+          });
+
           this.sendJson(res, 200, resPromote);
           return true;
         }
