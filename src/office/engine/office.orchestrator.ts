@@ -59,7 +59,7 @@ export class OfficeOrchestrator {
         deskNumber: deskIndex++,
         activity: 'IDLE',
         activeModel: agent.modelPreference.preferredModelId || 'llama-3.3-70b-versatile',
-        thoughtBubble: `Ready at desk #${deskIndex - 1} (${agent.role})`,
+        thoughtBubble: 'Standing by in idle state — ready for your command.',
         tokensProcessed: 0,
         tasksCompleted: 0,
         lastActiveIso: new Date().toISOString()
