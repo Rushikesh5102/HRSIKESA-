@@ -184,7 +184,6 @@ export class CreationRoutes {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
     });
     res.write('retry: 3000\n\n');
 
@@ -211,7 +210,6 @@ export class CreationRoutes {
     const body = JSON.stringify(data);
     res.writeHead(status, {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Content-Length': Buffer.byteLength(body),
     });
     res.end(body);

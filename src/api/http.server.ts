@@ -5,6 +5,7 @@
 import http, { IncomingMessage, ServerResponse } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { hostname as osHostname } from 'node:os';
 import { IdentityManager } from '../core/identity/identity.manager.js';
 import { LifecycleManager } from '../core/lifecycle/lifecycle.manager.js';
 import { HardwareDetector } from '../core/hardware/hardware.detector.js';
@@ -78,6 +79,9 @@ import { EvolutionRoutes } from './routes/evolution.routes.js';
 import type { EvolutionLoopEngine } from '../self-improvement/evolution/engine/evolution-loop.engine.js';
 import { ExecutionRoutes } from './routes/execution.routes.js';
 import type { ExecutionFabric } from '../execution/execution.fabric.js';
+
+/** Reject request bodies declaring more than this (guards against memory-exhaustion by a local page/process). */
+const MAX_REQUEST_BODY_BYTES = 64 * 1024 * 1024;
 
 export interface PersistenceContext {
   readonly db: DatabaseManager;
@@ -550,6 +554,32 @@ export class HttpServer {
     });
   }
 
+  /**
+   * Accepts loopback names, any IP literal (LAN workers connect by IP), the configured bind host,
+   * this machine's hostname, and anything listed in HRISEKESA_ALLOWED_HOSTS (comma separated).
+   * Arbitrary DNS names are rejected, which is what stops DNS-rebinding attacks.
+   */
+  private isAllowedHostHeader(hostHeader: string | undefined): boolean {
+    if (!hostHeader) return true; // HTTP/1.0 or non-browser client
+    const raw = hostHeader.trim().toLowerCase();
+    const hostname = raw.startsWith('[') ? raw.slice(0, raw.indexOf(']') + 1) : raw.split(':')[0];
+    if (hostname === 'localhost' || hostname === '[::1]') return true;
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return true;
+    if (hostname.startsWith('[')) return true; // IPv6 literal
+    const extra = (process.env.HRISEKESA_ALLOWED_HOSTS || '')
+      .split(',')
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean);
+    const configured = String(this.config.host || '').toLowerCase();
+    return hostname === configured || hostname === osHostname().toLowerCase() || extra.includes(hostname);
+  }
+
+  private sendGuardRejection(res: ServerResponse, status: number, message: string): void {
+    const body = JSON.stringify({ success: false, error: message });
+    res.writeHead(status, { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) });
+    res.end(body);
+  }
+
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     let pathname = url.pathname;
@@ -570,6 +600,29 @@ export class HttpServer {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+
+    // Browser-origin guard. This API can run terminal commands and drive the desktop, and it has
+    // no login, so a web page the user merely visits must never be able to reach it.
+    //  1. Host allowlist -> defeats DNS-rebinding (attacker hostname resolving to 127.0.0.1).
+    //  2. State-changing request carrying a non-local Origin -> blocked. Cross-origin "simple"
+    //     requests (e.g. text/plain POST) skip CORS preflight, so CORS headers alone don't stop them.
+    //     Non-browser clients (curl, tests, LAN workers, verifier scripts) send no Origin and are unaffected.
+    //  3. Request body size cap.
+    if (!this.isAllowedHostHeader(req.headers.host)) {
+      this.sendGuardRejection(res, 403, 'Forbidden: unrecognised Host header');
+      return;
+    }
+    const isStateChanging = method !== undefined && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+    if (typeof origin === 'string' && !isAllowedOrigin && isStateChanging) {
+      this.sendGuardRejection(res, 403, 'Forbidden: cross-origin state-changing requests are not allowed');
+      return;
+    }
+    const declaredLength = Number(req.headers['content-length'] || 0);
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BODY_BYTES) {
+      this.sendGuardRejection(res, 413, 'Payload too large');
+      return;
+    }
 
     if (method === 'OPTIONS') {
       res.writeHead(204);
@@ -986,7 +1039,6 @@ export class HttpServer {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache, no-transform',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*'
           });
 
           const onToken = (token: string) => {
@@ -2504,7 +2556,6 @@ Maintain your authentic domain focus.`;
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
       });
       res.write(`data: ${JSON.stringify({ type: 'CONNECTED', data: { status: 'online' }, timestamp: new Date().toISOString() })}\n\n`);
 
@@ -2844,7 +2895,6 @@ Maintain your authentic domain focus.`;
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
       });
 
       const sendEvent = (eventType: string, data: unknown) => {
@@ -4319,7 +4369,6 @@ Maintain your authentic domain focus.`;
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
       });
 
       const sendEvent = (eventType: string, data: unknown) => {
@@ -7434,7 +7483,6 @@ Maintain your authentic domain focus.`;
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache, no-transform',
           'Connection': 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
         });
 
         const sendEvent = (eventType: string, data: unknown) => {

@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { execWithTreeKill } from '../../../core/util/exec-tree.js';
 import { ILogger } from '../../../core/logging/logger.types.js';
 import { BoundaryGuard } from '../safety/boundary-guard.js';
 
@@ -188,7 +189,7 @@ export class EvolutionWorktreeManager {
     let typecheckPassed = true;
     let typecheckOutput = '';
     try {
-      const { stdout, stderr } = await execAsync('npx tsc --noEmit', { cwd: worktreePath, timeout: 45000 });
+      const { stdout, stderr } = await execWithTreeKill('npx tsc --noEmit', { cwd: worktreePath, timeout: 45000 });
       typecheckOutput = (stdout + stderr).trim();
       typecheckPassed = true;
     } catch (err: any) {

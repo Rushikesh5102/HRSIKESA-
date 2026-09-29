@@ -84,7 +84,6 @@ export class AccountRoutes {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
         });
         res.write('retry: 5000\n\n');
         this.sseClients.add(res);
@@ -296,7 +295,6 @@ export class AccountRoutes {
   private sendJson(res: ServerResponse, status: number, data: unknown): void {
     res.writeHead(status, {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     });

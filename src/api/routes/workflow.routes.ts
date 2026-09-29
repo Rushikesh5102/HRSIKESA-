@@ -345,7 +345,6 @@ export class WorkflowRoutes {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
     });
     res.flushHeaders?.();
 
@@ -415,7 +414,6 @@ export class WorkflowRoutes {
     const body = JSON.stringify(data);
     res.writeHead(status, {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Content-Length': Buffer.byteLength(body),
     });
     res.end(body);

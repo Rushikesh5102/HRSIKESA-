@@ -303,7 +303,6 @@ export class EngineeringRoutes {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
     });
 
     res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\n\n`);
@@ -329,7 +328,6 @@ export class EngineeringRoutes {
     res.writeHead(statusCode, {
       'Content-Length': Buffer.byteLength(payload),
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     });

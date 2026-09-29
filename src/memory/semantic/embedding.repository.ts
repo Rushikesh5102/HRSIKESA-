@@ -39,6 +39,26 @@ export class EmbeddingRepository {
 
   constructor(db: DatabaseManager) {
     this.db = db;
+    this.ensureTable();
+  }
+
+  private ensureTable(): void {
+    if (!this.db.isOpen()) return;
+    try {
+      this.db.prepare(`
+        CREATE TABLE IF NOT EXISTS memory_embeddings (
+          memory_id   TEXT PRIMARY KEY,
+          model_id    TEXT NOT NULL,
+          dimensions  INTEGER NOT NULL,
+          vector_blob BLOB NOT NULL,
+          status      TEXT NOT NULL DEFAULT 'indexed',
+          created_at  TEXT NOT NULL,
+          updated_at  TEXT NOT NULL
+        );
+      `).run();
+    } catch {
+      // Ignore if database is not writable or migrations manage table
+    }
   }
 
   /**

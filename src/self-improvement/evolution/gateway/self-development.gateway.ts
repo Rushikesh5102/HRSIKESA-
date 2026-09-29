@@ -13,6 +13,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { execWithTreeKill } from '../../../core/util/exec-tree.js';
 import { DatabaseManager } from '../../../persistence/database/database.manager.js';
 import { EventBus } from '../../../core/events/event-bus.js';
 import { ILogger } from '../../../core/logging/logger.types.js';
@@ -404,7 +405,7 @@ export class SelfDevelopmentGateway {
     this.assertSafety('evolution.build');
     const worktree = this.getWorktree(experimentId);
     try {
-      const { stdout, stderr } = await execAsync('npm run build', { cwd: worktree, timeout: 60000 });
+      const { stdout, stderr } = await execWithTreeKill('npm run build', { cwd: worktree, timeout: 60000 });
       return { success: true, output: (stdout + stderr).trim(), exitCode: 0 };
     } catch (err: any) {
       return { success: false, output: err.message, exitCode: err.code || 1 };
@@ -415,7 +416,7 @@ export class SelfDevelopmentGateway {
     this.assertSafety('evolution.typecheck');
     const worktree = this.getWorktree(experimentId);
     try {
-      const { stdout, stderr } = await execAsync('npx tsc --noEmit', { cwd: worktree, timeout: 45000 });
+      const { stdout, stderr } = await execWithTreeKill('npx tsc --noEmit', { cwd: worktree, timeout: 45000 });
       return { success: true, output: (stdout + stderr).trim(), exitCode: 0 };
     } catch (err: any) {
       return { success: false, output: err.stdout || err.message, exitCode: err.code || 1 };
@@ -435,7 +436,7 @@ export class SelfDevelopmentGateway {
       : 'npx tsx --test --test-concurrency=1 tests/configuration.test.ts';
 
     try {
-      const { stdout, stderr } = await execAsync(cmd, { cwd: worktree, timeout: 60000 });
+      const { stdout, stderr } = await execWithTreeKill(cmd, { cwd: worktree, timeout: 60000 });
       const durationMs = Date.now() - startTime;
       return {
         total: 5,

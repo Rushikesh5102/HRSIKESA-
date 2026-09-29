@@ -86,7 +86,6 @@ export class EcosystemRoutes {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
         });
         res.write('retry: 5000\n\n');
         this.sseClients.add(res);
@@ -301,7 +300,6 @@ export class EcosystemRoutes {
   private sendJson(res: ServerResponse, statusCode: number, data: unknown): void {
     res.writeHead(statusCode, {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
     });
     res.end(JSON.stringify(data));
   }

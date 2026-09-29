@@ -3,6 +3,8 @@
  * Sovereign Personal AI Operating System & Autonomous Workforce
  */
 
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { HrisekesaKernel } from './runtime/kernel.js';
 
 export * from './core/identity/identity.types.js';
@@ -106,6 +108,17 @@ const isMainModule = process.argv[1] && (
 );
 
 if (isMainModule) {
+  // Load project-root .env (never overrides variables already set in the real environment).
+  // Done only when run as the entrypoint so tests importing this module stay hermetic.
+  try {
+    const envPath = fileURLToPath(new URL('../.env', import.meta.url));
+    if (existsSync(envPath)) {
+      process.loadEnvFile(envPath);
+    }
+  } catch (err) {
+    console.warn('Could not load .env file:', err instanceof Error ? err.message : err);
+  }
+
   const kernel = new HrisekesaKernel();
 
   const handleTermination = async (signal: string) => {
