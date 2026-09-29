@@ -22,10 +22,19 @@ export class AnomalyDetectorService {
     const observations = this.repository.listObservations({ companyId, limit: 200 });
     const detected: ISelfAnomaly[] = [];
 
+    // Retrieve resolved anomalies to avoid continuously re-clustering resolved historical observations
+    const resolvedAnomalies = this.repository.listAnomalies({ status: 'RESOLVED', companyId });
+    const resolvedObsIds = new Set<string>();
+    for (const anom of resolvedAnomalies) {
+      for (const id of anom.observationIds || []) {
+        resolvedObsIds.add(id);
+      }
+    }
+
     // 1. Group error observations by component / category
     const errorClusters: Record<string, { count: number; ids: string[]; lastError: string }> = {};
     for (const obs of observations) {
-      if (obs.level === 'ERROR' || obs.level === 'CRITICAL') {
+      if ((obs.level === 'ERROR' || obs.level === 'CRITICAL') && !resolvedObsIds.has(obs.id)) {
         const key = `${obs.source}:${obs.category}`;
         if (!errorClusters[key]) {
           errorClusters[key] = { count: 0, ids: [], lastError: JSON.stringify(obs.details) };

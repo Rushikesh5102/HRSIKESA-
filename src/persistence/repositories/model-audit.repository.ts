@@ -60,13 +60,13 @@ export class ModelAuditRepository {
     return this.db.isOpen();
   }
 
-  public recordUsage(audit: Omit<ModelUsageAuditRecord, 'id' | 'createdAt'>): ModelUsageAuditRecord {
+  public recordUsage(audit: Omit<ModelUsageAuditRecord, 'id' | 'createdAt'>): ModelUsageAuditRecord | null {
+    if (!this.db.isOpen()) {
+      return null;
+    }
+
     const id = randomUUID();
     const createdAt = new Date().toISOString();
-
-    if (!this.db.isOpen()) {
-      return { id, ...audit, createdAt };
-    }
 
     const stmt = this.db.prepare(`
       INSERT INTO model_usage_audits (

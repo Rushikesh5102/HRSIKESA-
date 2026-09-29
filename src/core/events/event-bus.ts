@@ -19,16 +19,10 @@ export class EventBus {
         const result = listener(payload);
         if (result instanceof Promise) {
           result.catch((err) => {
-            if (err && typeof err === 'object' && ('name' in err) && (err as { name: string }).name === 'AssertionError') {
-              throw err;
-            }
             console.error(`Async error in EventBus listener for '${String(event)}':`, err);
           });
         }
       } catch (err) {
-        if (err && typeof err === 'object' && ('name' in err) && (err as { name: string }).name === 'AssertionError') {
-          throw err;
-        }
         console.error(`Sync error in EventBus listener for '${String(event)}':`, err);
       }
     };
