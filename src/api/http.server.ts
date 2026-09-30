@@ -596,10 +596,11 @@ export class HttpServer {
       origin === 'http://localhost' ||
       origin === 'http://127.0.0.1'
     );
-    res.setHeader('Access-Control-Allow-Origin', isAllowedOrigin ? origin : 'http://localhost:5173');
+    res.setHeader('Access-Control-Allow-Origin', isAllowedOrigin ? origin : (origin || 'https://localhost:5173'));
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Permissions-Policy', 'microphone=(self "*")');
     res.setHeader('Vary', 'Origin');
 
     // Browser-origin guard. This API can run terminal commands and drive the desktop, and it has
@@ -3132,6 +3133,13 @@ Maintain your authentic domain focus.`;
         this.sendJson(res, 503, { error: 'Voice subsystem is not enabled on this kernel.' });
         return;
       }
+      let indicParlerStatus = null;
+      if (typeof (this.voice.tts as any).getStatus === 'function') {
+        try {
+          indicParlerStatus = await (this.voice.tts as any).getStatus();
+        } catch {}
+      }
+
       this.sendJson(res, 200, {
         stt: {
           id: this.voice.stt.id,
@@ -3141,7 +3149,8 @@ Maintain your authentic domain focus.`;
         tts: {
           id: this.voice.tts.id,
           name: this.voice.tts.name,
-          status: 'ready'
+          status: indicParlerStatus ? indicParlerStatus.primaryStatus : 'ready',
+          indicParler: indicParlerStatus
         },
         recorder: {
           isRecording: this.voice.recorder.isRecording
@@ -3151,7 +3160,7 @@ Maintain your authentic domain focus.`;
         },
         pronunciation: {
           lexiconCount: this.voice.pronunciationRepo ? this.voice.pronunciationRepo.count() : 0,
-          protectedTerms: ['HṚṢĪKEŚA', 'SAHIKARA', 'Gāṇḍīva', 'KĀLA', 'Mṛtyu', 'Rāhu', 'Ṛtvan', 'Spooṭa', 'Vighna']
+          protectedTerms: ['HṚṢĪKEŚA', 'SAHIKARA', 'Gāṇḍīva', 'KĀLA', 'Mṛtyu', 'Rāhu', 'Ṛtvan', 'Spooṭa', 'Vighna', 'Prajāpati', 'Ādityas', 'Rudras', 'Vasus']
         },
         multilingual: {
           supportedLanguages: ['en', 'hi', 'mr', 'sa', 'bn', 'gu', 'ta', 'te', 'kn', 'ml', 'pa', 'ur'],
@@ -3286,14 +3295,101 @@ Maintain your authentic domain focus.`;
         }
 
         const result = await this.voice.voicePipeline.synthesizeAndPlay(text);
+        const filename = path.basename(result.audioFilePath);
         this.sendJson(res, 200, {
           success: true,
           audioFilePath: result.audioFilePath,
+          audioUrl: `/voice/audio/${encodeURIComponent(filename)}`,
           durationMs: result.durationMs,
           text
         });
       } catch (err) {
         this.sendJson(res, 500, { error: 'Voice synthesis failed', details: String(err) });
+      }
+      return;
+    }
+
+    // GET /voice/audio/:filename — Stream synthesized WAV audio to browser
+    if (pathname.startsWith('/voice/audio/') && (method === 'GET' || method === 'HEAD')) {
+      const filename = path.basename(pathname.slice('/voice/audio/'.length));
+      if (!filename || filename.includes('..')) {
+        this.sendJson(res, 400, { error: 'Invalid audio filename' });
+        return;
+      }
+      const audioDir = path.resolve('data/audio');
+      const fullPath = path.join(audioDir, filename);
+      if (!fs.existsSync(fullPath)) {
+        this.sendJson(res, 404, { error: 'Audio file not found' });
+        return;
+      }
+      try {
+        const stat = fs.statSync(fullPath);
+        res.writeHead(200, {
+          'Content-Type': 'audio/wav',
+          'Content-Length': stat.size,
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'no-cache',
+        });
+        if (method === 'HEAD') {
+          res.end();
+          return;
+        }
+        const stream = fs.createReadStream(fullPath);
+        stream.pipe(res);
+      } catch (err) {
+        this.sendJson(res, 500, { error: 'Failed to stream audio file' });
+      }
+      return;
+    }
+
+    // POST /voice/transcribe — Sovereign Speech-to-Text
+    if (pathname === '/voice/transcribe' && method === 'POST') {
+      if (!this.voice) {
+        this.sendJson(res, 503, { error: 'Voice subsystem is not enabled.' });
+        return;
+      }
+      try {
+        const body = (await this.readJsonBody(req)) as Record<string, any>;
+        let audioBuffer: Buffer | null = null;
+        let ext = '.wav';
+
+        const formatStr = typeof body.format === 'string' ? body.format : '';
+        const mimeStr = typeof body.mimeType === 'string' ? body.mimeType : '';
+
+        if (formatStr === 'webm' || mimeStr.includes('webm')) {
+          ext = '.webm';
+        } else if (formatStr === 'ogg' || mimeStr.includes('ogg')) {
+          ext = '.ogg';
+        }
+
+        if (typeof body.audioBase64 === 'string') {
+          audioBuffer = Buffer.from(body.audioBase64, 'base64');
+        } else if (typeof body.audioFilePath === 'string' && fs.existsSync(body.audioFilePath)) {
+          audioBuffer = fs.readFileSync(body.audioFilePath);
+        }
+
+        if (!audioBuffer || audioBuffer.length === 0) {
+          this.sendJson(res, 400, { error: "Validation failed: 'audioBase64' required." });
+          return;
+        }
+
+        const audioDir = path.resolve('data/audio');
+        if (!fs.existsSync(audioDir)) {
+          fs.mkdirSync(audioDir, { recursive: true });
+        }
+        const tempPath = path.join(audioDir, `stt_upload_${Date.now()}_${Math.random().toString(36).slice(2, 6)}${ext}`);
+        fs.writeFileSync(tempPath, audioBuffer);
+
+        const result = await this.voice.voicePipeline.transcribeAudio(tempPath);
+        this.sendJson(res, 200, {
+          success: true,
+          text: result.text || '',
+          language: result.language,
+          confidence: result.confidence,
+          durationMs: result.durationMs,
+        });
+      } catch (err: any) {
+        this.sendJson(res, 500, { error: 'Transcription failed', details: String(err?.message || err) });
       }
       return;
     }
@@ -3349,6 +3445,123 @@ Maintain your authentic domain focus.`;
         this.sendJson(res, 200, { success: true, message: 'Playback interrupted and microphone un-ducked.' });
       } catch (err) {
         this.sendJson(res, 500, { error: 'Interruption failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /voice/preview — Live Voice Preview with full emotional and prosodic controls
+    if (pathname === '/voice/preview' && method === 'POST') {
+      if (!this.voice) {
+        this.sendJson(res, 503, { error: 'Voice subsystem is not enabled.' });
+        return;
+      }
+      try {
+        const body = await this.readJsonBody(req);
+        const text = typeof body.text === 'string' && body.text.trim() ? body.text.trim() : 'Hello Rushikesh. I am HṚṢĪKEŚA. Everything is ready.';
+        const language = (body.language as any) || 'en';
+        const speaker = typeof body.speaker === 'string' ? body.speaker : undefined;
+        const emotion = body.emotion || 'neutral';
+        const intensity = typeof body.intensity === 'number' ? body.intensity : 0.35;
+        const rate = typeof body.rate === 'number' ? body.rate : 1.0;
+        const pitch = body.pitch || 'medium-low';
+        const expressiveness = body.expressiveness || 'subtle';
+        const reverberation = body.reverberation || 'minimal';
+        const quality = body.quality || 'refined';
+
+        const startTime = Date.now();
+        const synthResult = await (this.voice.tts as any).synthesize(text, undefined, {
+          language,
+          speaker,
+          emotion,
+          intensity,
+          rate,
+          pitch,
+          expressiveness,
+          reverberation,
+          quality,
+        });
+
+        const latencyMs = Date.now() - startTime;
+        const telemetry = (this.voice.tts as any).getLastTelemetry?.() || null;
+
+        // Auto-play preview if requested (default true)
+        if (body.play !== false) {
+          await this.voice.player.play(synthResult.audioFilePath);
+        }
+
+        this.sendJson(res, 200, {
+          success: true,
+          text,
+          language,
+          speaker: telemetry?.speaker || speaker,
+          emotion,
+          caption: telemetry?.deliveryCaption,
+          audioFilePath: synthResult.audioFilePath,
+          audioUrl: `/voice/audio/${encodeURIComponent(path.basename(synthResult.audioFilePath))}`,
+          durationMs: synthResult.durationMs,
+          latencyMs,
+          providerUsed: telemetry?.provider || this.voice.tts.id,
+          modelUsed: telemetry?.model,
+          fallbackUsed: telemetry?.fallbackUsed || false,
+          fallbackReason: telemetry?.fallbackReason,
+        });
+      } catch (err) {
+        this.sendJson(res, 500, { error: 'Voice preview failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /voice/infer-affect — Conversational State Inference
+    if (pathname === '/voice/infer-affect' && method === 'POST') {
+      try {
+        const body = await this.readJsonBody(req);
+        const text = typeof body.text === 'string' ? body.text.trim() : '';
+        const inferrer = (this.voice?.coordinator as any)?.userStateInferrer || new (await import('../voice/affect/user-speaking-state.inferrer.js')).UserSpeakingStateInferrer();
+        const inferred = inferrer.infer(text);
+        this.sendJson(res, 200, { success: true, text, state: inferred });
+      } catch (err) {
+        this.sendJson(res, 500, { error: 'Affect inference failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /voice/worker/unload — Explicit model unload for RAM optimization
+    if (pathname === '/voice/worker/unload' && method === 'POST') {
+      if (!this.voice) {
+        this.sendJson(res, 503, { error: 'Voice subsystem is not enabled.' });
+        return;
+      }
+      try {
+        if (typeof (this.voice.tts as any).unloadModel === 'function') {
+          await (this.voice.tts as any).unloadModel();
+        }
+        const status = typeof (this.voice.tts as any).getStatus === 'function'
+          ? await (this.voice.tts as any).getStatus()
+          : null;
+        this.sendJson(res, 200, { success: true, message: 'Model unloaded from memory', status });
+      } catch (err) {
+        this.sendJson(res, 500, { error: 'Worker unload failed', details: String(err) });
+      }
+      return;
+    }
+
+    // POST /voice/worker/preload — Explicit model preload
+    if (pathname === '/voice/worker/preload' && method === 'POST') {
+      if (!this.voice) {
+        this.sendJson(res, 503, { error: 'Voice subsystem is not enabled.' });
+        return;
+      }
+      try {
+        let loaded = false;
+        if (typeof (this.voice.tts as any).preloadModel === 'function') {
+          loaded = await (this.voice.tts as any).preloadModel();
+        }
+        const status = typeof (this.voice.tts as any).getStatus === 'function'
+          ? await (this.voice.tts as any).getStatus()
+          : null;
+        this.sendJson(res, 200, { success: loaded, status });
+      } catch (err) {
+        this.sendJson(res, 500, { error: 'Worker preload failed', details: String(err) });
       }
       return;
     }
@@ -7916,6 +8129,7 @@ Maintain your authentic domain focus.`;
         'GET /environment/processes',
         'GET /voice/status',
         'POST /voice/synthesize',
+        'POST /voice/transcribe',
         'POST /objectives/:id/evaluate',
         'GET /objectives/:id/health',
         'GET /objectives/:id/evaluations',

@@ -349,61 +349,61 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
   });
 
   // =========================================================================
-  // 3. 17-Agent Dynamic Workforce Allocation & Capacity Matrix
+  // 3. 33-Agent Canonical Workforce Allocation & Capacity Matrix
   // =========================================================================
-  describe('3. 17-Agent Dynamic Workforce Allocation & Capacity', () => {
-    it('initializes all 17 specialized agents with base capacities', () => {
+  describe('3. 33-Agent Canonical Workforce Allocation & Capacity', () => {
+    it('initializes all 33 specialized agents with base capacities', () => {
       const capacities = runtime.capacityTracker.getAllCapacities();
-      expect(capacities.length).toBe(17);
+      expect(capacities.length).toBe(33);
 
       const agentNames = capacities.map(c => c.agentName);
-      expect(agentNames).toContain('Gāṇḍīva');
-      expect(agentNames).toContain('Vighna');
-      expect(agentNames).toContain('Rahu');
-      expect(agentNames).toContain('Arvan');
-      expect(agentNames).toContain('Garuḍa');
-      expect(agentNames).toContain('KĀLA');
+      expect(agentNames).toContain('Manyu');
+      expect(agentNames).toContain('Ṛtadhvaja');
+      expect(agentNames).toContain('Bhaga');
+      expect(agentNames).toContain('Pūṣā');
+      expect(agentNames).toContain('Prabhāsa');
+      expect(agentNames).toContain('Indra');
     });
 
-    it('ranks preferred agents for coding tasks towards Gāṇḍīva', () => {
+    it('ranks preferred agents for coding tasks towards Manyu', () => {
       const candidates = runtime.workforcePlanner.rankAgentsForTask({
         title: 'Implement TypeScript backend service',
         description: 'Code algorithms and relational persistence',
         requiredCapabilities: ['CODE_GENERATION']
       });
 
-      expect(candidates[0].agentName).toBe('Gāṇḍīva');
+      expect(candidates[0].agentName).toBe('Manyu');
       expect(candidates[0].score).toBeGreaterThan(70);
     });
 
-    it('ranks preferred agents for QA/verification tasks towards Vighna', () => {
+    it('ranks preferred agents for QA/verification tasks towards Ṛtadhvaja', () => {
       const candidates = runtime.workforcePlanner.rankAgentsForTask({
         title: 'Run test verification and accessibility audit',
         description: 'Verify tests and quality gates',
         requiredCapabilities: ['VERIFICATION']
       });
 
-      expect(candidates[0].agentName).toBe('Vighna');
+      expect(candidates[0].agentName).toBe('Ṛtadhvaja');
     });
 
-    it('ranks preferred agents for market research tasks towards Rahu', () => {
+    it('ranks preferred agents for market research tasks towards Bhaga', () => {
       const candidates = runtime.workforcePlanner.rankAgentsForTask({
         title: 'Investigate competitor pricing and market trends',
         description: 'Conduct comprehensive web research',
         requiredCapabilities: ['RESEARCH']
       });
 
-      expect(candidates[0].agentName).toBe('Rahu');
+      expect(candidates[0].agentName).toBe('Bhaga');
     });
 
     it('dynamically redistributes work when preferred agent is overloaded', () => {
-      // Simulate heavy load on Gāṇḍīva
+      // Simulate heavy load on Manyu
       for (let i = 0; i < 4; i++) {
-        runtime.capacityTracker.recordTaskStart('Gāṇḍīva');
+        runtime.capacityTracker.recordTaskStart('Manyu');
       }
 
-      const gandivaCap = runtime.capacityTracker.getCapacity('Gāṇḍīva');
-      expect(gandivaCap?.status).toBe('OVERLOADED');
+      const manyuCap = runtime.capacityTracker.getCapacity('Manyu');
+      expect(manyuCap?.status).toBe('OVERLOADED');
 
       // Rank agents for a new task: overloaded agent should receive severe penalty
       const candidates = runtime.workforcePlanner.rankAgentsForTask({
@@ -412,7 +412,7 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
       });
 
       // Another capable agent should take top rank
-      expect(candidates[0].agentName).not.toBe('Gāṇḍīva');
+      expect(candidates[0].agentName).not.toBe('Manyu');
     });
 
     it('bounds delegation depth to maximum of 3 levels', () => {
@@ -422,7 +422,7 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
         outcomeId: 'o1',
         title: 'Master Architecture Task',
         description: 'Large refactoring',
-        assignedAgent: 'Gāṇḍīva',
+        assignedAgent: 'Manyu',
         executionKind: 'AGENT_DIRECT',
         status: 'PENDING',
         dependencies: [],
@@ -437,8 +437,8 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
 
       const d1 = runtime.collaborationManager.delegateTask('m1', 'o1', heavyTask, {
         parentTaskId: heavyTask.taskId,
-        fromAgent: 'Gāṇḍīva',
-        toAgent: 'Spoota',
+        fromAgent: 'Manyu',
+        toAgent: 'Tvasta',
         reason: 'Delegate UI design component',
         subtaskTitle: 'Subtask Level 1',
         subtaskDescription: 'UI specs'
@@ -447,8 +447,8 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
 
       const d2 = runtime.collaborationManager.delegateTask('m1', 'o1', d1.subtask, {
         parentTaskId: d1.subtask.taskId,
-        fromAgent: 'Spoota',
-        toAgent: 'Tvas',
+        fromAgent: 'Tvasta',
+        toAgent: 'Vamadeva',
         reason: 'Delegate user research',
         subtaskTitle: 'Subtask Level 2',
         subtaskDescription: 'User specs'
@@ -457,7 +457,7 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
 
       const d3 = runtime.collaborationManager.delegateTask('m1', 'o1', d2.subtask, {
         parentTaskId: d2.subtask.taskId,
-        fromAgent: 'Tvas',
+        fromAgent: 'Vamadeva',
         toAgent: 'Rahu',
         reason: 'Delegate search',
         subtaskTitle: 'Subtask Level 3',
@@ -898,15 +898,15 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
       expect(report.agentsInvolved.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('E2E #2: Mission -> Gāṇḍīva engineering -> test execution -> Vighna verification', async () => {
+    it('E2E #2: Mission -> Manyu engineering -> test execution -> Ṛtadhvaja verification', async () => {
       const result = await runtime.submitObjective('Fix project bugs and execute comprehensive test suites', {
         owner: 'Rushikesh',
         autoStart: true
       });
 
-      const gandivaTasks = result.tasks.filter(t => t.assignedAgent === 'Gāṇḍīva');
-      expect(gandivaTasks.length).toBeGreaterThan(0);
-      expect(gandivaTasks.every(t => t.status === 'COMPLETED')).toBe(true);
+      const manyuTasks = result.tasks.filter(t => t.assignedAgent === 'Manyu');
+      expect(manyuTasks.length).toBeGreaterThan(0);
+      expect(manyuTasks.every(t => t.status === 'COMPLETED')).toBe(true);
 
       const artifacts = runtime.getArtifacts(result.mission.missionId);
       expect(artifacts.some(a => a.type === 'TEST_REPORT' || a.type === 'CODE')).toBe(true);
@@ -1802,14 +1802,14 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
   // 13. FP-10/11/12/13 Integration Stubs (Architecture Verification)
   // =========================================================================
   describe('13. FP-10/11/12/13 Integration Architecture', () => {
-    it('FP10-INT-01: ENGINEERING execution kind maps to Gāṇḍīva (FP-10 pathway)', () => {
+    it('FP10-INT-01: ENGINEERING execution kind maps to Manyu (FP-10 pathway)', () => {
       const candidates = runtime.workforcePlanner.rankAgentsForTask({
         title: 'Refactor TypeScript monorepo',
         description: 'Engineering: code changes, tests, build',
         requiredCapabilities: ['CODE_GENERATION', 'TEST_EXECUTION']
       });
-      // Gāṇḍīva (FP-10) must rank first for engineering tasks
-      expect(candidates[0].agentName).toBe('Gāṇḍīva');
+      // Manyu (FP-10) must rank first for engineering tasks
+      expect(candidates[0].agentName).toBe('Manyu');
     });
 
     it('FP10-INT-02: Engineering task kind is recognized in compilation', () => {
@@ -1931,9 +1931,9 @@ describe('FP-14: Universal Agentic Mission & Workforce Runtime Test Suite', () =
       expect(Array.isArray(report.agentsInvolved)).toBe(true);
     });
 
-    it('API-03: Workforce capacity endpoint provides all 17 agent states', () => {
+    it('API-03: Workforce capacity endpoint provides all 33 agent states', () => {
       const capacities = runtime.getWorkforceCapacities();
-      expect(capacities.length).toBe(17);
+      expect(capacities.length).toBe(33);
       for (const c of capacities) {
         expect(c.agentName).toBeDefined();
         expect(c.status).toBeDefined();

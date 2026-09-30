@@ -52,20 +52,21 @@ interface CouncilChatViewProps {
 }
 
 const AVAILABLE_SPECIALISTS = [
-  { id: 'aja', name: 'Aja', role: 'Strategy & Milestones', avatar: 'aja', defaultSelected: true },
-  { id: 'spoota', name: 'Spoota', role: 'Product & UI Design', avatar: 'spoota', defaultSelected: true },
-  { id: 'gandiva', name: 'Gāṇḍīva', role: 'Software & Code Architecture', avatar: 'gandiva', defaultSelected: true },
-  { id: 'vighna', name: 'Vighna', role: 'Testing & Quality Assurance', avatar: 'vighna', defaultSelected: true },
-  { id: 'rutam', name: 'Rutam', role: 'Security & Governance', avatar: 'rutam', defaultSelected: true },
-  { id: 'rahu', name: 'Rahu', role: 'Research & Intelligence', avatar: 'rahu', defaultSelected: false },
-  { id: 'kaala', name: 'KĀLA', role: 'Scheduling & Timing', avatar: 'kaala', defaultSelected: false },
-  { id: 'garuda', name: 'Garuḍa', role: 'Infrastructure & DevOps', avatar: 'garuda', defaultSelected: false },
-  { id: 'kali', name: 'Kali', role: 'Optimization & Scaling', avatar: 'kali', defaultSelected: false },
+  { id: 'indra', name: 'Indra', role: 'Field Operations Commander', avatar: 'indra', defaultSelected: true },
+  { id: 'dhata', name: 'Dhātā', role: 'Strategy & Milestones', avatar: 'dhata', defaultSelected: true },
+  { id: 'tvasta', name: 'Tvaṣṭā', role: 'Product & System Design', avatar: 'tvasta', defaultSelected: true },
+  { id: 'manyu', name: 'Manyu', role: 'Software & Code Architecture', avatar: 'manyu', defaultSelected: true },
+  { id: 'ritadhvaja', name: 'Ṛtadhvaja', role: 'Security & Verification', avatar: 'ritadhvaja', defaultSelected: true },
+  { id: 'varuna', name: 'Varuṇa', role: 'Governance & Compliance', avatar: 'varuna', defaultSelected: false },
+  { id: 'bhaga', name: 'Bhaga', role: 'Market Intelligence & Growth', avatar: 'bhaga', defaultSelected: false },
+  { id: 'siva', name: 'Śiva', role: 'Refactoring & Transformation', avatar: 'siva', defaultSelected: false },
+  { id: 'prabhasa', name: 'Prabhāsa', role: 'Infrastructure & Platforms', avatar: 'prabhasa', defaultSelected: false },
+  { id: 'prajapati', name: 'Prajāpati', role: 'Workforce Progenitor & Scaling', avatar: 'prajapati', defaultSelected: false },
 ];
 
 export const CouncilChatView: React.FC<CouncilChatViewProps> = ({ agents, onOpenWork }) => {
   const [topicInput, setTopicInput] = useState('');
-  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>(['aja', 'spoota', 'gandiva', 'vighna', 'rutam']);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>(['indra', 'dhata', 'tvasta', 'manyu', 'ritadhvaja']);
   const [discussionMode, setDiscussionMode] = useState<'plan' | 'debate' | 'consensus'>('plan');
   const [isDiscussing, setIsDiscussing] = useState(false);
   const [currentDiscussion, setCurrentDiscussion] = useState<CouncilDiscussionResult | null>(null);
@@ -129,9 +130,6 @@ export const CouncilChatView: React.FC<CouncilChatViewProps> = ({ agents, onOpen
             <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Specialist Council War Room
             </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              सभा
-            </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Bring your tasks and architectural ideas to the sovereign multi-agent council. Multiple specialists debate, critique, and synthesize an optimal execution DAG.
@@ -262,7 +260,7 @@ export const CouncilChatView: React.FC<CouncilChatViewProps> = ({ agents, onOpen
               </>
             ) : (
               <>
-                <span>Convene Sabha</span>
+                <span>Convene Council</span>
                 <Send size={15} />
               </>
             )}

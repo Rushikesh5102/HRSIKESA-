@@ -326,7 +326,7 @@ describe('Phase 16: Persistent Autonomous Operations Subsystem', () => {
         sequence: 1,
         title: 'Create CI workflow file',
         status: 'PENDING',
-        requiredAgentIds: ['gandiva'],
+        requiredAgentIds: ['manyu'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -390,7 +390,7 @@ describe('Phase 16: Persistent Autonomous Operations Subsystem', () => {
       // Seed an interrupted running task
       taskRepo.create({
         id: 'tsk_interrupted_1',
-        agentId: 'gandiva',
+        agentId: 'manyu',
         objective: 'Build stylesheet',
         status: 'running',
         priority: 'normal',

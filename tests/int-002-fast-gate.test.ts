@@ -184,7 +184,7 @@ describe('HṚṢĪKEŚA — INT-002 Fast Chat Gate & Non-Blocking Interaction',
     assert.equal(res.model, 'fast-gate-instant');
     assert.equal(res.intentMode, 'IDENTITY_QUERY');
     assert.ok(res.response.includes('HṚṢĪKEŚA'));
-    assert.ok(res.response.includes('17-agent specialized workforce'));
+    assert.ok(res.response.includes('33-agent specialized workforce'));
     assert.equal(mockProvider.chatCount, 0);
   });
 

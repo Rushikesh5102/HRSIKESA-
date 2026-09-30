@@ -1,5 +1,5 @@
 /**
- * HṚṢĪKEŚA (हृषीकेश) — Autonomous Software Engineering Engine View
+ * HṚṢĪKEŚA — Autonomous Software Engineering Engine View
  *
  * FP-10: Complete UI console for autonomous software engineering, live task
  * execution timelines, requirement extractions, structured actions, diagnostics,

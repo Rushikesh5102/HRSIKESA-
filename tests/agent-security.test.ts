@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AgentRegistry } from '../src/agents/registry/agent.registry.js';
-import { GANDIVA, AJA, RAHU } from '../src/agents/roster/initial.agents.js';
+import { DHATA, MANYU } from '../src/agents/roster/initial.agents.js';
 import { ToolRegistry } from '../src/tools/registry/tool.registry.js';
 import { PermissionManager } from '../src/tools/permissions/permission.manager.js';
 import { ToolExecutionBus } from '../src/tools/execution/tool.bus.js';
@@ -115,8 +115,8 @@ test('Agent Security Sandbox & Permission Boundaries', async (t) => {
   const modelRouter = new ModelRouter(modelRegistry);
 
   const agentRegistry = new AgentRegistry();
-  agentRegistry.register({ ...AJA }); // Aja does NOT have terminal.execute in allowedTools
-  agentRegistry.register({ ...GANDIVA });
+  agentRegistry.register({ ...DHATA }); // Dhātā does NOT have terminal.execute in allowedTools
+  agentRegistry.register({ ...MANYU });
 
   const agentRuntime = new AgentRuntime(
     agentRegistry,
@@ -126,7 +126,7 @@ test('Agent Security Sandbox & Permission Boundaries', async (t) => {
   );
 
   await t.test('CRITICAL SECURITY: Agent cannot execute tools not in its allowedTools list', async () => {
-    // Simulate model proposing terminal.execute when Aja is executing
+    // Simulate model proposing terminal.execute when Dhātā is executing
     mockProvider.queueResponse({
       text: '',
       modelId: 'qwen2.5:7b',
@@ -145,7 +145,7 @@ test('Agent Security Sandbox & Permission Boundaries', async (t) => {
 
     const result = await agentRuntime.execute({
       id: 'task_sec_01',
-      agentId: 'aja',
+      agentId: 'dhata',
       objective: 'Check environment with terminal',
       priority: 'normal',
       status: 'queued',
@@ -159,7 +159,7 @@ test('Agent Security Sandbox & Permission Boundaries', async (t) => {
   });
 
   await t.test('CRITICAL SECURITY: Agent cannot exceed danger tier limit or execute arbitrary terminal commands', async () => {
-    // Simulate Gandiva (who has terminal.execute) attempting to run an arbitrary unwhitelisted command (e.g. powershell exploit)
+    // Simulate Manyu (who has terminal.execute) attempting to run an arbitrary unwhitelisted command (e.g. powershell exploit)
     mockProvider.queueResponse({
       text: '',
       modelId: 'qwen2.5:7b',
@@ -178,7 +178,7 @@ test('Agent Security Sandbox & Permission Boundaries', async (t) => {
 
     const result = await agentRuntime.execute({
       id: 'task_sec_02',
-      agentId: 'gandiva',
+      agentId: 'manyu',
       objective: 'Execute unwhitelisted command',
       priority: 'normal',
       status: 'queued',

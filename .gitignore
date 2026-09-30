@@ -60,6 +60,7 @@ workspace/research/
 workspace/calculator/
 workspace/live_verifier_phase17/
 workspace/test_phase17_suite/
+workspace/test_phase17_artifacts/
 screenshots/
 
 # Data & Persistence (Local databases & logs)

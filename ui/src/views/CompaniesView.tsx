@@ -411,9 +411,6 @@ export const CompaniesView: React.FC = () => {
               <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                 Companies
               </h1>
-              <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                उद्योग
-              </span>
             </div>
             <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
               Multi-tenant autonomous enterprise operating system with dedicated agent councils.

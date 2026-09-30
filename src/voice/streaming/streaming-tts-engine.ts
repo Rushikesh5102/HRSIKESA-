@@ -25,6 +25,9 @@ export interface StreamingTtsMetrics {
 export interface StreamingTtsOptions {
   readonly targetFormat?: TargetEngineFormat;
   readonly language?: string;
+  readonly speaker?: string;
+  readonly caption?: string;
+  readonly emotion?: string;
   readonly speakingRate?: number;
   readonly onFirstAudio?: () => void;
   readonly onSegmentSpoken?: (segment: string) => void;
@@ -121,7 +124,17 @@ export class StreamingTtsEngine extends EventEmitter {
         if (this.isAborted) return;
 
         try {
-          const synthResult: SpeechSynthesisResult = await this.tts.synthesize(normalizedSpeechText);
+          const synthResult: SpeechSynthesisResult = await (this.tts as any).synthesize(
+            normalizedSpeechText,
+            undefined,
+            {
+              language,
+              speaker: options.speaker,
+              caption: options.caption,
+              emotion: options.emotion,
+              rate: options.speakingRate,
+            }
+          );
 
           if (this.isAborted) return;
 

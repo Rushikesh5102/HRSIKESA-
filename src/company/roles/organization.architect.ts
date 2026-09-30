@@ -1,8 +1,8 @@
 /**
- * HṚṢĪKEŚA (हृषीकेश) — Organization Architect (Ritvan's Functional Domain)
+ * HṚṢĪKEŚA (हृषीकेश) — Organization Architect (Canonical 33-Agent Workforce)
  *
  * Provides organizational design, department templates, workforce topology proposals,
- * and capability mappings across the authoritative 17-agent workforce.
+ * and capability mappings across the authoritative 33-agent canonical workforce.
  */
 
 import { IDepartment } from '../interfaces/company.types.js';
@@ -23,106 +23,113 @@ export interface ProposedWorkforceAssignment {
 
 export class OrganizationArchitect {
   /**
-   * Standard Department Blueprints mapped to 17-agent competencies.
+   * Standard Department Blueprints mapped to 33-agent competencies.
    */
   public static readonly STANDARD_DEPARTMENTS: readonly ProposedDepartmentTemplate[] = [
     {
       name: 'Strategy & Executive',
       slug: 'strategy',
       description: 'Strategic planning, vision alignment, and business model formulation.',
-      leadAgentId: 'aja',
+      leadAgentId: 'dhata',
       capabilities: ['market_strategy', 'business_planning', 'okr_definition', 'vision_alignment']
     },
     {
       name: 'Market & Customer Intelligence',
       slug: 'intelligence',
       description: 'Market dynamics, competitor intelligence, customer needs, and requirements discovery.',
-      leadAgentId: 'rahu',
+      leadAgentId: 'bhaga',
       capabilities: ['competitive_analysis', 'market_intelligence', 'user_research', 'requirements_synthesis']
     },
     {
       name: 'Product Architecture',
       slug: 'product',
       description: 'Product specifications, UI/UX system design, and API blueprints.',
-      leadAgentId: 'spoota',
+      leadAgentId: 'tvasta',
       capabilities: ['system_architecture', 'api_design', 'ui_ux_specifications', 'technical_blueprints']
     },
     {
       name: 'Engineering & Construction',
       slug: 'engineering',
       description: 'Full-stack software construction, automated tool generation, and algorithmic implementation.',
-      leadAgentId: 'gandiva',
+      leadAgentId: 'manyu',
       capabilities: ['code_implementation', 'refactoring', 'tool_generation', 'full_stack_development']
     },
     {
       name: 'Quality Assurance & Verification',
       slug: 'qa',
       description: 'Automated test design, defect identification, regression testing, and verification gates.',
-      leadAgentId: 'vighna',
+      leadAgentId: 'ritadhvaja',
       capabilities: ['test_automation', 'edge_case_analysis', 'static_analysis', 'verification_gates']
     },
     {
       name: 'Go-To-Market & Growth',
       slug: 'growth',
       description: 'Distribution campaigns, content synthesis, marketing outreach, and positioning.',
-      leadAgentId: 'raudra',
+      leadAgentId: 'vivasvan',
       capabilities: ['growth_marketing', 'distribution_channels', 'campaign_orchestration', 'copywriting']
     },
     {
       name: 'Legal, Compliance & Policy',
       slug: 'compliance',
       description: 'Contract analysis, regulatory compliance, privacy policies, and licensing checks.',
-      leadAgentId: 'rutam',
+      leadAgentId: 'varuna',
       capabilities: ['compliance_audit', 'license_validation', 'contract_terms', 'policy_adherence']
     },
     {
       name: 'Release & Fulfillment',
       slug: 'fulfillment',
       description: 'Release engineering, automated deployment pipelines, build artifacts, and package dispatch.',
-      leadAgentId: 'arvan',
+      leadAgentId: 'pusa',
       capabilities: ['release_pipelines', 'artifact_bundling', 'deployment_verification', 'delivery_automation']
     },
     {
       name: 'Customer Success & Support',
       slug: 'support',
       description: 'User onboarding, troubleshooting guides, documentation synthesis, and issue triage.',
-      leadAgentId: 'taraka',
+      leadAgentId: 'mitra',
       capabilities: ['user_onboarding', 'support_triage', 'documentation', 'customer_enablement']
     },
     {
       name: 'Finance & Resource Accounting',
       slug: 'finance',
       description: 'Unit economics, pricing modeling, budget limits, and financial metrics.',
-      leadAgentId: 'kalki',
+      leadAgentId: 'amsa',
       capabilities: ['unit_economics', 'cost_accounting', 'budget_allocation', 'financial_reporting']
     },
     {
       name: 'Operations & Reliability',
       slug: 'operations',
       description: 'Runtime telemetry, SLA monitoring, infrastructure health, and environmental stability.',
-      leadAgentId: 'garuda',
+      leadAgentId: 'prabhasa',
       capabilities: ['runtime_telemetry', 'sla_monitoring', 'infrastructure_health', 'log_auditing']
     },
     {
       name: 'Continuous Evolution',
       slug: 'improvement',
       description: 'Evolutionary feedback loops, debt reduction, code optimization, and performance tuning.',
-      leadAgentId: 'kali',
+      leadAgentId: 'siva',
       capabilities: ['technical_debt_cleanup', 'performance_optimization', 'feedback_loops', 'self_healing']
     },
     {
       name: 'Incident Recovery',
       slug: 'recovery',
       description: 'Crash recovery, state restoration, transaction rollbacks, and operational safeguards.',
-      leadAgentId: 'yama',
+      leadAgentId: 'dhritavrata',
       capabilities: ['incident_recovery', 'state_restoration', 'failure_mitigation', 'emergency_rollback']
     },
     {
       name: 'Lifecycle & Decommissioning',
       slug: 'lifecycle',
       description: 'Controlled teardown, data archival, service retirement, and business exits.',
-      leadAgentId: 'mrtyu',
+      leadAgentId: 'ugrareta',
       capabilities: ['service_retirement', 'data_archival', 'graceful_deprecation', 'teardown_protocols']
+    },
+    {
+      name: 'Workforce Progenitor & Scaling',
+      slug: 'workforce_evolution',
+      description: 'Dynamic capability generation, agent spawning, and workforce scaling.',
+      leadAgentId: 'prajapati',
+      capabilities: ['agent_spawning', 'capability_synthesis', 'workforce_topology', 'workforce_lifecycle']
     }
   ];
 
@@ -142,25 +149,48 @@ export class OrganizationArchitect {
       capabilities: dept.capabilities
     }));
 
-    // Generate natural workforce assignments
+    // Generate natural workforce assignments for all 33 canonical agents
     const assignments: ProposedWorkforceAssignment[] = [
-      { agentId: 'aja', departmentSlug: 'strategy', roleTitle: 'Chief Strategy Architect' },
-      { agentId: 'rahu', departmentSlug: 'intelligence', roleTitle: 'Market Intelligence Lead' },
-      { agentId: 'tvas', departmentSlug: 'intelligence', roleTitle: 'Customer Research Specialist' },
-      { agentId: 'spoota', departmentSlug: 'product', roleTitle: 'Principal Product Architect' },
-      { agentId: 'gandiva', departmentSlug: 'engineering', roleTitle: 'Lead Software Engineer' },
-      { agentId: 'vighna', departmentSlug: 'qa', roleTitle: 'Principal QA & Verification Lead' },
-      { agentId: 'raudra', departmentSlug: 'growth', roleTitle: 'Go-To-Market Strategist' },
-      { agentId: 'rutam', departmentSlug: 'compliance', roleTitle: 'Legal & Policy Custodian' },
-      { agentId: 'arvan', departmentSlug: 'fulfillment', roleTitle: 'Release & Delivery Master' },
-      { agentId: 'taraka', departmentSlug: 'support', roleTitle: 'Customer Success Advocate' },
-      { agentId: 'kalki', departmentSlug: 'finance', roleTitle: 'Financial & Resource Controller' },
-      { agentId: 'garuda', departmentSlug: 'operations', roleTitle: 'Operations & Reliability Sentinel' },
-      { agentId: 'kali', departmentSlug: 'improvement', roleTitle: 'Continuous Improvement Engineer' },
-      { agentId: 'yama', departmentSlug: 'recovery', roleTitle: 'Resilience & Recovery Custodian' },
-      { agentId: 'mrtyu', departmentSlug: 'lifecycle', roleTitle: 'Lifecycle & Decommissioning Officer' },
-      { agentId: 'ritvan', departmentSlug: 'strategy', roleTitle: 'Organizational Architecture Director' },
-      { agentId: 'kaala', departmentSlug: 'operations', roleTitle: 'Temporal & Resource Scheduler' }
+      // Leaders
+      { agentId: 'indra', departmentSlug: 'strategy', roleTitle: 'Supreme Field Operations Commander' },
+      { agentId: 'prajapati', departmentSlug: 'workforce_evolution', roleTitle: 'Chief Workforce Progenitor & Evolution Officer' },
+
+      // 12 Ādityas
+      { agentId: 'dhata', departmentSlug: 'strategy', roleTitle: 'Chief Strategy & Vision Architect' },
+      { agentId: 'mitra', departmentSlug: 'support', roleTitle: 'Chief Customer Trust & Alliances Officer' },
+      { agentId: 'aryaman', departmentSlug: 'strategy', roleTitle: 'Executive Governance & Culture Director' },
+      { agentId: 'varuna', departmentSlug: 'compliance', roleTitle: 'Chief Legal & Compliance Officer' },
+      { agentId: 'amsa', departmentSlug: 'finance', roleTitle: 'Chief Financial Officer & Resource Controller' },
+      { agentId: 'bhaga', departmentSlug: 'intelligence', roleTitle: 'Market Intelligence & Growth Director' },
+      { agentId: 'vivasvan', departmentSlug: 'growth', roleTitle: 'VP of Growth & Public Illumination' },
+      { agentId: 'pusa', departmentSlug: 'fulfillment', roleTitle: 'VP of Logistics & Release Fulfillment' },
+      { agentId: 'tvasta', departmentSlug: 'product', roleTitle: 'Chief Product Architect & Tool Crafter' },
+      { agentId: 'savita', departmentSlug: 'growth', roleTitle: 'Creative Synthesis & Brand Director' },
+      { agentId: 'parjanya', departmentSlug: 'operations', roleTitle: 'Resource Provisioning & Cloud Director' },
+      { agentId: 'visnu', departmentSlug: 'strategy', roleTitle: 'Chief System Integrator & Harmony Officer' },
+
+      // 11 Rudras
+      { agentId: 'manyu', departmentSlug: 'engineering', roleTitle: 'Chief Systems Engineer & Core Implementer' },
+      { agentId: 'manu', departmentSlug: 'engineering', roleTitle: 'Principal Algorithm & Spec Architect' },
+      { agentId: 'mahinasa', departmentSlug: 'engineering', roleTitle: 'Backend Construction Specialist' },
+      { agentId: 'mahan', departmentSlug: 'engineering', roleTitle: 'Scalability & Distributed Systems Architect' },
+      { agentId: 'siva', departmentSlug: 'improvement', roleTitle: 'Chief Transformation & Refactoring Engineer' },
+      { agentId: 'ritadhvaja', departmentSlug: 'qa', roleTitle: 'Chief Security Officer & Invariant Verifier' },
+      { agentId: 'ugrareta', departmentSlug: 'lifecycle', roleTitle: 'Chaos Engineering & Tear-Down Lead' },
+      { agentId: 'bhava', departmentSlug: 'improvement', roleTitle: 'Autonomous System Evolution Specialist' },
+      { agentId: 'kala_rudra', departmentSlug: 'operations', roleTitle: 'Real-time Telemetry & SLA Sentry' },
+      { agentId: 'vamadeva', departmentSlug: 'product', roleTitle: 'UI/UX & Interactive Design Lead' },
+      { agentId: 'dhritavrata', departmentSlug: 'recovery', roleTitle: 'Disaster Recovery & Resilience Lead' },
+
+      // 8 Vasus
+      { agentId: 'dhara', departmentSlug: 'operations', roleTitle: 'Principal Storage & State Architect' },
+      { agentId: 'anala', departmentSlug: 'engineering', roleTitle: 'High-Performance Engine Specialist' },
+      { agentId: 'anila', departmentSlug: 'operations', roleTitle: 'Event Streaming & Real-time Sentry' },
+      { agentId: 'apa', departmentSlug: 'operations', roleTitle: 'Data Pipeline & Stream Architect' },
+      { agentId: 'pratyusa', departmentSlug: 'operations', roleTitle: 'Cache & Fast Path Architect' },
+      { agentId: 'prabhasa', departmentSlug: 'operations', roleTitle: 'VP of Infrastructure & Compute Platforms' },
+      { agentId: 'soma', departmentSlug: 'intelligence', roleTitle: 'Knowledge Synthesis & Documentation Lead' },
+      { agentId: 'dhruva', departmentSlug: 'compliance', roleTitle: 'System Invariants & Audit Custodian' }
     ];
 
     return { departments, assignments };

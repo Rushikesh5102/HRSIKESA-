@@ -221,9 +221,6 @@ export const IntegrationsView: React.FC = () => {
             <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               API Keys, Quotas & Integrations Hub
             </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              संयोजन एवं सीमाएँ
-            </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Live rate limits, daily quotas, reset schedules, and multi-model routing across Groq, Gemini, OpenRouter, NVIDIA NIM, and Orca.

@@ -53,8 +53,47 @@ export interface DetectedLanguage {
   readonly targetLanguageOverride?: SupportedLanguageCode;
 }
 
+export interface LanguageAlternative {
+  readonly language: SupportedLanguageCode;
+  readonly confidence: number;
+}
+
+export interface DetailedLanguageDetection extends DetectedLanguage {
+  readonly alternatives: readonly LanguageAlternative[];
+  readonly codeSwitchRatio?: number;
+  readonly segments?: readonly {
+    readonly text: string;
+    readonly language: SupportedLanguageCode;
+    readonly confidence: number;
+  }[];
+}
+
+export type OutputLanguagePolicy =
+  | 'AUTOMATIC'
+  | 'FOLLOW_USER'
+  | 'en'
+  | 'hi'
+  | 'mr'
+  | 'sa';
+
+export interface ResponseLanguageOptions {
+  readonly policy: OutputLanguagePolicy;
+  readonly preserveCodeSwitching: boolean;
+  readonly preferNativeScript: boolean;
+}
+
+export interface ResponseLanguageResolution {
+  readonly language: SupportedLanguageCode;
+  readonly script: ScriptType;
+  readonly reason: string;
+  readonly codeSwitchingPreserved: boolean;
+  readonly promptInstruction: string;
+}
+
 export interface ILanguageDetector {
   detect(text: string): DetectedLanguage;
+  detectDetailed?(text: string): DetailedLanguageDetection;
   getProfile(code: SupportedLanguageCode): LanguageProfile | undefined;
   listSupportedLanguages(): readonly LanguageProfile[];
 }
+

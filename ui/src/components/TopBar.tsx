@@ -34,6 +34,8 @@ import {
   Command,
   LucideIcon,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import { VoiceStatusResponse } from '../types/api.types';
@@ -83,9 +85,9 @@ const SEARCH_DESTINATIONS: SearchDestination[] = [
   },
   {
     id: 'council-chat',
-    label: 'Council Sabha',
+    label: 'Specialist Council',
     category: 'Autonomous Workforce',
-    keywords: ['council', 'sabha', 'debate', 'deliberation', 'multi agent chat', 'meeting'],
+    keywords: ['council', 'debate', 'deliberation', 'multi agent chat', 'meeting'],
     description: 'Multi-agent deliberative council & collaborative strategic debate',
     icon: Users,
   },
@@ -112,6 +114,54 @@ const SEARCH_DESTINATIONS: SearchDestination[] = [
     keywords: ['projects', 'missions', 'goals', 'initiatives', 'targets', 'roadmap'],
     description: 'Autonomous goal execution, project orchestration & milestones',
     icon: Target,
+  },
+  {
+    id: 'organization',
+    label: 'Organization & Mandala',
+    category: 'Autonomous Workforce',
+    keywords: ['organization', 'mandala', '33 agents', 'vedic', 'hierarchy', 'adityas', 'rudras', 'vasus', 'indra', 'prajapati'],
+    description: 'Concentric mandala visualization & 33-agent workforce structure',
+    icon: Network,
+  },
+  {
+    id: 'decisions',
+    label: 'Decisions Center',
+    category: 'Knowledge & Intel',
+    keywords: ['decisions', 'rationale', 'confidence', 'why', 'evidence', 'postponed', 'approved'],
+    description: 'Explainable AI decision log, agent consensus & confidence metrics',
+    icon: Sparkles,
+  },
+  {
+    id: 'attention',
+    label: 'Attention Center',
+    category: 'Core Workspaces',
+    keywords: ['attention', 'needs you', 'blocked', 'approval', 'critical', 'alerts'],
+    description: 'Critical items requiring human sign-off and immediate attention',
+    icon: AlertTriangle,
+  },
+  {
+    id: 'activity',
+    label: 'Live Activity Stream',
+    category: 'Core Workspaces',
+    keywords: ['activity', 'stream', 'events', 'live', 'telemetry', 'actions', 'recent'],
+    description: 'Unified real-time event stream across all 33 agents & missions',
+    icon: Activity,
+  },
+  {
+    id: 'automations',
+    label: 'Automations & Processes',
+    category: 'Core Workspaces',
+    keywords: ['automations', 'recurring', 'schedules', 'cron', 'watchers', 'routines'],
+    description: 'Autonomous scheduled workflows, competitor watch & recurring jobs',
+    icon: RefreshCw,
+  },
+  {
+    id: 'projects',
+    label: 'Projects & Context',
+    category: 'Core Workspaces',
+    keywords: ['projects', 'codebase', 'milestones', 'repo', 'files', 'context'],
+    description: 'Persistent workspace contexts, milestones, decisions & files',
+    icon: CheckSquare,
   },
   {
     id: 'work',
@@ -337,6 +387,8 @@ interface TopBarProps {
   onSearchPrompt?: (query: string) => void;
   mobileNavOpen?: boolean;
   onToggleMobileNav?: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebarCollapse?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -350,6 +402,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   onSearchPrompt,
   mobileNavOpen,
   onToggleMobileNav,
+  sidebarCollapsed = false,
+  onToggleSidebarCollapse,
 }) => {
   const [searchVal, setSearchVal] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -462,16 +516,35 @@ export const TopBar: React.FC<TopBarProps> = ({
           <Menu size={18} />
         </button>
 
-        {/* Sanskrit Title Tag with Sacred Brand Emblem */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <IndianEmblem size={28} showText={false} variant="crest" />
+        {/* Desktop Sidebar Collapse Toggle */}
+        {onToggleSidebarCollapse && (
+          <button
+            className="sidebar-collapse-btn topbar-desktop-toggle"
+            onClick={onToggleSidebarCollapse}
+            title={sidebarCollapsed ? 'Expand Sidebar (Ctrl+B)' : 'Collapse Sidebar (Ctrl+B)'}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{
+              padding: '5px',
+            }}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        )}
+
+        {/* Sanskrit Title Tag with Sacred Brand Emblem - only shown when sidebar is collapsed or on mobile */}
+        <div
+          className={`topbar-brand-section ${sidebarCollapsed ? 'show-collapsed' : 'hide-desktop-expanded'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+        >
+          <IndianEmblem size={26} showText={false} variant="crest" />
           <span
             style={{
-              fontSize: '15px',
+              fontSize: '14.5px',
               fontWeight: 800,
               fontFamily: 'var(--font-cinzel)',
               letterSpacing: '1.5px',
               color: 'var(--text-gold)',
+              whiteSpace: 'nowrap',
             }}
           >
             HṚṢĪKEŚA

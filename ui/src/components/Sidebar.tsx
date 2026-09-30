@@ -32,49 +32,65 @@ import {
   GitBranch,
   Palette,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radio,
+  Lock,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import { IndianEmblem } from './IndianEmblem';
 
 export type NavTab =
   | 'home'
   | 'command-center'
-  | 'chat'
-  | 'council-chat'
+  | 'missions'
+  | 'attention'
+  | 'agents'
+  | 'organization'
+  | 'agent-town'
+  | 'companies'
+  | 'office'
   | 'work'
   | 'goals'
-  | 'missions'
-  | 'research'
-  | 'knowledge'
-  | 'agent-town'
-  | 'agents'
-  | 'office'
-  | 'tasks'
-  | 'tools'
-  | 'approvals'
+  | 'projects'
+  | 'workflows'
+  | 'automations'
+  | 'schedules'
   | 'memory'
-  | 'computer'
-  | 'multimodal'
-  | 'environment'
+  | 'research'
+  | 'decisions'
   | 'models'
-  | 'integrations'
-  | 'audit'
-  | 'settings'
-  | 'companies'
+  | 'knowledge'
   | 'skills'
   | 'mcp'
-  | 'self-improvement'
-  | 'capabilities'
-  | 'workers'
-  | 'github'
+  | 'activity'
+  | 'audit'
+  | 'environment'
+  | 'system-health'
+  | 'security'
+  | 'approvals'
+  | 'workspaces'
+  | 'files'
+  | 'settings'
+  | 'chat'
+  | 'council-chat'
   | 'ide'
   | 'engineering'
-  | 'workflows'
+  | 'computer'
+  | 'multimodal'
+  | 'self-improvement'
+  | 'workers'
+  | 'capabilities'
+  | 'github'
   | 'accounts'
-  | 'workspaces'
   | 'ecosystem'
   | 'creation'
   | 'persistent-ops'
-  | 'evolution';
+  | 'evolution'
+  | 'integrations'
+  | 'tasks'
+  | 'tools';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -89,6 +105,8 @@ interface SidebarProps {
   knowledgeCount?: number;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -96,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   pendingApprovalsCount,
   activeAgentsCount,
-  totalAgentsCount = 17,
+  totalAgentsCount = 33,
   activeGoalsCount = 0,
   activeMissionsCount = 0,
   companiesCount = 0,
@@ -104,10 +122,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   knowledgeCount = 0,
   mobileOpen = false,
   onCloseMobile,
+  collapsed,
+  onToggleCollapse,
 }) => {
-  const [advancedOpen, setAdvancedOpen] = useState(
-    ['missions', 'tasks', 'tools', 'approvals', 'agent-town', 'companies', 'models', 'integrations', 'capabilities', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'audit', 'environment', 'research', 'knowledge', 'skills', 'mcp', 'self-improvement', 'creation', 'persistent-ops', 'evolution'].includes(currentTab)
-  );
+  const [internalCollapsed, setInternalCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('hrisekesa_sidebar_collapsed') === 'true';
+  });
+
+  const isCollapsed = typeof collapsed === 'boolean' ? collapsed : internalCollapsed;
+  const [isHovered, setIsHovered] = useState(false);
+  const isEffectiveCollapsed = isCollapsed && !isHovered;
+
+  const handleToggleCollapse = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setInternalCollapsed((prev) => {
+        const next = !prev;
+        localStorage.setItem('hrisekesa_sidebar_collapsed', String(next));
+        return next;
+      });
+    }
+  };
 
   const handleSelectTab = (tab: NavTab) => {
     onSelectTab(tab);
@@ -116,119 +152,182 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const activeWorkTotal = activeGoalsCount + activeMissionsCount;
-
-  const isHomeActive = currentTab === 'home' || currentTab === 'command-center';
-  const isWorkActive = currentTab === 'work' || currentTab === 'goals' || currentTab === 'tasks' || currentTab === 'tools';
-
-  const primaryNavItems: { id: NavTab; label: string; icon: React.ReactNode; badge?: string | number; isActive: boolean }[] = [
+  // Structured Categorical Navigation Sections (Section 5 of Spec)
+  const navSections = [
     {
-      id: 'home',
-      label: 'Home',
-      icon: <Home size={17} />,
-      isActive: isHomeActive,
+      title: 'COMMAND',
+      items: [
+        {
+          id: 'home' as NavTab,
+          label: 'Command Center',
+          icon: <Home size={17} />,
+          badge: 'Live',
+          isActive: currentTab === 'home' || currentTab === 'command-center',
+        },
+        {
+          id: 'missions' as NavTab,
+          label: 'Missions Cockpit',
+          icon: <Target size={17} />,
+          badge: activeMissionsCount > 0 ? `${activeMissionsCount} Run` : undefined,
+          isActive: currentTab === 'missions',
+        },
+        {
+          id: 'attention' as NavTab,
+          label: 'Attention',
+          icon: <ShieldAlert size={17} />,
+          badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
+          badgeColor: '#F59E0B',
+          isActive: currentTab === 'attention' || currentTab === 'approvals',
+        },
+        {
+          id: 'chat' as NavTab,
+          label: 'Direct Dialogue',
+          icon: <MessageSquare size={17} />,
+          isActive: currentTab === 'chat' || currentTab === 'council-chat',
+        },
+      ],
     },
     {
-      id: 'office',
-      label: 'Virtual Office',
-      icon: <Building2 size={17} />,
-      badge: '17 Desks (Live)',
-      isActive: currentTab === 'office',
+      title: 'ORGANIZATION',
+      items: [
+        {
+          id: 'agents' as NavTab,
+          label: '33 Agents Roster',
+          icon: <Users size={17} />,
+          badge: activeAgentsCount > 0 ? `${activeAgentsCount} Active` : `${totalAgentsCount} Ready`,
+          isActive: currentTab === 'agents',
+        },
+        {
+          id: 'organization' as NavTab,
+          label: 'Mandala Architecture',
+          icon: <Layers size={17} />,
+          isActive: currentTab === 'organization',
+        },
+        {
+          id: 'agent-town' as NavTab,
+          label: 'Agent Town (Districts)',
+          icon: <Network size={17} />,
+          isActive: currentTab === 'agent-town',
+        },
+        {
+          id: 'companies' as NavTab,
+          label: 'Companies OS',
+          icon: <Building2 size={17} />,
+          badge: companiesCount > 0 ? `${companiesCount} Org` : undefined,
+          isActive: currentTab === 'companies',
+        },
+        {
+          id: 'office' as NavTab,
+          label: '3D Virtual Office',
+          icon: <Building2 size={17} />,
+          isActive: currentTab === 'office',
+        },
+      ],
     },
     {
-      id: 'agents',
-      label: 'Agents',
-      icon: <Users size={17} />,
-      badge: activeAgentsCount > 0 ? `${activeAgentsCount} Active` : `${totalAgentsCount} Ready`,
-      isActive: currentTab === 'agents' || currentTab === 'agent-town',
+      title: 'WORK',
+      items: [
+        {
+          id: 'work' as NavTab,
+          label: 'Projects & Goals',
+          icon: <CheckSquare size={17} />,
+          badge: activeGoalsCount > 0 ? `${activeGoalsCount}` : undefined,
+          isActive: currentTab === 'work' || currentTab === 'goals' || currentTab === 'projects',
+        },
+        {
+          id: 'workflows' as NavTab,
+          label: 'Universal Workflows',
+          icon: <GitBranch size={17} />,
+          isActive: currentTab === 'workflows',
+        },
+        {
+          id: 'automations' as NavTab,
+          label: 'Automations & Loops',
+          icon: <RefreshCw size={17} />,
+          badge: '4 Active',
+          isActive: currentTab === 'automations' || currentTab === 'schedules',
+        },
+        {
+          id: 'ide' as NavTab,
+          label: 'Universal IDE',
+          icon: <Code size={17} />,
+          isActive: currentTab === 'ide' || currentTab === 'engineering',
+        },
+      ],
     },
     {
-      id: 'companies',
-      label: 'Companies',
-      icon: <Building2 size={17} />,
-      badge: companiesCount > 0 ? `${companiesCount} Op.` : '0',
-      isActive: currentTab === 'companies',
+      title: 'INTELLIGENCE',
+      items: [
+        {
+          id: 'memory' as NavTab,
+          label: 'Hierarchical Memory',
+          icon: <Database size={17} />,
+          isActive: currentTab === 'memory',
+        },
+        {
+          id: 'research' as NavTab,
+          label: 'Research Engine',
+          icon: <Compass size={17} />,
+          isActive: currentTab === 'research',
+        },
+        {
+          id: 'decisions' as NavTab,
+          label: 'Decisions Center',
+          icon: <Sparkles size={17} />,
+          isActive: currentTab === 'decisions',
+        },
+        {
+          id: 'models' as NavTab,
+          label: 'Intelligence Fabric',
+          icon: <Cpu size={17} />,
+          badge: 'Ollama Offline',
+          isActive: currentTab === 'models',
+        },
+        {
+          id: 'skills' as NavTab,
+          label: 'Skills & MCP',
+          icon: <Zap size={17} />,
+          isActive: currentTab === 'skills' || currentTab === 'mcp' || currentTab === 'knowledge',
+        },
+      ],
     },
     {
-      id: 'work',
-      label: 'Work & Goals',
-      icon: <CheckSquare size={17} />,
-      badge: activeWorkTotal > 0 ? `${activeWorkTotal} Run.` : '0',
-      isActive: isWorkActive,
+      title: 'SYSTEM',
+      items: [
+        {
+          id: 'activity' as NavTab,
+          label: 'Live Activity Stream',
+          icon: <Activity size={17} />,
+          isActive: currentTab === 'activity' || currentTab === 'audit',
+        },
+        {
+          id: 'environment' as NavTab,
+          label: 'System Health',
+          icon: <Server size={17} />,
+          badge: 'Healthy',
+          badgeColor: '#10B981',
+          isActive: currentTab === 'environment' || currentTab === 'system-health',
+        },
+        {
+          id: 'security' as NavTab,
+          label: 'Security & Air-Gap',
+          icon: <Lock size={17} />,
+          isActive: currentTab === 'security' || currentTab === 'capabilities',
+        },
+        {
+          id: 'workspaces' as NavTab,
+          label: 'Files & Workspace',
+          icon: <Monitor size={17} />,
+          isActive: currentTab === 'workspaces' || currentTab === 'files',
+        },
+        {
+          id: 'settings' as NavTab,
+          label: 'Settings',
+          icon: <Settings size={17} />,
+          isActive: currentTab === 'settings',
+        },
+      ],
     },
-    {
-      id: 'missions',
-      label: 'Mission Control',
-      icon: <Target size={17} />,
-      badge: activeMissionsCount > 0 ? `${activeMissionsCount} Active` : projectsCount > 0 ? `${projectsCount} Proj.` : '0',
-      isActive: currentTab === 'missions',
-    },
-    {
-      id: 'knowledge',
-      label: 'Knowledge',
-      icon: <Share2 size={17} />,
-      badge: knowledgeCount > 0 ? `${knowledgeCount}` : '0',
-      isActive: currentTab === 'knowledge' || currentTab === 'research',
-    },
-    {
-      id: 'memory',
-      label: 'Memory',
-      icon: <Database size={17} />,
-      badge: '∞ Grow',
-      isActive: currentTab === 'memory',
-    },
-    {
-      id: 'self-improvement',
-      label: 'Self-Improvement',
-      icon: <RefreshCw size={17} />,
-      isActive: currentTab === 'self-improvement',
-    },
-    {
-      id: 'chat',
-      label: 'Chat Interface',
-      icon: <MessageSquare size={17} />,
-      isActive: currentTab === 'chat' || currentTab === 'council-chat',
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: <Settings size={17} />,
-      isActive: currentTab === 'settings',
-    },
-  ];
-
-  const advancedNavItems: { id: NavTab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { id: 'agent-town', label: 'Agent Town 3D', icon: <Network size={15} /> },
-    { id: 'council-chat', label: 'Council Sabha', icon: <Users size={15} /> },
-    { id: 'computer', label: 'Computer Operator', icon: <Monitor size={15} /> },
-    { id: 'multimodal', label: 'Multimodal Vision', icon: <Sparkles size={15} /> },
-    { id: 'mcp', label: 'MCP Ecosystem', icon: <Server size={15} /> },
-    { id: 'skills', label: 'Skills & Procedures', icon: <Zap size={15} /> },
-    { id: 'research', label: 'Research Engine', icon: <Compass size={15} /> },
-    { id: 'tasks', label: 'Task Board', icon: <CheckSquare size={15} /> },
-    { id: 'tools', label: 'Tool Registry', icon: <Wrench size={15} /> },
-    {
-      id: 'approvals',
-      label: 'Approvals',
-      icon: <ShieldAlert size={15} />,
-      badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
-    },
-    { id: 'models', label: 'AI Models', icon: <Cpu size={15} /> },
-    { id: 'integrations', label: 'Integrations & APIs', icon: <Globe size={15} /> },
-    { id: 'capabilities', label: 'Capability Fabric', icon: <Layers size={15} /> },
-    { id: 'workers', label: 'Resource Fabric', icon: <Server size={15} /> },
-    { id: 'github', label: 'GitHub Intelligence', icon: <Github size={15} /> },
-    { id: 'ide', label: 'Universal IDE', icon: <Code size={15} /> },
-    { id: 'engineering', label: 'Autonomous Coding', icon: <Terminal size={15} /> },
-    { id: 'workflows', label: 'Universal Workflows', icon: <GitBranch size={15} /> },
-    { id: 'accounts', label: 'Service Accounts (FP-12)', icon: <Key size={15} /> },
-    { id: 'workspaces', label: 'Digital Workspaces (FP-13)', icon: <Monitor size={15} /> },
-    { id: 'ecosystem', label: 'Ecosystem (FP-15)', icon: <Globe size={15} /> },
-    { id: 'creation', label: 'Creation Studio (FP-17)', icon: <Palette size={15} /> },
-    { id: 'persistent-ops', label: 'Persistent Operations (FP-19)', icon: <Cpu size={15} /> },
-    { id: 'evolution', label: 'Self-Evolution Engine', icon: <RefreshCw size={15} /> },
-    { id: 'audit', label: 'Audit Trail', icon: <Activity size={15} /> },
-    { id: 'environment', label: 'System Monitoring', icon: <Layers size={15} /> },
   ];
 
   return (
@@ -240,145 +339,143 @@ export const Sidebar: React.FC<SidebarProps> = ({
           aria-label="Close navigation overlay"
         />
       )}
-      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
-        {/* Brand Header with Sacred Feather Emblem */}
+      <aside
+        className={`sidebar ${mobileOpen ? 'mobile-open' : ''} ${isCollapsed ? 'collapsed' : ''} ${isHovered && isCollapsed ? 'sidebar-hover-expanded' : ''}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Brand Header */}
         <div
           className="sidebar-header"
           style={{
-            padding: '16px 14px',
+            padding: isEffectiveCollapsed ? '14px 6px' : '16px 14px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: isEffectiveCollapsed ? 'center' : 'space-between',
+            flexDirection: isEffectiveCollapsed ? 'column' : 'row',
+            gap: isEffectiveCollapsed ? '8px' : '10px',
+            borderBottom: '1px solid rgba(212, 168, 55, 0.15)',
           }}
         >
-          <IndianEmblem size={40} showText={true} variant="crest" />
-          {mobileOpen && onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="btn-icon"
-              style={{
-                background: 'rgba(212, 168, 55, 0.12)',
-                border: '1px solid rgba(212, 168, 55, 0.3)',
-                borderRadius: '6px',
-                padding: '4px',
-                color: 'var(--text-gold)',
-                cursor: 'pointer',
-              }}
-              aria-label="Close navigation"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        <nav style={{ padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, overflowY: 'auto' }}>
-          {/* Primary Navigation */}
-          {primaryNavItems.map((item) => (
-            <button
-              key={item.id}
-              className={`nav-item ${item.isActive ? 'active' : ''}`}
-              onClick={() => handleSelectTab(item.id)}
-              style={{ width: '100%' }}
-            >
-              <span className="nav-item-icon">{item.icon}</span>
-              <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-              {item.badge !== undefined && (
-                <span className="nav-badge warning">{item.badge}</span>
-              )}
-            </button>
-          ))}
-
-          {/* Subtle Gold Divider */}
           <div
-            style={{
-              height: '1px',
-              background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)',
-              margin: '14px 8px',
-              opacity: 0.4,
-            }}
-          />
+            onClick={() => handleSelectTab('home')}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            title="HṚṢĪKEŚA Command Center"
+          >
+            <IndianEmblem size={isEffectiveCollapsed ? 34 : 38} showText={!isEffectiveCollapsed} variant="crest" />
+          </div>
 
-          {/* Advanced Systems Collapsible Section */}
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <button
-              onClick={() => setAdvancedOpen(!advancedOpen)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                padding: '8px 12px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-xs)',
-                transition: 'color 0.15s ease',
-              }}
+              onClick={handleToggleCollapse}
+              className="sidebar-collapse-btn"
+              title={isCollapsed ? 'Expand Sidebar (Ctrl+B)' : 'Collapse Sidebar (Ctrl+B)'}
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              <span>Systems & Diagnostics</span>
-              {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
 
-            {advancedOpen && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
-                {advancedNavItems.map((item) => {
-                  const isActive = currentTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      className={`nav-item ${isActive ? 'active' : ''}`}
-                      onClick={() => handleSelectTab(item.id)}
-                      style={{
-                        fontSize: '12.5px',
-                        padding: '7px 11px',
-                      }}
-                    >
-                      <span className="nav-item-icon">{item.icon}</span>
-                      <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-                      {item.badge !== undefined && (
-                        <span className="nav-badge warning">{item.badge}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            {mobileOpen && onCloseMobile && (
+              <button
+                onClick={onCloseMobile}
+                className="btn-icon"
+                style={{
+                  background: 'rgba(212, 168, 55, 0.12)',
+                  border: '1px solid rgba(212, 168, 55, 0.3)',
+                  borderRadius: '6px',
+                  padding: '4px',
+                  color: 'var(--text-gold)',
+                  cursor: 'pointer',
+                }}
+                aria-label="Close navigation"
+              >
+                <X size={16} />
+              </button>
             )}
           </div>
-        </nav>
+        </div>
 
-        {/* Bottom Status Indicator */}
-        <div
+        {/* Categorized Navigation List */}
+        <nav
           style={{
-            padding: '12px 16px',
-            borderTop: '1px solid var(--border-subtle)',
+            padding: isEffectiveCollapsed ? '10px 6px' : '12px 10px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontSize: '11.5px',
-            color: 'var(--text-secondary)',
-            background: 'var(--bg-card)',
+            flexDirection: 'column',
+            gap: '16px',
+            flex: 1,
+            overflowY: 'auto',
           }}
         >
-          <div
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#10B981',
-              boxShadow: '0 0 8px #10B981',
-            }}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Autonomous Kernel</span>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Sovereign OS
-            </span>
+          {navSections.map((sec) => (
+            <div key={sec.title} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {!isEffectiveCollapsed && (
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-cinzel)',
+                    fontWeight: 700,
+                    letterSpacing: '1.2px',
+                    color: 'var(--text-muted)',
+                    padding: '4px 10px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {sec.title}
+                </span>
+              )}
+              {sec.items.map((item) => (
+                <button
+                  key={item.id}
+                  className={`nav-item ${item.isActive ? 'active' : ''}`}
+                  onClick={() => handleSelectTab(item.id)}
+                  style={{ width: '100%', position: 'relative' }}
+                  title={isEffectiveCollapsed ? `${item.label}${item.badge !== undefined ? ` • ${item.badge}` : ''}` : undefined}
+                >
+                  <span className="nav-item-icon">{item.icon}</span>
+                  {!isEffectiveCollapsed && <span style={{ flex: 1, textAlign: 'left', fontSize: '13px' }}>{item.label}</span>}
+                  {!isEffectiveCollapsed && item.badge !== undefined && (
+                    <span
+                      className="nav-badge"
+                      style={{
+                        background: item.badgeColor ? `${item.badgeColor}22` : undefined,
+                        color: item.badgeColor || undefined,
+                        borderColor: item.badgeColor ? `${item.badgeColor}55` : undefined,
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                  {isEffectiveCollapsed && item.badge !== undefined && (
+                    <span className="nav-badge-dot" title={String(item.badge)} />
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        {/* System Status Footer (Section 5 of Spec) */}
+        <div
+          style={{
+            padding: isEffectiveCollapsed ? '10px 4px' : '14px 16px',
+            borderTop: '1px solid rgba(212, 168, 55, 0.18)',
+            background: 'rgba(14, 8, 4, 0.85)',
+            fontSize: '11px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10B981', fontWeight: 700 }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
+            {!isEffectiveCollapsed && <span>HṚṢĪKEŚA ONLINE</span>}
           </div>
+          {!isEffectiveCollapsed && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '10.5px' }}>
+              <span>{totalAgentsCount} CORE AGENTS</span>
+              <span style={{ color: 'var(--accent-teal)' }}>LOCAL-FIRST</span>
+            </div>
+          )}
         </div>
       </aside>
     </>

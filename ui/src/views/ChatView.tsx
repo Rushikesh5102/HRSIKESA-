@@ -41,17 +41,17 @@ export interface IndianLanguage {
 }
 
 export const INDIAN_LANGUAGES: IndianLanguage[] = [
-  { code: 'en-IN', name: 'English (India)', nativeName: 'English', promptInstruction: 'Respond in clear, articulate Indian English.' },
-  { code: 'hi-IN', name: 'Hindi', nativeName: 'हिन्दी', promptInstruction: 'उत्तर शुद्ध और सरल हिन्दी (Devanagari script) में दीजिए।' },
-  { code: 'sa-IN', name: 'Sanskrit', nativeName: 'संस्कृतम्', promptInstruction: 'उत्तरम् शुद्धे संस्कृते (Devanagari script) यच्छतु।' },
-  { code: 'mr-IN', name: 'Marathi', nativeName: 'मराठी', promptInstruction: 'उत्तर मराठीत (Devanagari script) द्या.' },
-  { code: 'gu-IN', name: 'Gujarati', nativeName: 'ગુજરાતી', promptInstruction: 'જવાબ શુદ્ધ ગુજરાતી લિપિમાં આપો.' },
-  { code: 'ta-IN', name: 'Tamil', nativeName: 'தமிழ்', promptInstruction: 'பதிலை தமிழில் (Tamil script) தரவும்.' },
-  { code: 'te-IN', name: 'Telugu', nativeName: 'తెలుగు', promptInstruction: 'సమాధానం తెలుగులో (Telugu script) ఇవ్వండి.' },
-  { code: 'kn-IN', name: 'Kannada', nativeName: 'ಕನ್ನಡ', promptInstruction: 'ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ (Kannada script) ನೀಡಿ.' },
-  { code: 'bn-IN', name: 'Bengali', nativeName: 'বাংলা', promptInstruction: 'উত্তর বাংলায় (Bengali script) দিন।' },
-  { code: 'ml-IN', name: 'Malayalam', nativeName: 'മലയാളം', promptInstruction: 'മറുപടി മലയാളത്തിൽ (Malayalam script) നൽകുക.' },
-  { code: 'pa-IN', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', promptInstruction: 'ਜਵਾਬ ਪੰਜਾਬੀ (Gurmukhi script) ਵਿੱਚ ਦਿਓ।' },
+  { code: 'en-IN', name: 'English (India)', nativeName: 'English', promptInstruction: 'Respond in clear, articulate English.' },
+  { code: 'hi-IN', name: 'Hindi', nativeName: 'Hindi', promptInstruction: 'Respond in clear, articulate Hindi.' },
+  { code: 'sa-IN', name: 'Sanskrit', nativeName: 'Sanskrit', promptInstruction: 'Respond in clean, eloquent Sanskrit.' },
+  { code: 'mr-IN', name: 'Marathi', nativeName: 'Marathi', promptInstruction: 'Respond in clear, fluent Marathi.' },
+  { code: 'gu-IN', name: 'Gujarati', nativeName: 'Gujarati', promptInstruction: 'Respond in clear Gujarati.' },
+  { code: 'ta-IN', name: 'Tamil', nativeName: 'Tamil', promptInstruction: 'Respond in clear Tamil.' },
+  { code: 'te-IN', name: 'Telugu', nativeName: 'Telugu', promptInstruction: 'Respond in clear Telugu.' },
+  { code: 'kn-IN', name: 'Kannada', nativeName: 'Kannada', promptInstruction: 'Respond in clear Kannada.' },
+  { code: 'bn-IN', name: 'Bengali', nativeName: 'Bengali', promptInstruction: 'Respond in clear Bengali.' },
+  { code: 'ml-IN', name: 'Malayalam', nativeName: 'Malayalam', promptInstruction: 'Respond in clear Malayalam.' },
+  { code: 'pa-IN', name: 'Punjabi', nativeName: 'Punjabi', promptInstruction: 'Respond in clear Punjabi.' },
 ];
 
 declare global {
@@ -108,6 +108,53 @@ const MODEL_OPTIONS: ModelOption[] = [
   { id: 'deepseek-chat', name: 'DeepSeek V3', provider: 'deepseek', badge: '🌌 DeepSeek V3', speed: 'Cloud' },
 ];
 
+// Sovereign Audio PCM to WAV Base64 encoder (zero external dependencies)
+function encodePcmToWavBase64(buffers: Float32Array[], sampleRate: number): string {
+  let totalLength = 0;
+  for (const b of buffers) totalLength += b.length;
+  const merged = new Float32Array(totalLength);
+  let offset = 0;
+  for (const b of buffers) {
+    merged.set(b, offset);
+    offset += b.length;
+  }
+
+  const buffer = new ArrayBuffer(44 + merged.length * 2);
+  const view = new DataView(buffer);
+
+  const writeStr = (v: DataView, o: number, s: string) => {
+    for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i));
+  };
+
+  writeStr(view, 0, 'RIFF');
+  view.setUint32(4, 36 + merged.length * 2, true);
+  writeStr(view, 8, 'WAVE');
+  writeStr(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(view, 36, 'data');
+  view.setUint32(40, merged.length * 2, true);
+
+  let byteOffset = 44;
+  for (let i = 0; i < merged.length; i++, byteOffset += 2) {
+    const s = Math.max(-1, Math.min(1, merged[i]));
+    view.setInt16(byteOffset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
+  }
+  return btoa(binary);
+}
+
 export const ChatView: React.FC<ChatViewProps> = ({
   messages,
   setMessages,
@@ -137,8 +184,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const [voiceViewMode, setVoiceViewMode] = useState<'chamber' | 'transcript'>('chamber');
 
-  // Multi-Chat History state (Panel 4)
-  const [showHistory, setShowHistory] = useState(true);
+  // Multi-Chat History state (Panel 4) - Default closed for clean spacious dialogue
+  const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
 
@@ -149,6 +196,17 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const shouldKeepListeningRef = useRef(false);
   const isVoiceToVoiceRef = useRef(isVoiceToVoice);
   isVoiceToVoiceRef.current = isVoiceToVoice;
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Sovereign Direct Microphone Audio Engine Refs (Zero Google/Cloud dependency)
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
+  const pcmBuffersRef = useRef<Float32Array[]>([]);
+  const silenceTimerRef = useRef<any>(null);
+  const hasSpokenRef = useRef(false);
+  const isDirectRecordingRef = useRef(false);
+  const handleSendMessageRef = useRef<(text: string) => void>(() => {});
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -184,12 +242,37 @@ export const ChatView: React.FC<ChatViewProps> = ({
     loadSessions();
   }, [loadSessions]);
 
-  // Cleanup recognition and speech on unmount
+  // Cleanup recognition, direct mic recorder, and speech on unmount
   useEffect(() => {
     return () => {
       shouldKeepListeningRef.current = false;
+      isDirectRecordingRef.current = false;
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (scriptProcessorRef.current) {
+        try { scriptProcessorRef.current.disconnect(); } catch (_) {}
+        scriptProcessorRef.current = null;
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+      if (audioContextRef.current) {
+        try { audioContextRef.current.close(); } catch (_) {}
+        audioContextRef.current = null;
+      }
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch (_) {}
+      }
+      if (activeAudioRef.current) {
+        try {
+          activeAudioRef.current.pause();
+        } catch (_) {}
+        activeAudioRef.current = null;
       }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -197,57 +280,284 @@ export const ChatView: React.FC<ChatViewProps> = ({
     };
   }, []);
 
-  // Text-To-Speech Playback with language tag
-  const speakText = useCallback(
-    (msgId: string, text: string, onDone?: () => void) => {
+  // Stop current speech
+  const stopSpeech = useCallback(() => {
+    if (activeAudioRef.current) {
+      try {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+      } catch (_) {}
+      activeAudioRef.current = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    api.interruptVoice().catch(() => {});
+    setSpeakingMsgId(null);
+  }, []);
+
+  // Web SpeechSynthesis fallback
+  const fallbackBrowserSpeech = useCallback(
+    (msgId: string, cleanText: string, onDone?: () => void) => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const cleanText = text.replace(/[*#`_]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = selectedLanguage.code;
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
+        (window as any).__hr_utterance = utterance;
 
-        utterance.onend = () => {
-          setSpeakingMsgId(null);
-          if (onDone) onDone();
-        };
-        utterance.onerror = () => {
-          setSpeakingMsgId(null);
-          if (onDone) onDone();
+        let finished = false;
+        const finish = () => {
+          if (!finished) {
+            finished = true;
+            setSpeakingMsgId(null);
+            (window as any).__hr_utterance = null;
+            if (onDone) onDone();
+          }
         };
 
-        setSpeakingMsgId(msgId);
+        utterance.onend = finish;
+        utterance.onerror = finish;
+
+        const timeoutMs = Math.max(4000, cleanText.length * 85);
+        setTimeout(() => {
+          if (!finished) {
+            finish();
+          }
+        }, timeoutMs);
+
         window.speechSynthesis.speak(utterance);
-      } else if (onDone) {
-        onDone();
+      } else {
+        setSpeakingMsgId(null);
+        if (onDone) onDone();
       }
     },
     [selectedLanguage]
   );
 
-  // Stop current speech
-  const stopSpeech = useCallback(() => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    setSpeakingMsgId(null);
-  }, []);
+  // Text-To-Speech Playback using real HṚṢĪKEŚA Sovereign backend voice with browser fallback
+  const speakText = useCallback(
+    async (msgId: string, text: string, onDone?: () => void) => {
+      stopSpeech();
+      const cleanText = text.replace(/[*#`_]/g, '').trim();
+      if (!cleanText) {
+        if (onDone) onDone();
+        return;
+      }
 
-  // Start Speech Recognition
-  const startListening = useCallback(() => {
+      setSpeakingMsgId(msgId);
+
+      // 1. Try real HṚṢĪKEŚA Sovereign backend voice synthesis
+      try {
+        const langCode = selectedLanguage.code.split('-')[0] || 'en';
+        const res = await api.synthesizeSpeech(cleanText.slice(0, 1200), langCode);
+        if (res && res.audioUrl) {
+          const audio = new Audio(res.audioUrl);
+          activeAudioRef.current = audio;
+
+          let doneCalled = false;
+          const finishAudio = () => {
+            if (!doneCalled) {
+              doneCalled = true;
+              setSpeakingMsgId(null);
+              activeAudioRef.current = null;
+              if (onDone) onDone();
+            }
+          };
+
+          audio.onended = finishAudio;
+          audio.onerror = () => {
+            fallbackBrowserSpeech(msgId, cleanText, onDone);
+          };
+
+          await audio.play();
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend TTS synthesis failed, using browser speech synthesis fallback', err);
+      }
+
+      // 2. Fallback to Browser Speech Synthesis
+      fallbackBrowserSpeech(msgId, cleanText, onDone);
+    },
+    [selectedLanguage, stopSpeech, fallbackBrowserSpeech]
+  );
+
+  // Stop direct audio recording and optionally transcribe
+  const stopDirectRecording = useCallback(
+    async (shouldTranscribe = true) => {
+      isDirectRecordingRef.current = false;
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (scriptProcessorRef.current) {
+        try {
+          scriptProcessorRef.current.disconnect();
+        } catch (_) {}
+        scriptProcessorRef.current = null;
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+      if (audioContextRef.current) {
+        try {
+          audioContextRef.current.close();
+        } catch (_) {}
+        audioContextRef.current = null;
+      }
+
+      const buffers = pcmBuffersRef.current;
+      pcmBuffersRef.current = [];
+      const hadSpeech = hasSpokenRef.current;
+      hasSpokenRef.current = false;
+
+      if (!shouldTranscribe || buffers.length === 0 || !hadSpeech) {
+        setIsListening(false);
+        setInterimText('');
+        if (isVoiceToVoiceRef.current && shouldKeepListeningRef.current && !loading && !speakingMsgId) {
+          setTimeout(() => {
+            if (isVoiceToVoiceRef.current && shouldKeepListeningRef.current && !loading && !speakingMsgId) {
+              startDirectAudioRecording();
+            }
+          }, 350);
+        }
+        return;
+      }
+
+      setInterimText('Transcribing sovereign audio...');
+      try {
+        const base64Wav = encodePcmToWavBase64(buffers, 16000);
+        const res = await api.transcribeAudio(base64Wav, 'wav');
+        if (res && res.text && res.text.trim()) {
+          const spoken = res.text.trim();
+          setInterimText('');
+          setIsListening(false);
+          if (isVoiceToVoiceRef.current) {
+            shouldKeepListeningRef.current = false;
+            handleSendMessageRef.current(spoken);
+          } else {
+            setInput((prev) => (prev ? prev + ' ' + spoken : spoken));
+          }
+        } else {
+          setInterimText('');
+          setIsListening(false);
+          if (isVoiceToVoiceRef.current && shouldKeepListeningRef.current && !loading && !speakingMsgId) {
+            setTimeout(() => {
+              if (isVoiceToVoiceRef.current && shouldKeepListeningRef.current && !loading && !speakingMsgId) {
+                startDirectAudioRecording();
+              }
+            }, 350);
+          }
+        }
+      } catch (err: any) {
+        console.warn('Direct transcription error:', err);
+        setVoiceError('Transcription error: ' + (err?.message || 'Processing failed'));
+        setIsListening(false);
+        setInterimText('');
+      }
+    },
+    [loading, speakingMsgId]
+  );
+
+  // Start direct sovereign audio recording (Bypasses Google Speech restrictions)
+  const startDirectAudioRecording = useCallback(async () => {
+    stopSpeech();
     setVoiceError(null);
-    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionClass) {
-      setVoiceError('Voice recognition not supported. Please use Google Chrome or Microsoft Edge.');
+    pcmBuffersRef.current = [];
+    hasSpokenRef.current = false;
+    isDirectRecordingRef.current = true;
+    shouldKeepListeningRef.current = true;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      mediaStreamRef.current = stream;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioCtx({ sampleRate: 16000 });
+      audioContextRef.current = audioCtx;
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+      scriptProcessorRef.current = processor;
+
+      setIsListening(true);
+      setInterimText('Listening (Sovereign Mic)...');
+
+      processor.onaudioprocess = (e) => {
+        if (!isDirectRecordingRef.current) return;
+        const inputData = e.inputBuffer.getChannelData(0);
+        pcmBuffersRef.current.push(new Float32Array(inputData));
+
+        let sum = 0;
+        for (let i = 0; i < inputData.length; i++) {
+          sum += inputData[i] * inputData[i];
+        }
+        const rms = Math.sqrt(sum / inputData.length);
+
+        if (rms > 0.02) {
+          hasSpokenRef.current = true;
+          setInterimText('Hearing your voice...');
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else if (hasSpokenRef.current && !silenceTimerRef.current) {
+          silenceTimerRef.current = setTimeout(() => {
+            if (isDirectRecordingRef.current) {
+              stopDirectRecording(true);
+            }
+          }, 1500);
+        }
+      };
+
+      source.connect(processor);
+      processor.connect(audioCtx.destination);
+    } catch (err: any) {
+      isDirectRecordingRef.current = false;
+      setIsListening(false);
       setIsVoiceToVoice(false);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setVoiceError('Microphone permission denied. Please allow microphone in your browser settings.');
+      } else {
+        setVoiceError('Could not access microphone: ' + (err.message || 'Device error'));
+      }
+    }
+  }, [stopSpeech, stopDirectRecording]);
+
+  // Start Speech Recognition with automatic fallback to Direct Sovereign Microphone Capture
+  const startListening = useCallback(async () => {
+    setVoiceError(null);
+    stopSpeech();
+
+    // Check if Brave browser is detected (where webkitSpeechRecognition is blocked by design)
+    const isBrave =
+      typeof (navigator as any).brave !== 'undefined' &&
+      typeof (navigator as any).brave.isBrave === 'function';
+
+    const SpeechRecognitionClass = !isBrave
+      ? window.SpeechRecognition || window.webkitSpeechRecognition
+      : null;
+
+    if (!SpeechRecognitionClass) {
+      // Launch sovereign direct microphone recording directly
+      await startDirectAudioRecording();
       return;
     }
 
     try {
-      stopSpeech();
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch (_) {}
       }
 
       const recognition = new SpeechRecognitionClass();
@@ -281,12 +591,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
           setInterimText('');
           setInput('');
 
-          // If in Voice-to-Voice mode, auto-dispatch immediately
           if (isVoiceToVoiceRef.current) {
             shouldKeepListeningRef.current = false;
-            recognition.stop();
+            try {
+              recognition.stop();
+            } catch (_) {}
             setIsListening(false);
-            handleSendMessage(userText);
+            handleSendMessageRef.current(userText);
           } else {
             setInput((prev) => (prev ? prev + ' ' + userText : userText));
           }
@@ -295,28 +606,43 @@ export const ChatView: React.FC<ChatViewProps> = ({
         }
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = async (event: any) => {
         if (event.error === 'no-speech') {
-          // Keep listening in voice-to-voice mode
-        } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-          setVoiceError('Microphone blocked. Please click the lock/camera icon in your address bar to allow mic access.');
-          shouldKeepListeningRef.current = false;
-          setIsListening(false);
-          setIsVoiceToVoice(false);
-        } else if (event.error !== 'aborted') {
-          setVoiceError(`Microphone error: ${event.error}`);
+          return;
+        }
+        // If Google speech service is disabled or blocked in the browser, fallback to Sovereign Mic
+        if (
+          event.error === 'not-allowed' ||
+          event.error === 'service-not-allowed' ||
+          event.error === 'network'
+        ) {
+          console.info('Speech recognition blocked by browser privacy. Activating Sovereign Microphone...');
+          try {
+            recognition.abort();
+          } catch (_) {}
+          recognitionRef.current = null;
+          await startDirectAudioRecording();
+          return;
+        }
+        if (event.error !== 'aborted') {
+          setVoiceError(`Voice recognition: ${event.error}`);
           setIsListening(false);
         }
       };
 
       recognition.onend = () => {
-        if (shouldKeepListeningRef.current && !loading && !speakingMsgId) {
+        if (
+          shouldKeepListeningRef.current &&
+          !loading &&
+          !speakingMsgId &&
+          !isDirectRecordingRef.current
+        ) {
           try {
             recognition.start();
           } catch {
             setIsListening(false);
           }
-        } else {
+        } else if (!isDirectRecordingRef.current) {
           setIsListening(false);
           setInterimText('');
         }
@@ -325,20 +651,24 @@ export const ChatView: React.FC<ChatViewProps> = ({
       recognitionRef.current = recognition;
       recognition.start();
     } catch (err: any) {
-      setVoiceError('Failed to activate microphone.');
-      setIsListening(false);
-      setIsVoiceToVoice(false);
+      console.info('SpeechRecognition failed, falling back to sovereign direct mic.', err);
+      await startDirectAudioRecording();
     }
-  }, [selectedLanguage, stopSpeech, loading, speakingMsgId]);
+  }, [selectedLanguage, stopSpeech, loading, speakingMsgId, startDirectAudioRecording]);
 
   const stopListening = useCallback(() => {
     shouldKeepListeningRef.current = false;
+    if (isDirectRecordingRef.current) {
+      stopDirectRecording(true);
+    }
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
     }
     setIsListening(false);
     setInterimText('');
-  }, []);
+  }, [stopDirectRecording]);
 
   // Toggle Voice-to-Voice mode
   const handleToggleVoiceToVoice = useCallback(() => {
@@ -395,6 +725,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   // Send message
   const handleSendMessage = async (textToSend: string) => {
+    handleSendMessageRef.current = handleSendMessage;
     const trimmed = textToSend.trim();
     if (!trimmed || loading) return;
 
@@ -502,6 +833,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       setLoading(false);
     }
   };
+  handleSendMessageRef.current = handleSendMessage;
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -596,6 +928,25 @@ export const ChatView: React.FC<ChatViewProps> = ({
     }
   };
 
+  // Clear active chat messages
+  const handleClearCurrentChat = async () => {
+    if (!window.confirm('Clear all messages in the active chat conversation?')) {
+      return;
+    }
+    stopSpeech();
+    stopListening();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    try {
+      if (sessionId) {
+        await api.deleteConversation(sessionId).catch(() => {});
+      }
+    } catch (_) {}
+    setMessages([]);
+    loadSessions();
+  };
+
   // Determine current 3D Core state
   let chatCoreState: AICoreState = 'IDLE';
   if (isListening || isVoiceToVoice) chatCoreState = 'LISTENING';
@@ -604,12 +955,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
   else if (error) chatCoreState = 'ERROR';
 
   return (
-    <div style={{ maxWidth: '1080px', margin: '0 auto', height: 'calc(100vh - 122px)', display: 'flex', gap: '16px', position: 'relative' }}>
+    <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', height: 'calc(100vh - 90px)', display: 'flex', gap: '16px', position: 'relative', padding: '0 8px' }}>
       {/* Optional Chat Sessions Drawer */}
       {showHistory && (
         <div
           style={{
-            width: '280px',
+            width: '260px',
+            flexShrink: 0,
             background: 'var(--bg-glass)',
             backdropFilter: 'blur(16px)',
             border: '1px solid var(--border-color)',
@@ -740,8 +1092,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',
             padding: '12px 18px',
             background: 'var(--bg-glass)',
             backdropFilter: 'blur(16px)',
@@ -750,12 +1104,17 @@ export const ChatView: React.FC<ChatViewProps> = ({
             boxShadow: 'var(--shadow-sm)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px' }}>
             <button
               onClick={() => setShowHistory(!showHistory)}
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '12px' }}
-              title="Toggle Chat History Drawer"
+              style={{
+                padding: '6px 10px',
+                fontSize: '12px',
+                background: showHistory ? 'rgba(212, 175, 55, 0.15)' : undefined,
+                borderColor: showHistory ? 'var(--accent-gold)' : undefined,
+              }}
+              title={showHistory ? 'Hide Chat History' : 'Show Chat History'}
             >
               <MessageSquare size={14} color="var(--accent-gold)" />
               {showHistory ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
@@ -764,27 +1123,24 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <AICore state={chatCoreState} size={44} interactive={false} />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>HṚṢĪKEŚA Intelligence</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-                  हृषीकेश
-                </span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>HṚṢĪKEŚA Direct Dialogue</span>
               </div>
               <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
                 {isVoiceToVoice
-                  ? '🎙️ 1-on-1 Voice-to-Voice Active'
+                  ? '🎙️ Voice-to-Voice Duplex Active'
                   : loading
                   ? 'Formulating response...'
                   : isListening
                   ? 'Listening to speech...'
-                  : 'Ready • Local autonomous session'}
+                  : 'Sovereign Control Plane • Voice & Neural Cognition'}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
             {/* Model / Engine Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={14} color="var(--accent-sapphire)" />
+              <Sparkles size={14} color="var(--accent-gold)" />
               <select
                 value={selectedModel.id}
                 onChange={(e) => {
@@ -794,10 +1150,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 style={{
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border-color)',
-                  color: 'var(--text-sapphire-light)',
+                  color: 'var(--text-primary)',
                   fontSize: '11.5px',
                   fontWeight: 600,
-                  padding: '5px 8px',
+                  padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   outline: 'none',
                   cursor: 'pointer',
@@ -812,26 +1168,26 @@ export const ChatView: React.FC<ChatViewProps> = ({
               </select>
             </div>
 
-            {/* Response Mode Selector (FP-02 Part C) */}
+            {/* Response Mode Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Zap size={14} color="var(--accent-emerald)" />
+              <Zap size={14} color="var(--accent-teal)" />
               <select
                 value={responseMode}
                 onChange={(e) => setResponseMode(e.target.value as any)}
                 style={{
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border-color)',
-                  color: 'var(--text-emerald)',
+                  color: 'var(--accent-teal)',
                   fontSize: '11.5px',
                   fontWeight: 600,
-                  padding: '5px 8px',
+                  padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   outline: 'none',
                   cursor: 'pointer',
                 }}
-                title="Response Mode (CONCISE, NORMAL, DETAILED, DEEP)"
+                title="Response Mode"
               >
-                <option value="CONCISE">⚡ Concise (Fast)</option>
+                <option value="CONCISE">⚡ Concise</option>
                 <option value="NORMAL">⚡ Normal</option>
                 <option value="DETAILED">📚 Detailed</option>
                 <option value="DEEP">🧠 Deep Reasoning</option>
@@ -850,10 +1206,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 style={{
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border-color)',
-                  color: 'var(--text-gold)',
+                  color: 'var(--accent-gold)',
                   fontSize: '11.5px',
                   fontWeight: 600,
-                  padding: '5px 8px',
+                  padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   outline: 'none',
                   cursor: 'pointer',
@@ -874,8 +1230,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
               className={`btn ${isVoiceToVoice ? 'btn-primary' : 'btn-secondary'}`}
               style={{
                 fontSize: '12px',
-                padding: '6px 12px',
-                boxShadow: isVoiceToVoice ? '0 0 16px var(--accent-gold-glow)' : 'none',
+                padding: '6px 14px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: isVoiceToVoice ? '0 0 16px rgba(212, 175, 55, 0.4)' : 'none',
+                borderColor: isVoiceToVoice ? 'var(--accent-gold)' : undefined,
               }}
               title="Toggle continuous 1-on-1 voice conversation loop"
             >
@@ -887,7 +1248,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               <button
                 onClick={() => setVoiceViewMode(voiceViewMode === 'chamber' ? 'transcript' : 'chamber')}
                 className="btn btn-secondary"
-                style={{ fontSize: '11.5px', padding: '5px 10px', color: 'var(--text-gold)', border: '1px solid var(--border-accent)' }}
+                style={{ fontSize: '11.5px', padding: '6px 10px', color: 'var(--text-gold)', border: '1px solid var(--border-accent)' }}
                 title="Toggle between 3D Cosmic Orb and Chat Transcript"
               >
                 <Sparkles size={13} color="var(--accent-gold)" />
@@ -896,13 +1257,32 @@ export const ChatView: React.FC<ChatViewProps> = ({
             )}
 
             <button
+              onClick={handleClearCurrentChat}
+              className="btn btn-secondary"
+              style={{
+                fontSize: '12px',
+                padding: '6px 12px',
+                color: '#FDA4AF',
+                borderColor: 'rgba(225, 29, 72, 0.4)',
+                background: 'rgba(225, 29, 72, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+              title="Clear active chat messages"
+            >
+              <Trash2 size={13} color="#F87171" />
+              <span>Clear Chat</span>
+            </button>
+
+            <button
               className="btn btn-secondary"
               onClick={handleNewChat}
               style={{ fontSize: '12px', padding: '6px 12px' }}
               title="Start fresh conversation"
             >
               <RotateCcw size={13} />
-              New
+              <span>New</span>
             </button>
           </div>
         </div>
@@ -953,19 +1333,39 @@ export const ChatView: React.FC<ChatViewProps> = ({
         {voiceError && (
           <div
             style={{
-              padding: '10px 14px',
+              padding: '10px 16px',
               borderRadius: 'var(--radius-sm)',
               background: 'rgba(225, 29, 72, 0.15)',
               border: '1px solid var(--accent-rose)',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              justifyContent: 'space-between',
+              gap: '12px',
               fontSize: '12.5px',
               color: '#FDA4AF',
             }}
           >
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
-            <span>{voiceError}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{voiceError}</span>
+            </div>
+            <button
+              onClick={() => {
+                setVoiceError(null);
+                startListening();
+              }}
+              className="btn btn-secondary"
+              style={{
+                fontSize: '11px',
+                padding: '4px 10px',
+                color: '#fff',
+                borderColor: 'var(--accent-rose)',
+                background: 'rgba(225, 29, 72, 0.3)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Retry Microphone
+            </button>
           </div>
         )}
 
@@ -1127,13 +1527,61 @@ export const ChatView: React.FC<ChatViewProps> = ({
             style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '12px 6px',
+              padding: '16px 12px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: '18px',
             }}
           >
-          {messages.map((msg) => {
+          {messages.length === 0 ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', gap: '16px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--accent-saffron), var(--accent-gold))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', boxShadow: '0 0 24px var(--accent-gold-glow)' }}>
+                ⚡
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
+                  HṚṢĪKEŚA Sovereign Dialogue Plane
+                </h3>
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '460px' }}>
+                  Direct low-latency cognition bus connected to local models and the 33-agent sovereign hierarchy.
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '520px', marginTop: '8px' }}>
+                {[
+                  'What is the current system health and memory state?',
+                  'Plan a multi-agent software engineering initiative',
+                  'Synthesize live telemetry from active workers',
+                  'Draft a strategic architecture document'
+                ].map((promptText) => (
+                  <button
+                    key={promptText}
+                    onClick={() => handleSendMessage(promptText)}
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-secondary)',
+                      padding: '8px 14px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--accent-gold)';
+                      e.currentTarget.style.color = 'var(--accent-gold-bright)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
+                  >
+                    {promptText}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            messages.map((msg) => {
             const isUser = msg.role === 'user';
             const isSpeaking = speakingMsgId === msg.id;
 
@@ -1145,7 +1593,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   display: 'flex',
                   gap: '12px',
                   alignItems: 'flex-start',
+                  justifyContent: isUser ? 'flex-end' : 'flex-start',
                   flexDirection: isUser ? 'row-reverse' : 'row',
+                  width: '100%',
                 }}
               >
                 {/* Avatar */}
@@ -1155,14 +1605,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     height: '36px',
                     borderRadius: '10px',
                     background: isUser
-                      ? 'linear-gradient(135deg, var(--accent-sapphire), var(--accent-indigo))'
+                      ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(30, 41, 59, 0.9))'
                       : 'linear-gradient(135deg, var(--accent-saffron), var(--accent-gold))',
+                    border: `1px solid ${isUser ? 'rgba(56, 189, 248, 0.4)' : 'rgba(232, 184, 48, 0.5)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: isUser ? '#FFFFFF' : '#060810',
+                    color: isUser ? '#38BDF8' : '#060810',
                     flexShrink: 0,
-                    boxShadow: isUser ? 'none' : '0 0 14px var(--accent-gold-glow)',
+                    boxShadow: isUser ? '0 0 12px rgba(56, 189, 248, 0.25)' : '0 0 14px var(--accent-gold-glow)',
                   }}
                 >
                   {isUser ? <User size={18} /> : <Bot size={18} />}
@@ -1171,16 +1622,16 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 {/* Message Bubble (Panel 4) */}
                 <div
                   style={{
-                    maxWidth: '82%',
+                    maxWidth: '80%',
                     background: isUser
-                      ? 'linear-gradient(135deg, #FBF6EA 0%, #F5ECDA 100%)'
-                      : 'rgba(24, 15, 7, 0.95)',
-                    border: `1.5px solid ${isUser ? '#D6BC97' : 'rgba(212, 168, 55, 0.45)'}`,
-                    borderRadius: '14px',
+                      ? 'linear-gradient(135deg, rgba(200, 146, 14, 0.16) 0%, rgba(26, 15, 6, 0.96) 100%)'
+                      : 'rgba(20, 12, 6, 0.95)',
+                    border: `1px solid ${isUser ? 'rgba(232, 184, 48, 0.45)' : 'rgba(200, 146, 14, 0.35)'}`,
+                    borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
                     padding: '16px 20px',
                     boxShadow: isUser
-                      ? '0 4px 14px rgba(0,0,0,0.25)'
-                      : '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,220,140,0.15)',
+                      ? '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(232, 184, 48, 0.2)'
+                      : '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(200, 146, 14, 0.15)',
                     position: 'relative',
                   }}
                 >
@@ -1203,8 +1654,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     style={{
                       fontSize: '14.5px',
                       lineHeight: '1.7',
-                      color: isUser ? '#2A1A0B' : 'var(--text-primary)',
-                      fontWeight: isUser ? 500 : 400,
+                      color: 'var(--text-primary)',
+                      fontWeight: 400,
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
                     }}
@@ -1311,7 +1762,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 </div>
               </div>
             );
-          })}
+          }))}
 
           {/* Thinking indicator */}
           {loading && (

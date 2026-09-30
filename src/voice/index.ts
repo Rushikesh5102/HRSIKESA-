@@ -13,5 +13,7 @@ export * from './session/voice.session.js';
 export * from './pronunciation/index.js';
 export * from './multilingual/index.js';
 export * from './profiles/index.js';
+export * from './affect/index.js';
 export * from './streaming/index.js';
 export * from './orchestration/index.js';
+

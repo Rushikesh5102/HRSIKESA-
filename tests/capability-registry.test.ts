@@ -122,7 +122,7 @@ describe('Phase 16: Open-Source Capability Foundation & Registry', () => {
 
   describe('4. Agent Semantic Capability Routing', () => {
     it('should resolve generic semantic alias "fs" to "filesystem.native"', () => {
-      const resolution = router.resolve('gandiva', 'fs');
+      const resolution = router.resolve('manyu', 'fs');
       assert.equal(resolution.resolvedCapabilityId, 'filesystem.native');
       assert.equal(resolution.available, true);
     });
@@ -134,7 +134,7 @@ describe('Phase 16: Open-Source Capability Foundation & Registry', () => {
     });
 
     it('should route and execute capability for authorized workforce agent', async () => {
-      const result = await router.executeForAgent('gandiva', 'fs', 'exists', {
+      const result = await router.executeForAgent('manyu', 'fs', 'exists', {
         path: process.cwd(),
       });
 

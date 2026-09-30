@@ -20,6 +20,10 @@ import { VoiceProfileManager } from '../profiles/voice-profile.manager.js';
 import { StreamingTtsEngine } from '../streaming/streaming-tts-engine.js';
 import { VadService } from '../../multimodal/voice/vad.service.js';
 import { ConversationService } from '../../conversation/conversation.service.js';
+import { ResponseLanguageResolver } from '../multilingual/services/response-language.resolver.js';
+import { UserSpeakingStateInferrer } from '../affect/user-speaking-state.inferrer.js';
+import { ResponseDeliveryResolver } from '../affect/response-delivery.resolver.js';
+import { UserSpeakingState, TTSDeliveryState } from '../affect/affect.types.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export type VoiceState = 'IDLE' | 'LISTENING' | 'TRANSCRIBING' | 'THINKING' | 'SPEAKING' | 'INTERRUPTED';
@@ -38,6 +42,14 @@ export interface VoiceMetricsSnapshot {
   readonly playbackStartedAt?: number;
   readonly voiceResponseLatencyMs: number; // Duration from user speech end -> first audible sound
   readonly totalTurnDurationMs: number;
+  readonly inputLanguage?: string;
+  readonly languageConfidence?: number;
+  readonly outputLanguage?: string;
+  readonly userAffect?: string;
+  readonly deliveryEmotion?: string;
+  readonly ttsCaption?: string;
+  readonly providerUsed?: string;
+  readonly fallbackUsed?: boolean;
 }
 
 export class VoiceInteractionCoordinator extends EventEmitter {
@@ -49,6 +61,9 @@ export class VoiceInteractionCoordinator extends EventEmitter {
   public readonly profileManager: VoiceProfileManager;
   public readonly streamingTts: StreamingTtsEngine;
   public readonly vad: VadService;
+  public readonly responseLangResolver: ResponseLanguageResolver;
+  public readonly userStateInferrer: UserSpeakingStateInferrer;
+  public readonly deliveryResolver: ResponseDeliveryResolver;
   private readonly conversationService: ConversationService;
   private readonly logger?: ILogger;
 
@@ -56,6 +71,8 @@ export class VoiceInteractionCoordinator extends EventEmitter {
   private currentSessionId = 'voice_session_default';
   private isSelfSpeaking = false;
   private lastLatencySnapshot: VoiceMetricsSnapshot | null = null;
+  private lastInferredState: UserSpeakingState | null = null;
+  private lastDeliveryState: TTSDeliveryState | null = null;
 
   constructor(
     stt: ISpeechToTextProvider,
@@ -77,7 +94,9 @@ export class VoiceInteractionCoordinator extends EventEmitter {
     this.profileManager = profileManager;
     this.conversationService = conversationService;
     this.vad = vad || new VadService();
-    this.logger = logger?.child('VoiceInteractionCoordinator');
+    this.responseLangResolver = new ResponseLanguageResolver(logger);
+    this.userStateInferrer = new UserSpeakingStateInferrer(logger);
+    this.deliveryResolver = new ResponseDeliveryResolver(logger);
 
     this.streamingTts = new StreamingTtsEngine(this.tts, this.player, this.normalizer, logger);
 
@@ -188,9 +207,31 @@ export class VoiceInteractionCoordinator extends EventEmitter {
       return { responseText: '', metrics: emptyMetrics };
     }
 
-    // 2. Language Detection & Spoken Commands
-    const detectedLang = this.langDetector.detect(transcribedText);
-    this.logger?.info(`User utterance: "${transcribedText}" [Lang: ${detectedLang.name} (${detectedLang.code}), Script: ${detectedLang.script}]`);
+    // 2. Multi-Signal Language Detection & Conversational State Inference
+    const detectedLang = this.langDetector.detectDetailed(transcribedText);
+    const prefs = this.profileManager.getPreferences();
+
+    // Prosody features from audio timing if available
+    const prosody = {
+      durationMs: sttFinalizedAt - sttStartedAt,
+      wordsPerMinute: (transcribedText.split(/\s+/).length / Math.max(0.5, (sttFinalizedAt - sttStartedAt) / 60000)),
+    };
+
+    const userState = this.userStateInferrer.infer(transcribedText, prosody, {
+      lastTurnAffect: this.lastInferredState?.affect,
+    });
+    this.lastInferredState = userState;
+
+    this.logger?.info(
+      `User utterance: "${transcribedText}" [Lang: ${detectedLang.name} (${detectedLang.code}), Confidence: ${(detectedLang.confidence * 100).toFixed(0)}%, Affect: ${userState.affect}, Mode: ${userState.interactionMode}]`
+    );
+
+    // 3. Response Language Resolution
+    const resolvedLang = this.responseLangResolver.resolve(detectedLang, transcribedText, {
+      policy: prefs.outputLanguagePolicy || 'AUTOMATIC',
+      preserveCodeSwitching: prefs.preserveCodeSwitching ?? true,
+      preferNativeScript: prefs.preferNativeScript ?? false,
+    });
 
     // Handle Spoken Commands directly
     if (detectedLang.detectedCommand) {
@@ -201,20 +242,33 @@ export class VoiceInteractionCoordinator extends EventEmitter {
           sttFinalizedAt,
           voiceResponseLatencyMs: Date.now() - sttFinalizedAt,
           totalTurnDurationMs: Date.now() - turnStart,
+          inputLanguage: detectedLang.code,
+          languageConfidence: detectedLang.confidence,
+          outputLanguage: resolvedLang.language,
+          userAffect: userState.affect,
         };
         this.lastLatencySnapshot = metrics;
         return { responseText: commandResponse, metrics };
       }
     }
 
-    // 3. Fast-Path Conversational Gate (bypasses heavy multi-agent scheduling for quick banter)
-    const fastPathResponse = this.checkFastPath(transcribedText, detectedLang.code);
+    // 4. Fast-Path Conversational Gate (bypasses heavy multi-agent scheduling for quick banter)
+    const fastPathResponse = this.checkFastPath(transcribedText, resolvedLang.language);
     if (fastPathResponse) {
-      this.logger?.info(`Fast-path matched for utterance: "${transcribedText}"`);
+      this.logger?.info(`Fast-path matched for utterance: "${transcribedText}" [Lang: ${resolvedLang.language}]`);
       const ttsStartedAt = Date.now();
       this.setState('SPEAKING');
 
-      await this.speakDirect(fastPathResponse, detectedLang.code);
+      const speaker = prefs.speakerMap?.[resolvedLang.language] || (this.tts as any).getSpeakerForLanguage?.(resolvedLang.language) || 'Rohit';
+      const deliveryState = this.deliveryResolver.resolve(userState, fastPathResponse, resolvedLang.language, speaker, {
+        autoEmotion: prefs.autoEmotion ?? true,
+        emotionalIntensity: prefs.emotionalIntensity ?? 0.35,
+        naturalness: prefs.naturalness ?? 0.85,
+        responseMode: prefs.responseMode || 'balanced',
+      });
+      this.lastDeliveryState = deliveryState;
+
+      await this.speakDirect(fastPathResponse, resolvedLang.language, speaker, deliveryState.caption);
 
       const metrics: VoiceMetricsSnapshot = {
         sttStartedAt,
@@ -223,24 +277,28 @@ export class VoiceInteractionCoordinator extends EventEmitter {
         ttsStartedAt,
         voiceResponseLatencyMs: Date.now() - sttFinalizedAt,
         totalTurnDurationMs: Date.now() - turnStart,
+        inputLanguage: detectedLang.code,
+        languageConfidence: detectedLang.confidence,
+        outputLanguage: resolvedLang.language,
+        userAffect: userState.affect,
+        deliveryEmotion: deliveryState.emotion,
+        ttsCaption: deliveryState.caption,
+        providerUsed: this.tts.id,
       };
       this.lastLatencySnapshot = metrics;
       this.setState('IDLE');
       return { responseText: fastPathResponse, metrics };
     }
 
-    // 4. Standard Sovereign Conversation Turn (inherits memory, tools, and models)
+    // 5. Standard Sovereign Conversation Turn (inherits memory, tools, and models)
     this.setState('THINKING');
     const routingStartedAt = Date.now();
     const llmStartedAt = Date.now();
 
-    // Prepare language instruction hint for model if non-English
+    // Prepare language instruction hint for model based on resolved language
     let promptWithLanguage = transcribedText;
-    if (detectedLang.code !== 'en') {
-      const profile = this.langDetector.getProfile(detectedLang.code);
-      if (profile) {
-        promptWithLanguage = `${transcribedText}\n\n[Instruction: ${profile.promptInstruction}]`;
-      }
+    if (resolvedLang.language !== 'en' || resolvedLang.promptInstruction) {
+      promptWithLanguage = `${transcribedText}\n\n[Language Policy: ${resolvedLang.promptInstruction}]`;
     }
 
     // Initiate conversation turn
@@ -249,14 +307,28 @@ export class VoiceInteractionCoordinator extends EventEmitter {
 
     const responseText = convResponse.response || 'HṚṢĪKEŚA is listening.';
 
-    // 5. Streaming Synthesis & Playback
+    // 6. Response Emotion / Delivery State Resolution
+    const speaker = prefs.speakerMap?.[resolvedLang.language] || (this.tts as any).getSpeakerForLanguage?.(resolvedLang.language) || 'Rohit';
+    const deliveryState = this.deliveryResolver.resolve(userState, responseText, resolvedLang.language, speaker, {
+      autoEmotion: prefs.autoEmotion ?? true,
+      emotionalIntensity: prefs.emotionalIntensity ?? 0.35,
+      naturalness: prefs.naturalness ?? 0.85,
+      responseMode: prefs.responseMode || 'balanced',
+    });
+    this.lastDeliveryState = deliveryState;
+
+    // 7. Streaming Synthesis & Playback
     this.setState('SPEAKING');
     const ttsStartedAt = Date.now();
 
     // Turn string into an async token stream for the segmenter
     const tokenStream = this.createTokenStream(responseText);
     const streamingMetrics = await this.streamingTts.speakTokenStream(tokenStream, {
-      language: detectedLang.code,
+      language: resolvedLang.language,
+      speaker,
+      caption: deliveryState.caption,
+      emotion: deliveryState.emotion,
+      speakingRate: deliveryState.rate,
     });
 
     const turnEnd = Date.now();
@@ -273,6 +345,14 @@ export class VoiceInteractionCoordinator extends EventEmitter {
       playbackStartedAt: ttsStartedAt + streamingMetrics.firstAudioLatencyMs,
       voiceResponseLatencyMs: (ttsStartedAt + streamingMetrics.firstAudioLatencyMs) - sttFinalizedAt,
       totalTurnDurationMs: turnEnd - turnStart,
+      inputLanguage: detectedLang.code,
+      languageConfidence: detectedLang.confidence,
+      outputLanguage: resolvedLang.language,
+      userAffect: userState.affect,
+      deliveryEmotion: deliveryState.emotion,
+      ttsCaption: deliveryState.caption,
+      providerUsed: this.tts.id,
+      fallbackUsed: (this.tts as any).getLastTelemetry?.()?.fallbackUsed,
     };
 
     this.lastLatencySnapshot = metrics;
@@ -382,9 +462,9 @@ export class VoiceInteractionCoordinator extends EventEmitter {
   /**
    * Directly speaks a short message through the streaming engine.
    */
-  private async speakDirect(text: string, language = 'en'): Promise<void> {
+  private async speakDirect(text: string, language = 'en', speaker?: string, caption?: string): Promise<void> {
     const stream = this.createTokenStream(text);
-    await this.streamingTts.speakTokenStream(stream, { language });
+    await this.streamingTts.speakTokenStream(stream, { language, speaker, caption });
   }
 
   private async *createTokenStream(text: string): AsyncIterable<string> {
@@ -392,6 +472,14 @@ export class VoiceInteractionCoordinator extends EventEmitter {
     for (let i = 0; i < words.length; i++) {
       yield (i === 0 ? '' : ' ') + words[i];
     }
+  }
+
+  public getLastInferredState(): UserSpeakingState | null {
+    return this.lastInferredState;
+  }
+
+  public getLastDeliveryState(): TTSDeliveryState | null {
+    return this.lastDeliveryState;
   }
 
   private setState(state: VoiceState): void {

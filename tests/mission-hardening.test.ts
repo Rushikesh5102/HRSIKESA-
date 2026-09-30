@@ -157,7 +157,7 @@ test('Phase 13.5 — Mission Hardening & Governance Verification', async (t) => 
     try {
       const mission = orchestrator.createMission({
         objective: 'Run restricted terminal command',
-        rootAgentId: 'gandiva'
+        rootAgentId: 'manyu'
       });
 
       taskRepo.update(mission.rootTaskId, {
@@ -185,7 +185,7 @@ test('Phase 13.5 — Mission Hardening & Governance Verification', async (t) => 
     try {
       const mission = orchestrator.createMission({
         objective: 'Run restricted terminal command',
-        rootAgentId: 'gandiva'
+        rootAgentId: 'manyu'
       });
 
       taskRepo.update(mission.rootTaskId, {
@@ -218,7 +218,7 @@ test('Phase 13.5 — Mission Hardening & Governance Verification', async (t) => 
     try {
       const mission = orchestrator.createMission({
         objective: 'Run restricted terminal command',
-        rootAgentId: 'gandiva'
+        rootAgentId: 'manyu'
       });
 
       taskRepo.update(mission.rootTaskId, {
@@ -251,7 +251,7 @@ test('Phase 13.5 — Mission Hardening & Governance Verification', async (t) => 
     try {
       const mission = orchestrator.createMission({
         objective: 'Cancel test mission',
-        rootAgentId: 'gandiva'
+        rootAgentId: 'manyu'
       });
 
       const cancelled = await orchestrator.cancelMission(mission.id, 'User stopped mission');
@@ -269,7 +269,7 @@ test('Phase 13.5 — Mission Hardening & Governance Verification', async (t) => 
     try {
       const task = {
         id: 't_fail',
-        agentId: 'gandiva',
+        agentId: 'manyu',
         objective: 'Fail repeatedly',
         priority: 'normal' as const,
         status: 'pending' as const,

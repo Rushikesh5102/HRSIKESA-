@@ -246,14 +246,11 @@ export const WorkflowEngineView: React.FC = () => {
         position: 'relative',
         overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.05, fontSize: '140px', fontFamily: 'serif', pointerEvents: 'none' }}>
-          ॐ
-        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '13px', letterSpacing: '2px', color: '#d4af37', textTransform: 'uppercase', fontWeight: 600 }}>
-                हृषीकेश कार्यप्रवाह
+                WORKFLOW FABRIC
               </span>
               <span style={{ fontSize: '11px', background: 'rgba(212,175,55,0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(212,175,55,0.3)' }}>
                 FP-11 ENGINE

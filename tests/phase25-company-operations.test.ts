@@ -298,43 +298,36 @@ describe('Phase 25: Autonomous Company Operations Engine', () => {
     assert.ok(health.dimensions.operations <= 50);
   });
 
-  // 10. 17-Agent Workforce Capacity Matrix
-  test('10. Workforce Manager: should initialize and track all 17 specialized agents', () => {
+  // 10. 33-Agent Workforce Capacity Matrix
+  test('10. Workforce Manager: should initialize and track all 33 specialized agents', () => {
     const capacities = workforceManager.getCompanyWorkforceCapacities(TEST_COMPANY_ID);
-    assert.equal(capacities.length, 17);
+    assert.equal(capacities.length, 33);
 
     const agentIds = capacities.map((c) => c.agentId);
-    assert.ok(agentIds.includes('Rahu'));
-    assert.ok(agentIds.includes('Aja'));
-    assert.ok(agentIds.includes('Ritvan'));
-    assert.ok(agentIds.includes('Tvas'));
-    assert.ok(agentIds.includes('Spoota'));
-    assert.ok(agentIds.includes('Gāṇḍīva'));
-    assert.ok(agentIds.includes('Vighna'));
-    assert.ok(agentIds.includes('Raudra'));
-    assert.ok(agentIds.includes('Rutam'));
-    assert.ok(agentIds.includes('Arvan'));
-    assert.ok(agentIds.includes('Tāraka'));
-    assert.ok(agentIds.includes('Kalki'));
-    assert.ok(agentIds.includes('Garuḍa'));
-    assert.ok(agentIds.includes('Kali'));
-    assert.ok(agentIds.includes('KĀLA'));
-    assert.ok(agentIds.includes('Yama'));
-    assert.ok(agentIds.includes('Mṛtyu'));
+    assert.ok(agentIds.includes('Manyu'));
+    assert.ok(agentIds.includes('Dhātā'));
+    assert.ok(agentIds.includes('Indra'));
+    assert.ok(agentIds.includes('Prajāpati'));
+    assert.ok(agentIds.includes('Ṛtadhvaja'));
+    assert.ok(agentIds.includes('Varuṇa'));
+    assert.ok(agentIds.includes('Śiva'));
+    assert.ok(agentIds.includes('Dharā'));
+    assert.ok(agentIds.includes('Anala'));
+    assert.ok(agentIds.includes('Soma'));
   });
 
   // 11. Workforce Specialist Task Assignment & Workload Tracking
   test('11. Workforce Manager: should assign tasks and update capacity status', () => {
     const routed = workforceManager.routeWork('CODING', TEST_COMPANY_ID);
-    assert.equal(routed.agentId, 'Gāṇḍīva');
+    assert.equal(routed.agentId, 'Manyu');
 
-    workforceManager.assignTask('Gāṇḍīva', 'task-code-1', TEST_COMPANY_ID);
-    const cap = workforceManager.getAgentCapacity('Gāṇḍīva', TEST_COMPANY_ID);
+    workforceManager.assignTask('Manyu', 'task-code-1', TEST_COMPANY_ID);
+    const cap = workforceManager.getAgentCapacity('Manyu', TEST_COMPANY_ID);
     assert.equal(cap.activeTasksCount, 1);
     assert.equal(cap.status, 'BUSY');
 
-    workforceManager.completeTask('Gāṇḍīva', 'task-code-1', TEST_COMPANY_ID);
-    const updated = workforceManager.getAgentCapacity('Gāṇḍīva', TEST_COMPANY_ID);
+    workforceManager.completeTask('Manyu', 'task-code-1', TEST_COMPANY_ID);
+    const updated = workforceManager.getAgentCapacity('Manyu', TEST_COMPANY_ID);
     assert.equal(updated.activeTasksCount, 0);
     assert.equal(updated.status, 'AVAILABLE');
   });
@@ -1026,12 +1019,12 @@ describe('Phase 25: Autonomous Company Operations Engine', () => {
     const workforce = workforceManager.getCompanyWorkforceCapacities(TEST_COMPANY_ID);
     const agentIds = workforce.map((w) => w.agentId);
 
-    // HṚṢĪKEŚA is NOT one of the 17 subordinate agents
+    // HṚṢĪKEŚA is NOT one of the 33 subordinate agents
     assert.equal(agentIds.includes('HṚṢĪKEŚA'), false);
     assert.equal(agentIds.includes('hrisekesa'), false);
 
-    // 17 subordinates exist
-    assert.equal(agentIds.length, 17);
+    // 33 subordinates exist
+    assert.equal(agentIds.length, 33);
   });
 
   // 46. Honest Failure Reporting: No Fake Success

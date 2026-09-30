@@ -163,9 +163,6 @@ export const MemoryView: React.FC<MemoryViewProps> = ({ memoryItems }) => {
             <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Memory & Wisdom Matrix
             </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              स्मृति
-            </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             What HṚṢĪKEŚA remembers about you, your preferences, decisions, and long-term project knowledge.

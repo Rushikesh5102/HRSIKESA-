@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AgentRegistry } from '../src/agents/registry/agent.registry.js';
-import { INITIAL_AGENT_ROSTER, GANDIVA, AJA, GARUDA, VIGHNA, RAHU } from '../src/agents/roster/initial.agents.js';
+import { INITIAL_AGENT_ROSTER } from '../src/agents/roster/initial.agents.js';
 import { ModelRegistry } from '../src/models/registry/model.registry.js';
 import { ModelRouter } from '../src/models/router/model.router.js';
 import { MissionPlanner } from '../src/agents/planner/mission.planner.js';
@@ -52,7 +52,7 @@ class MockPlannerProvider implements IModelProvider {
           id: 'task_1',
           title: 'Inspect Workspace Structure',
           objective: 'Inspect project directory and files',
-          agentId: 'garuda',
+          agentId: 'manyu',
           dependencies: [],
           estimatedDangerTier: 0,
           verification: {
@@ -64,7 +64,7 @@ class MockPlannerProvider implements IModelProvider {
           id: 'task_2',
           title: 'Compile Analysis Report',
           objective: 'Synthesize findings into final brief',
-          agentId: 'aja',
+          agentId: 'dhata',
           dependencies: ['task_1'],
           estimatedDangerTier: 0
         }
@@ -101,7 +101,7 @@ test('MissionPlanner Subsystem', async (t) => {
     assert.ok(plan);
     assert.strictEqual(plan.tasks.length, 2);
     assert.strictEqual(plan.tasks[0].id, 'task_1');
-    assert.strictEqual(plan.tasks[0].agentId, 'garuda');
+    assert.strictEqual(plan.tasks[0].agentId, 'manyu');
     assert.strictEqual(plan.tasks[1].dependencies[0], 'task_1');
     assert.strictEqual(plan.riskLevel, 'low');
   });
@@ -118,7 +118,7 @@ test('MissionPlanner Subsystem', async (t) => {
 
     assert.ok(plan);
     assert.ok(plan.tasks.length >= 2);
-    assert.ok(plan.tasks.some((t) => t.agentId === 'gandiva' || t.agentId === 'aja'));
+    assert.ok(plan.tasks.some((t) => t.agentId === 'manyu' || t.agentId === 'dhata'));
   });
 
   await t.test('revises plan dynamically after task failure without wiping intact tasks', async () => {
@@ -126,6 +126,7 @@ test('MissionPlanner Subsystem', async (t) => {
       objective: 'Inspect and report'
     });
 
+    assert.ok(initialPlan);
     const revised = await planner.revisePlan(
       initialPlan,
       'task_1',
@@ -145,7 +146,7 @@ test('MissionPlanner Subsystem', async (t) => {
       successCriteria: [],
       riskLevel: 'LOW',
       tasks: [
-        { id: 'T1', title: 'T1', objective: 'T1', agentId: 'gandiva', dependencies: [], dangerLevel: 0, expectedOutputs: [], requiredCapabilities: [] }
+        { id: 'T1', title: 'T1', objective: 'T1', agentId: 'manyu', dependencies: [], dangerLevel: 0, expectedOutputs: [], requiredCapabilities: [] }
       ]
     });
     assert.strictEqual(valid.valid, true);

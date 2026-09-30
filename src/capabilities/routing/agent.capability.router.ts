@@ -64,7 +64,7 @@ export class AgentCapabilityRouter {
     if (!agent) {
       return {
         success: false,
-        error: `Agent '${agentId}' is not registered in the 17-agent workforce.`,
+        error: `Agent '${agentId}' is not registered in the canonical workforce.`,
         executionTimeMs: 0,
         capabilityId: requestedCapability,
       };

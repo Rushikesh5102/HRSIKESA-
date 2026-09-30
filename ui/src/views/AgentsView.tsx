@@ -1,7 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { Bot, Network, ChevronDown, ChevronRight, CheckCircle2, ArrowRight, Sparkles, Brain, Clock, Award, Activity, Search, Shield, Zap, BookOpen } from 'lucide-react';
-import { AgentInfo } from '../types/api.types';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Bot,
+  Network,
+  ChevronDown,
+  ChevronRight,
+  CheckCircle2,
+  ArrowRight,
+  Sparkles,
+  Brain,
+  Clock,
+  Award,
+  Activity,
+  Search,
+  Shield,
+  Zap,
+  BookOpen,
+  Layers,
+  Terminal,
+  Cpu,
+  Lock,
+  Users,
+} from 'lucide-react';
+import { AgentInfo, TaskInfo } from '../types/api.types';
 import { AgentAvatar } from '../components/AgentAvatar';
+import { AgentPortrait } from '../components/AgentPortrait';
+import { api } from '../services/api';
+
+const formatSleekText = (str?: string): string => {
+  if (!str) return '';
+  return str
+    .replace(/[._]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+};
+
+const cleanDescription = (desc?: string): string => {
+  if (!desc) return 'Specialized autonomous persona executing designated computational tasks for HṚṢĪKEŚA.';
+  return desc.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+};
 
 interface AgentsViewProps {
   agents: AgentInfo[];
@@ -9,31 +45,14 @@ interface AgentsViewProps {
   onOpenOffice?: () => void;
 }
 
-interface AgentProfile {
-  name: string;
-  sanskrit: string;
-  role: string;
-  category: string;
-  quote: string;
-  currentTask: string;
-  taskProgress: number;
-  taskDuration: string;
-  capabilities: string[];
-  metrics: {
-    tasksCompleted: number;
-    successRate: number;
-    avgTime: string;
-    knowledgeAdded: number;
-  };
-}
-
-import { api } from '../services/api';
-import { TaskInfo } from '../types/api.types';
+type AgentTier = 'ALL' | 'ADITYA' | 'RUDRA' | 'VASU' | 'LEADERS' | 'DYNAMIC';
 
 export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown, onOpenOffice }) => {
-  const [selectedAgentId, setSelectedAgentId] = useState<string>('rahu');
-  const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'knowledge' | 'memory' | 'performance'>('overview');
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('indra');
+  const [selectedTier, setSelectedTier] = useState<AgentTier>('ALL');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'tools' | 'relationships' | 'memory'>('overview');
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     api.getTasks().then((res) => {
@@ -41,451 +60,399 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ agents, onOpenAgentTown,
     }).catch(() => {});
   }, []);
 
-  const currentAgent = agents.find((a) => a.id.toLowerCase() === selectedAgentId.toLowerCase()) || agents[0];
-  const profileKey = currentAgent?.id?.toLowerCase() || 'rahu';
+  // Canonical 5-tier classification
+  const ADITYA_IDS = ['dhata', 'mitra', 'aryaman', 'varuna', 'amsa', 'bhaga', 'vivasvan', 'pusa', 'tvasta', 'savita', 'parjanya', 'visnu'];
+  const RUDRA_IDS = ['manyu', 'manu', 'mahinasa', 'mahan', 'siva', 'ritadhvaja', 'ugrareta', 'bhava', 'kala_rudra', 'vamadeva', 'dhritavrata'];
+  const VASU_IDS = ['dhara', 'anala', 'anila', 'apa', 'pratyusa', 'prabhasa', 'soma', 'dhruva'];
 
-  // Compute live agent data
-  const agentTasks = tasks.filter((t) => t.assignedAgent?.toLowerCase() === currentAgent?.id?.toLowerCase());
-  const completedTasksCount = agentTasks.filter((t) => t.status === 'COMPLETED').length;
-  const runningTask = agentTasks.find((t) => t.status === 'RUNNING');
-  const failedTasksCount = agentTasks.filter((t) => t.status === 'FAILED').length;
-  const totalFinished = completedTasksCount + failedTasksCount;
-  const successRate = totalFinished > 0 ? Math.round((completedTasksCount / totalFinished) * 100) : 100;
-
-  const rawCaps = (currentAgent as any)?.capabilities || currentAgent?.capabilities || [];
-  const formattedCaps = rawCaps.length > 0
-    ? rawCaps.map((c: string) => c.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()))
-    : ['Task Execution', 'Autonomous Reasoning', 'Workflow Synthesis', 'Empirical Verification'];
-
-  const rawTools = (currentAgent as any)?.allowedTools || [];
-
-  const profile = {
-    name: (currentAgent as any)?.displayName || (currentAgent?.name ? currentAgent.name.charAt(0).toUpperCase() + currentAgent.name.slice(1) : 'Autonomous Agent'),
-    sanskrit: (currentAgent as any)?.sanskritName || 'विशेषज्ञ',
-    role: (currentAgent as any)?.lifecyclePosition || currentAgent?.role?.replace(/_/g, ' ') || 'Autonomous Specialist',
-    category: (currentAgent as any)?.role ? String((currentAgent as any).role).replace(/_/g, ' ').toUpperCase() : 'INTELLIGENCE WORKFORCE',
-    quote: currentAgent?.description || 'In pursuit of sovereign excellence for HṚṢĪKEŚA.',
-    currentTask: runningTask
-      ? runningTask.title || runningTask.description
-      : (currentAgent?.status?.toLowerCase() === 'idle'
-          ? 'Standing by in idle state — ready for assignment'
-          : `Active on sovereign system monitoring (${currentAgent?.status || 'Active'})`),
-    taskProgress: runningTask ? 50 : (currentAgent?.status?.toLowerCase() === 'idle' ? 0 : 100),
-    taskDuration: runningTask ? 'Running' : 'Standby',
-    capabilities: formattedCaps,
-    metrics: {
-      tasksCompleted: completedTasksCount,
-      successRate: successRate,
-      avgTime: runningTask ? 'Active' : 'Nominal',
-      knowledgeAdded: rawTools.length || 7,
-    },
+  const getAgentTier = (agentId: string): string => {
+    const id = agentId.toLowerCase();
+    if (id === 'indra') return 'COMMAND';
+    if (id === 'prajapati') return 'PROGENITOR';
+    if (ADITYA_IDS.includes(id)) return 'ĀDITYA (12)';
+    if (RUDRA_IDS.includes(id)) return 'RUDRA (11)';
+    if (VASU_IDS.includes(id)) return 'VASU (8)';
+    return 'DYNAMIC';
   };
 
+  const filteredAgents = useMemo(() => {
+    return agents.filter((a) => {
+      const id = a.id.toLowerCase();
+      const matchesTier =
+        selectedTier === 'ALL' ||
+        (selectedTier === 'ADITYA' && ADITYA_IDS.includes(id)) ||
+        (selectedTier === 'RUDRA' && RUDRA_IDS.includes(id)) ||
+        (selectedTier === 'VASU' && VASU_IDS.includes(id)) ||
+        (selectedTier === 'LEADERS' && (id === 'indra' || id === 'prajapati')) ||
+        (selectedTier === 'DYNAMIC' && (id.startsWith('dyn_') || id.startsWith('temp_')));
+
+      const matchesSearch =
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesTier && matchesSearch;
+    });
+  }, [agents, selectedTier, searchQuery]);
+
+  const currentAgent = agents.find((a) => a.id.toLowerCase() === selectedAgentId.toLowerCase()) || agents[0];
+
+  // Collaboration squad calculation
+  const getCollaborationSquad = (agentId: string) => {
+    const id = agentId.toLowerCase();
+    if (id === 'manyu') return ['Manu (Standards)', 'Ṛtadhvaja (QA)', 'Bhava (CI/CD)', 'Śiva (Integrity)'];
+    if (id === 'dhata') return ['Indra (Command)', 'Tvaṣṭā (Specs)', 'Varuṇa (Policy)', 'Aryaman (Teams)'];
+    if (id === 'ritadhvaja') return ['Manyu (Engineering)', 'Śiva (Defects)', 'Ugraretā (Security)'];
+    if (id === 'bhaga') return ['Parjanya (Feeds)', 'Dhātā (Strategy)', 'Mitra (Customer)'];
+    if (id === 'indra') return ['Dhātā (Strategy)', 'Manyu (Engineering)', 'Prajāpati (Evolution)', 'Prabhāsa (SRE)'];
+    if (id === 'prajapati') return ['Indra (Command)', 'Dhātā (Strategy)', 'Soma (Memory)'];
+    return ['Indra (Command)', 'Ṛtadhvaja (QA)', 'Dhātā (Strategy)'];
+  };
+
+  const agentTasks = tasks.filter((t) => t.assignedAgent?.toLowerCase() === currentAgent?.id?.toLowerCase());
+  const runningTask = agentTasks.find((t) => t.status === 'RUNNING');
+  const completedTasksCount = agentTasks.filter((t) => t.status === 'COMPLETED').length;
+
   return (
-    <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Bar with Agent Switcher Carousel */}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        padding: '24px 28px 80px 28px',
+        maxWidth: '1440px',
+        margin: '0 auto',
+        width: '100%',
+      }}
+    >
+      {/* Header */}
       <div
+        className="glass-panel"
         style={{
+          padding: '22px 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-color)',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 18px',
-          boxShadow: 'var(--shadow-sm)',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            SELECT AGENT:
-          </span>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0', maxWidth: '580px' }}>
-            {agents.map((ag) => {
-              const isSelected = ag.id.toLowerCase() === selectedAgentId.toLowerCase();
-              return (
-                <button
-                  key={ag.id}
-                  onClick={() => setSelectedAgentId(ag.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '5px 12px',
-                    borderRadius: '20px',
-                    background: isSelected ? 'linear-gradient(90deg, #F5C842, #D4AF37)' : 'rgba(255,255,255,0.04)',
-                    color: isSelected ? '#150E06' : 'var(--text-secondary)',
-                    border: `1px solid ${isSelected ? 'var(--accent-gold-bright)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: isSelected ? 700 : 500,
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <AgentAvatar agentId={ag.id} name={ag.name} status={ag.status} size={18} />
-                  <span>{ag.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-          {onOpenOffice && (
-            <button
-              className="btn btn-primary"
-              onClick={onOpenOffice}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+              Canonical Workforce
+            </span>
+            <span
               style={{
-                fontSize: '11.5px',
-                padding: '6px 14px',
-                background: 'linear-gradient(135deg, #D4AF37, #996515)',
-                color: '#150E06',
-                fontWeight: 800,
-                boxShadow: '0 0 12px rgba(212,175,55,0.35)',
+                fontSize: '11px',
+                color: 'var(--accent-teal)',
+                background: 'rgba(0, 196, 168, 0.1)',
+                border: '1px solid rgba(0, 196, 168, 0.25)',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontWeight: 600,
               }}
             >
-              <span>🏢 Virtual Office Floor (Live SSE)</span>
+              {agents.length} Canonical Agents Active
+            </span>
+          </div>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, fontFamily: 'var(--font-cinzel)', color: 'var(--text-primary)', margin: '4px 0 0 0' }}>
+            Specialized Agent Directory & Operational Profiles
+          </h1>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onOpenOffice && (
+            <button
+              onClick={onOpenOffice}
+              className="fluid-stage-pill"
+              style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '20px' }}
+            >
+              <span>🏢 3D Virtual Office</span>
             </button>
           )}
-
           {onOpenAgentTown && (
             <button
-              className="btn btn-secondary"
               onClick={onOpenAgentTown}
-              style={{ fontSize: '11.5px', padding: '6px 14px' }}
+              className="btn btn-primary"
+              style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '20px' }}
             >
-              <Network size={14} />
-              <span>Agent Town 3D</span>
+              <span>🗺️ Agent Town Map</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Panel 3: Individual Agent Workspace Parchment Card */}
-      <div className="parchment-gold-card" style={{ padding: '28px 32px' }}>
-        {/* Agent Profile Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #D6BC97', paddingBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            {/* Circular Celestial Frame */}
-            <div
-              style={{
-                width: '68px',
-                height: '68px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #8C6D23 100%)',
-                padding: '3px',
-                boxShadow: '0 4px 18px rgba(184, 134, 11, 0.45)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+      {/* 5-Tier Category Selector Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          {(
+            [
+              { id: 'ALL', label: `All (${agents.length})` },
+              { id: 'LEADERS', label: 'Leaders (2)' },
+              { id: 'ADITYA', label: '12 Ādityas (Strategy/Law)' },
+              { id: 'RUDRA', label: '11 Rudras (Engineering/QA)' },
+              { id: 'VASU', label: '8 Vasus (Infra/Compute)' },
+              { id: 'DYNAMIC', label: 'Dynamic Specialists' },
+            ] as { id: AgentTier; label: string }[]
+          ).map((tier) => (
+            <button
+              key={tier.id}
+              onClick={() => setSelectedTier(tier.id)}
+              className={`fluid-stage-pill ${selectedTier === tier.id ? 'active' : ''}`}
+              style={{ padding: '6px 14px', fontSize: '12px', borderRadius: '20px' }}
             >
-              <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#231407', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {profileKey === 'rahu' ? (
-                  <img src="/assets/agent_rahu.jpg" alt="Rahu" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <AgentAvatar agentId={currentAgent?.id || 'rahu'} name={profile.name} status="RUNNING" size={60} />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#2A1A0B', margin: 0 }}>
-                  {profile.name}
-                </h1>
-                <span style={{ fontSize: '18px', color: '#996515', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                  {profile.sanskrit}
-                </span>
-                <span className="status-pill-active" style={{ marginLeft: '6px' }}>
-                  ● Active
-                </span>
-              </div>
-              <p style={{ fontSize: '14px', color: '#5C4028', fontWeight: 500, marginTop: '3px' }}>
-                {profile.role}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#7A5833', background: 'rgba(214, 188, 151, 0.35)', padding: '4px 10px', borderRadius: '4px', border: '1px solid #D6BC97', fontWeight: 600 }}>
-              {profile.category}
-            </span>
-          </div>
+              <span>{tier.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Navigation Tabs (Panel 3) */}
-        <div style={{ display: 'flex', gap: '22px', borderBottom: '1.5px solid #D6BC97', marginTop: '16px', paddingBottom: '2px' }}>
-          {(['overview', 'tasks', 'knowledge', 'memory', 'performance'] as const).map((tab) => {
-            const labels = {
-              overview: 'Overview',
-              tasks: 'Current Tasks',
-              knowledge: 'Knowledge',
-              memory: 'Memory',
-              performance: 'Performance',
-            };
-            const isActive = activeTab === tab;
+        <div style={{ position: 'relative', width: '240px' }}>
+          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search agents..."
+            style={{
+              width: '100%',
+              padding: '7px 12px 7px 32px',
+              borderRadius: '20px',
+              background: 'rgba(14, 8, 4, 0.6)',
+              border: '1px solid rgba(212, 168, 55, 0.25)',
+              color: 'var(--text-primary)',
+              fontSize: '12px',
+              outline: 'none',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Main Grid: Left Selector List & Right Deep Operational Profile */}
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px' }}>
+        {/* Left: Agent List */}
+        <div
+          className="glass-panel"
+          style={{
+            padding: '14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            maxHeight: '680px',
+            overflowY: 'auto',
+          }}
+        >
+          {filteredAgents.map((ag) => {
+            const isSelected = ag.id.toLowerCase() === currentAgent?.id?.toLowerCase();
+            const isWorking = ['WORKING', 'RUNNING'].includes(ag.status.toUpperCase());
             return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+              <div
+                key={ag.id}
+                onClick={() => setSelectedAgentId(ag.id)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  padding: '8px 4px',
-                  fontSize: '13.5px',
-                  fontWeight: isActive ? 800 : 600,
-                  color: isActive ? '#8C5A14' : '#6A4F35',
-                  borderBottom: isActive ? '3px solid #8C5A14' : '3px solid transparent',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
+                  padding: '10px 12px',
+                  borderRadius: '12px',
+                  background: isSelected ? 'rgba(212, 168, 55, 0.18)' : 'rgba(255,255,255,0.02)',
+                  border: isSelected ? '1.5px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   transition: 'all 0.15s ease',
                 }}
               >
-                {labels[tab]}
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <AgentPortrait agentId={ag.id} name={ag.name} size={36} showAura={isWorking} />
+                  <div>
+                    <h4 style={{ fontSize: '13.5px', fontWeight: 800, margin: 0, color: isSelected ? 'var(--text-gold)' : 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
+                      {formatSleekText(ag.name)}
+                    </h4>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatSleekText(ag.role)}</span>
+                  </div>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    background: isWorking ? 'rgba(0, 196, 168, 0.2)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${isWorking ? 'rgba(0, 196, 168, 0.35)' : 'rgba(255,255,255,0.08)'}`,
+                    color: isWorking ? '#00c4a8' : 'var(--text-muted)',
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {ag.status}
+                </span>
+              </div>
             );
           })}
         </div>
 
-        {/* Tab Content */}
-        <div style={{ marginTop: '22px' }}>
-          {activeTab === 'overview' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* 1. Current Activity Section */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                    Current Activity
-                  </span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#8C5A14' }}>
-                    {profile.taskDuration}
-                  </span>
-                </div>
+        {/* Right: Selected Agent Operational Profile */}
+        {currentAgent && (
+          <div
+            className="glass-panel"
+            style={{
+              padding: '28px 32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              border: '1.5px solid rgba(212, 168, 55, 0.35)',
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(212, 168, 55, 0.2)',
+            }}
+          >
+            {/* Top Agent Identity Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                <AgentPortrait agentId={currentAgent.id} name={currentAgent.name} size={74} showAura={true} />
 
-                <div
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '10.5px', color: 'var(--accent-gold)', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                      {getAgentTier(currentAgent.id)}
+                    </span>
+                    <span style={{ color: 'var(--text-muted)' }}>•</span>
+                    <span style={{ fontSize: '11px', color: 'var(--accent-teal)', fontWeight: 600 }}>ID: {formatSleekText(currentAgent.id)}</span>
+                  </div>
+                  <h2 style={{ fontSize: '26px', fontWeight: 900, fontFamily: 'var(--font-cinzel)', color: 'var(--text-primary)', margin: '2px 0 2px 0' }}>
+                    {formatSleekText(currentAgent.name)}
+                  </h2>
+                  <span style={{ fontSize: '13.5px', color: 'var(--text-secondary)', fontWeight: 600 }}>{formatSleekText(currentAgent.role)}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
                   style={{
-                    background: '#FAF2E1',
-                    border: '1px solid #D8C2A0',
-                    borderRadius: '8px',
-                    padding: '14px 18px',
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    background: currentAgent.status.toUpperCase() === 'WORKING' ? 'rgba(0, 196, 168, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                    border: `1.5px solid ${currentAgent.status.toUpperCase() === 'WORKING' ? '#00c4a8' : '#10b981'}`,
+                    color: currentAgent.status.toUpperCase() === 'WORKING' ? '#00c4a8' : '#10b981',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    letterSpacing: '0.8px',
+                    boxShadow: currentAgent.status.toUpperCase() === 'WORKING' ? '0 0 14px rgba(0, 196, 168, 0.35)' : 'none',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#2A1A0B' }}>
-                      {profile.currentTask}
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#008B8B' }}>
-                      {profile.taskProgress}%
-                    </span>
-                  </div>
+                  ● {currentAgent.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
 
-                  {/* Progress Bar with Cyan Fill */}
-                  <div style={{ width: '100%', height: '8px', background: '#E2CEB1', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${profile.taskProgress}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #00BCD4, #00E5FF)',
-                        borderRadius: '4px',
-                        boxShadow: '0 0 10px rgba(0, 229, 255, 0.4)',
-                        transition: 'width 0.4s ease',
-                      }}
-                    />
+            {/* Sub-Tabs: Overview, Tasks, Tools, Relationships, Memory */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(212, 168, 55, 0.2)', paddingBottom: '10px' }}>
+              {(['overview', 'tasks', 'tools', 'relationships', 'memory'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`fluid-stage-pill ${activeTab === tab ? 'active' : ''}`}
+                  style={{ padding: '6px 16px', fontSize: '12px', borderRadius: '18px', textTransform: 'capitalize', fontWeight: 600 }}
+                >
+                  <span>{tab}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Contents */}
+            {activeTab === 'overview' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                    Mission Statement & Domain Description
+                  </span>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '6px 0 0 0', lineHeight: 1.7 }}>
+                    {cleanDescription(currentAgent.description)}
+                  </p>
+                </div>
+
+                {/* Key Spec Tiles */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+                  <div className="metric-glow-item" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '14px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600 }}>Risk Tier Limit</span>
+                    <strong style={{ fontSize: '14px', color: 'var(--accent-teal)', marginTop: '4px' }}>TIER 1 (Sandboxed)</strong>
+                  </div>
+                  <div className="metric-glow-item" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '14px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600 }}>Active Model</span>
+                    <strong style={{ fontSize: '14px', color: 'var(--text-gold)', marginTop: '4px' }}>Qwen 2.5 / Ollama</strong>
+                  </div>
+                  <div className="metric-glow-item" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '14px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 600 }}>Scoped Tools</span>
+                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)', marginTop: '4px' }}>{currentAgent.capabilities ? currentAgent.capabilities.length : 12} Allowed</strong>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* 2. Capabilities Chips */}
-              <div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-                  Specialized Capabilities
+            {activeTab === 'relationships' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                  Works With (Direct Collaboration Squad)
+                </span>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                  Active dependency edges and peer handoff pathways verified across recent missions:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                  {getCollaborationSquad(currentAgent.id).map((peer, i) => (
+                    <div key={i} className="metric-glow-item" style={{ gap: '10px', padding: '12px 14px' }}>
+                      <Users size={16} color="var(--accent-gold)" />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>{cleanDescription(peer)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'tools' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                  Scoped Levers & Permission Boundaries
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {profile.capabilities.map((cap: string) => (
-                    <span
-                      key={cap}
-                      style={{
-                        background: '#FAF2E1',
-                        border: '1px solid #D4BC97',
-                        borderRadius: '6px',
-                        padding: '6px 14px',
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        color: '#4A331E',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      {cap}
+                  {(currentAgent.capabilities && currentAgent.capabilities.length > 0 ? currentAgent.capabilities : ['filesystem.read', 'filesystem.write', 'terminal.execute', 'time.now', 'ollama.chat']).map((t: string) => (
+                    <span key={t} className="glass-pill" style={{ fontSize: '12px', padding: '5px 12px', color: 'var(--accent-teal)', display: 'inline-flex', alignItems: 'center' }}>
+                      <Zap size={12} style={{ marginRight: '6px' }} /> {formatSleekText(t)}
                     </span>
                   ))}
                 </div>
               </div>
+            )}
 
-              {/* 3. Performance Metrics */}
-              <div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-                  Live Performance Metrics
+            {activeTab === 'tasks' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                  Assigned Execution Tasks ({agentTasks.length})
                 </span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-                  <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5833', fontWeight: 600, textTransform: 'uppercase' }}>Tasks Completed</div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)', marginTop: '4px' }}>
-                      {profile.metrics.tasksCompleted}
+                {agentTasks.length === 0 ? (
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>Standing by in idle state — ready for mission assignment.</p>
+                ) : (
+                  agentTasks.map((t) => (
+                    <div key={t.id} className="metric-glow-item" style={{ justifyContent: 'space-between', padding: '12px 16px' }}>
+                      <span>{cleanDescription(t.title || t.description)}</span>
+                      <span style={{ fontSize: '10.5px', color: 'var(--accent-teal)', fontWeight: 700, letterSpacing: '0.5px' }}>{t.status}</span>
                     </div>
-                  </div>
-
-                  <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5833', fontWeight: 600, textTransform: 'uppercase' }}>Success Rate</div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-cinzel)', marginTop: '4px' }}>
-                      {profile.metrics.successRate}%
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5833', fontWeight: 600, textTransform: 'uppercase' }}>Runtime State</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#2A1A0B', fontFamily: 'var(--font-cinzel)', marginTop: '4px' }}>
-                      {currentAgent?.status || 'IDLE'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5833', fontWeight: 600, textTransform: 'uppercase' }}>Governed Tools</div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#008B8B', fontFamily: 'var(--font-cinzel)', marginTop: '4px' }}>
-                      {profile.metrics.knowledgeAdded}
-                    </div>
-                  </div>
-                </div>
+                  ))
+                )}
               </div>
+            )}
 
-              {/* 4. Sacred Quote Banner */}
-              <div
-                style={{
-                  background: 'linear-gradient(90deg, rgba(214, 188, 151, 0.3) 0%, rgba(250, 242, 225, 0.8) 50%, rgba(214, 188, 151, 0.3) 100%)',
-                  borderTop: '1px dashed #D6BC97',
-                  borderBottom: '1px dashed #D6BC97',
-                  padding: '14px 20px',
-                  textAlign: 'center',
-                  fontStyle: 'italic',
-                  color: '#5C3E24',
-                  fontSize: '14px',
-                  fontFamily: 'var(--font-cinzel)',
-                  letterSpacing: '0.8px',
-                }}
-              >
-                "{profile.quote}"
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'tasks' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase' }}>
-                Tasks Assigned ({agentTasks.length})
-              </div>
-              {agentTasks.length === 0 ? (
-                <div style={{ background: '#FAF2E1', border: '1px dashed #D8C2A0', borderRadius: '8px', padding: '24px', textAlign: 'center', color: '#7A5833' }}>
-                  No tasks currently assigned to {profile.name}.
-                </div>
-              ) : (
-                agentTasks.map((t) => (
-                  <div key={t.id} style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#2A1A0B' }}>{t.title}</div>
-                      <div style={{ fontSize: '12px', color: '#5C4028', marginTop: '2px' }}>{t.description}</div>
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '4px', background: t.status === 'COMPLETED' ? 'rgba(16,185,129,0.2)' : 'rgba(217,119,6,0.2)', color: t.status === 'COMPLETED' ? '#059669' : '#D97706' }}>
-                      {t.status}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'knowledge' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                  Governed Tools ({rawTools.length})
+            {activeTab === 'memory' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                  Isolated Episodic & Semantic Memory Namespace
                 </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {rawTools.map((t: string) => (
-                    <span key={t} style={{ background: '#FAF2E1', border: '1px solid #D4BC97', borderRadius: '4px', padding: '5px 12px', fontSize: '12px', fontFamily: 'monospace', color: '#4A331E' }}>
-                      🛠️ {t}
-                    </span>
-                  ))}
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                  Namespace: <code style={{ color: 'var(--accent-gold)' }}>agent : {formatSleekText(currentAgent.id)} : memory</code>
+                </p>
+                <div className="metric-glow-item" style={{ padding: '14px' }}>
+                  <span>SQLite WAL Memory Items Indexed</span>
+                  <strong style={{ color: 'var(--accent-teal)' }}>Active</strong>
                 </div>
               </div>
-              <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '6px' }}>
-                  Preferred Inference Model
-                </div>
-                <div style={{ fontSize: '14px', color: '#2A1A0B', fontWeight: 600 }}>
-                  {(currentAgent as any)?.modelPreference?.preferredModelId || 'Local Sovereign Qwen 2.5:7b'} (Provider: {(currentAgent as any)?.modelPreference?.preferredProviderId || 'ollama'})
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'memory' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Dedicated Memory Scope
-                </div>
-                <div style={{ fontSize: '13.5px', fontFamily: 'monospace', color: '#8C5A14', fontWeight: 700 }}>
-                  {(currentAgent as any)?.memoryScope || `agent_memory:${currentAgent?.id}`}
-                </div>
-              </div>
-
-              {(currentAgent as any)?.systemPrompt && (
-                <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '8px' }}>
-                    Agent Sovereign System Prompt
-                  </div>
-                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '12px', color: '#2A1A0B', fontFamily: 'monospace', lineHeight: 1.5 }}>
-                    {(currentAgent as any).systemPrompt}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'performance' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-              <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Lifecycle Position
-                </div>
-                <div style={{ fontSize: '15px', color: '#2A1A0B', fontWeight: 700 }}>
-                  {(currentAgent as any)?.lifecyclePosition || 'Autonomous Operations'}
-                </div>
-              </div>
-              <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Danger Tier Limit
-                </div>
-                <div style={{ fontSize: '15px', color: '#059669', fontWeight: 700 }}>
-                  Tier {(currentAgent as any)?.dangerTierLimit ?? 1} (Governed by Sovereign Kernel)
-                </div>
-              </div>
-              <div style={{ background: '#FAF2E1', border: '1px solid #D8C2A0', borderRadius: '8px', padding: '16px', gridColumn: 'span 2' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#6A4F35', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Collaboration Council Partners
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {((currentAgent as any)?.collaborationPartners || ['aja', 'tvas', 'garuda']).map((p: string) => (
-                    <span key={p} style={{ background: '#EFE3CE', border: '1px solid #D4BC97', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, color: '#5C3E24' }}>
-                      🤝 {p.toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

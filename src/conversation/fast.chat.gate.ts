@@ -150,7 +150,7 @@ export class FastChatGate {
       const isCreatorQuery = rawLower.includes('who created') || rawLower.includes('who made') || rawLower.includes('creator') || rawLower.includes('master');
       const identityText = isCreatorQuery
         ? `I was conceived and engineered by **${creatorName}** (Creator & Sole Master). Canonical System Identity: **HṚṢĪKEŚA** (हृषीकेश / HRISHIKESHA). In English, I’m **Rishi**.`
-        : `I am **HṚṢĪKEŚA** (हृषीकेश), a sovereign personal AI operating system and autonomous workforce control plane created exclusively for ${creatorName}. In English, I’m **Rishi**. I orchestrate a 17-agent specialized workforce, persistent sovereign memory, local neural models, computer automation, and enterprise governance.`;
+        : `I am **HṚṢĪKEŚA** (हृषीकेश), a sovereign personal AI operating system and autonomous workforce control plane created exclusively for ${creatorName}. In English, I’m **Rishi**. I orchestrate a 33-agent specialized workforce, persistent sovereign memory, local neural models, computer automation, and enterprise governance.`;
 
       return {
         intent: 'IDENTITY_QUERY',

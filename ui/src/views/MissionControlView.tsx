@@ -166,182 +166,279 @@ export const MissionControlView: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const s = status.toUpperCase();
+    const s = (status || '').toUpperCase();
     if (s === 'COMPLETED' || s === 'VERIFIED') {
-      return <span className="px-2 py-0.5 text-xs rounded font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">COMPLETED</span>;
+      return (
+        <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, background: 'rgba(0, 196, 168, 0.15)', color: 'var(--accent-teal)', border: '1px solid rgba(0, 196, 168, 0.35)' }}>
+          ● COMPLETED
+        </span>
+      );
     }
     if (s === 'EXECUTING' || s === 'RUNNING' || s === 'IN_PROGRESS') {
-      return <span className="px-2 py-0.5 text-xs rounded font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">EXECUTING</span>;
+      return (
+        <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, background: 'rgba(232, 184, 48, 0.18)', color: 'var(--accent-gold-bright)', border: '1px solid rgba(232, 184, 48, 0.4)' }}>
+          ⚡ EXECUTING
+        </span>
+      );
     }
     if (s === 'AWAITING_APPROVAL') {
-      return <span className="px-2 py-0.5 text-xs rounded font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">APPROVAL REQUIRED</span>;
+      return (
+        <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800, background: 'rgba(225, 29, 72, 0.2)', color: '#FDA4AF', border: '1px solid rgba(225, 29, 72, 0.5)' }}>
+          ⚠️ APPROVAL REQ
+        </span>
+      );
     }
     if (s === 'PAUSED' || s === 'BLOCKED') {
-      return <span className="px-2 py-0.5 text-xs rounded font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">BLOCKED</span>;
+      return (
+        <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, background: 'rgba(245, 158, 11, 0.2)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+          ⏸️ {status}
+        </span>
+      );
     }
-    return <span className="px-2 py-0.5 text-xs rounded font-medium bg-slate-500/20 text-slate-300 border border-slate-500/30">{status}</span>;
+    return (
+      <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, background: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
+        {status}
+      </span>
+    );
   };
 
   return (
-    <IndianFrame title="हृषीकेश — UNIVERSAL AGENTIC MISSION & WORKFORCE RUNTIME" subtitle="FP-14: Autonomous Workforce Orchestration, Dynamic Agent Assignment & Verified Outcomes">
-      <div className="space-y-6">
+    <IndianFrame title="HṚṢĪKEŚA — UNIVERSAL AGENTIC MISSION & WORKFORCE RUNTIME" subtitle="Autonomous Workforce Orchestration, Dynamic Agent Assignment & Verified Outcomes">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Top Objective Submission Bar */}
-        <div className="bg-[#121824]/90 border border-amber-500/30 rounded-lg p-4 shadow-xl backdrop-blur">
-          <form onSubmit={handleSubmitObjective} className="flex gap-3">
-            <div className="relative flex-1">
-              <Compass className="absolute left-3 top-3.5 w-5 h-5 text-amber-400/70" />
+        <div
+          style={{
+            background: 'var(--bg-glass)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-md)',
+            padding: '16px 20px',
+            boxShadow: 'var(--shadow-md)',
+            backdropFilter: 'blur(16px)',
+          }}
+        >
+          <form onSubmit={handleSubmitObjective} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Compass style={{ position: 'absolute', left: '14px', top: '12px', width: '20px', height: '20px', color: 'var(--accent-gold)' }} />
               <input
                 type="text"
                 value={objectiveInput}
                 onChange={(e) => setObjectiveInput(e.target.value)}
                 placeholder="Give HṚṢĪKEŚA an objective (e.g. 'Build a high-performance web application', 'Research market and launch SaaS', 'Fix all failing tests in project')..."
-                className="w-full bg-[#0b0f17] border border-amber-500/20 rounded-md pl-10 pr-4 py-3 text-sm text-amber-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '11px 16px 11px 44px',
+                  fontSize: '13.5px',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                }}
               />
             </div>
             <button
               type="submit"
               disabled={loading || !objectiveInput.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold rounded-md flex items-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="btn btn-primary"
+              style={{
+                padding: '11px 22px',
+                fontSize: '13.5px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+              }}
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles size={16} />
               Compile & Launch Mission
             </button>
           </form>
         </div>
 
         {/* Main Grid: Left Mission List, Right Detail Explorer */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px', alignItems: 'start' }}>
           {/* Left Column: Missions List */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="bg-[#121824]/80 border border-amber-500/20 rounded-lg p-4 shadow-lg">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-semibold text-amber-300 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-amber-400" />
-                  Missions Queue ({missions.length})
-                </h3>
-                <button
-                  onClick={fetchMissions}
-                  className="p-1 hover:bg-amber-500/10 rounded text-amber-400/80 hover:text-amber-300 transition"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-              </div>
+          <div
+            style={{
+              background: 'var(--bg-glass)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              padding: '16px',
+              boxShadow: 'var(--shadow-md)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: 'var(--accent-gold-bright)', display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <Target size={16} color="var(--accent-gold)" />
+                Missions Queue ({missions.length})
+              </h3>
+              <button
+                onClick={fetchMissions}
+                className="btn btn-secondary"
+                style={{ padding: '4px 8px', fontSize: '11px', height: '26px' }}
+                title="Refresh queue"
+              >
+                <RefreshCw size={12} />
+              </button>
+            </div>
 
-              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
-                {missions.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500 text-xs">
-                    No active or queued missions. Submit an objective above to initiate autonomous workforce execution.
-                  </div>
-                ) : (
-                  missions.map((m) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '600px', overflowY: 'auto', paddingRight: '4px' }}>
+              {missions.length === 0 ? (
+                <div style={{ padding: '36px 12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  No active or queued missions. Submit an objective above to initiate autonomous workforce execution.
+                </div>
+              ) : (
+                missions.map((m) => {
+                  const isSelected = selectedMissionId === m.missionId;
+                  return (
                     <div
                       key={m.missionId}
                       onClick={() => setSelectedMissionId(m.missionId)}
-                      className={`p-3 rounded-lg border cursor-pointer transition ${
-                        selectedMissionId === m.missionId
-                          ? 'bg-amber-950/40 border-amber-400 shadow-md'
-                          : 'bg-[#0b0f17]/80 border-slate-800 hover:border-amber-500/40'
-                      }`}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: `1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--border-subtle)'}`,
+                        background: isSelected ? 'rgba(200, 146, 14, 0.16)' : 'var(--bg-card)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
                     >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-sm text-slate-200 line-clamp-1">{m.title}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px', color: isSelected ? 'var(--accent-gold-bright)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.title || `Mission ${m.missionId?.slice(0, 8)}`}
+                        </span>
                         {getStatusBadge(m.status)}
                       </div>
-                      <p className="text-xs text-slate-400 line-clamp-2 mb-2">{m.objective}</p>
-                      <div className="flex justify-between items-center text-[11px] text-slate-500">
-                        <span className="text-amber-400/80">Priority: {m.priority}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-emerald-400 font-medium">{m.progress}%</span>
-                          <div className="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--text-secondary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
+                        {m.objective}
+                      </p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '11px' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Priority: {m.priority || 'Normal'}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: 'var(--accent-teal)', fontWeight: 700 }}>{m.progress || 0}%</span>
+                          <div style={{ width: '50px', height: '5px', background: 'var(--bg-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
                             <div
-                              className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full transition-all"
-                              style={{ width: `${m.progress}%` }}
+                              style={{
+                                width: `${m.progress || 0}%`,
+                                height: '100%',
+                                background: 'linear-gradient(90deg, var(--accent-gold), var(--accent-teal))',
+                              }}
                             />
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
           {/* Right Column: Active Mission Detail & Tabs */}
-          <div className="lg:col-span-8 space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {selectedMission ? (
-              <div className="bg-[#121824]/90 border border-amber-500/20 rounded-lg p-5 shadow-xl">
+              <div
+                style={{
+                  background: 'var(--bg-glass)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '20px',
+                  boxShadow: 'var(--shadow-md)',
+                }}
+              >
                 {/* Mission Header */}
-                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-4 border-b border-slate-800">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
                   <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-bold text-amber-200">{selectedMission.title}</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
+                        {selectedMission.title}
+                      </h2>
                       {getStatusBadge(selectedMission.status)}
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">{selectedMission.objective}</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                      {selectedMission.objective}
+                    </p>
                   </div>
 
                   {/* Execution Control Actions */}
-                  <div className="flex items-center gap-2">
-                    {selectedMission.status === 'PENDING' || selectedMission.status === 'READY' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {(selectedMission.status === 'PENDING' || selectedMission.status === 'READY') && (
                       <button
                         onClick={() => handleStart(selectedMission.missionId)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs rounded flex items-center gap-1.5 transition shadow"
+                        className="btn btn-primary"
+                        style={{ fontSize: '12px', padding: '6px 14px', background: 'var(--accent-teal)', color: '#0A0602' }}
                       >
-                        <Play className="w-3.5 h-3.5" /> Start
+                        <Play size={13} /> Start
                       </button>
-                    ) : null}
+                    )}
 
-                    {selectedMission.status === 'EXECUTING' || selectedMission.status === 'RUNNING' ? (
+                    {(selectedMission.status === 'EXECUTING' || selectedMission.status === 'RUNNING') && (
                       <button
                         onClick={() => handlePause(selectedMission.missionId)}
-                        className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded flex items-center gap-1.5 transition shadow"
+                        className="btn btn-secondary"
+                        style={{ fontSize: '12px', padding: '6px 14px', color: 'var(--accent-gold-bright)' }}
                       >
-                        <Pause className="w-3.5 h-3.5" /> Pause
+                        <Pause size={13} /> Pause
                       </button>
-                    ) : null}
+                    )}
 
-                    {selectedMission.status === 'PAUSED' ? (
+                    {selectedMission.status === 'PAUSED' && (
                       <button
                         onClick={() => handleResume(selectedMission.missionId)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs rounded flex items-center gap-1.5 transition shadow"
+                        className="btn btn-primary"
+                        style={{ fontSize: '12px', padding: '6px 14px' }}
                       >
-                        <Play className="w-3.5 h-3.5" /> Resume
+                        <Play size={13} /> Resume
                       </button>
-                    ) : null}
+                    )}
 
                     <button
                       onClick={() => setIsReplanning(!isReplanning)}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs rounded flex items-center gap-1.5 transition"
+                      className="btn btn-secondary"
+                      style={{ fontSize: '12px', padding: '6px 12px' }}
                     >
-                      <RotateCcw className="w-3.5 h-3.5" /> Replan
+                      <RotateCcw size={13} /> Replan
                     </button>
 
-                    {selectedMission.status !== 'COMPLETED' && selectedMission.status !== 'CANCELLED' ? (
+                    {selectedMission.status !== 'COMPLETED' && selectedMission.status !== 'CANCELLED' && (
                       <button
                         onClick={() => handleCancel(selectedMission.missionId)}
-                        className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/30 text-xs rounded flex items-center gap-1.5 transition"
+                        className="btn btn-secondary"
+                        style={{ fontSize: '12px', padding: '6px 12px', color: '#FDA4AF', borderColor: 'rgba(225, 29, 72, 0.4)' }}
                       >
-                        <XCircle className="w-3.5 h-3.5" /> Cancel
+                        <XCircle size={13} /> Cancel
                       </button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
 
                 {/* Inline Replan Form */}
                 {isReplanning && (
-                  <div className="my-3 p-3 bg-amber-950/30 border border-amber-500/40 rounded flex gap-2">
+                  <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(200, 146, 14, 0.12)', border: '1px solid var(--accent-gold)', borderRadius: 'var(--radius-sm)', display: 'flex', gap: '8px' }}>
                     <input
                       type="text"
                       value={replanReason}
                       onChange={(e) => setReplanReason(e.target.value)}
                       placeholder="Reason for replanning (e.g. 'Requirements updated: add OAuth GitHub integration')..."
-                      className="flex-1 bg-[#0b0f17] border border-amber-500/30 rounded px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                      style={{
+                        flex: 1,
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        color: 'var(--text-primary)',
+                      }}
                     />
                     <button
                       onClick={() => handleReplan(selectedMission.missionId)}
                       disabled={!replanReason.trim()}
-                      className="px-4 py-1.5 bg-amber-500 text-slate-950 font-bold text-xs rounded hover:bg-amber-400 disabled:opacity-50"
+                      className="btn btn-primary"
+                      style={{ padding: '8px 16px', fontSize: '12px' }}
                     >
                       Apply Replan
                     </button>
@@ -349,69 +446,209 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {/* Navigation Tabs */}
-                <div className="flex border-b border-slate-800 my-4 text-xs font-medium space-x-1 overflow-x-auto">
-                  {(['overview', 'outcomes', 'tasks', 'workforce', 'blackboard', 'artifacts', 'report'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-3 py-2 border-b-2 capitalize transition flex items-center gap-1.5 ${
-                        activeTab === tab
-                          ? 'border-amber-400 text-amber-300 font-semibold'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      {tab === 'outcomes' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      {tab === 'tasks' && <Layers className="w-3.5 h-3.5" />}
-                      {tab === 'workforce' && <Users className="w-3.5 h-3.5" />}
-                      {tab === 'blackboard' && <Database className="w-3.5 h-3.5" />}
-                      {tab === 'artifacts' && <FileText className="w-3.5 h-3.5" />}
-                      {tab === 'report' && <ShieldCheck className="w-3.5 h-3.5" />}
-                      {tab}
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid var(--border-subtle)', margin: '16px 0', overflowX: 'auto', paddingBottom: '2px' }}>
+                  {(['overview', 'outcomes', 'tasks', 'workforce', 'blackboard', 'artifacts', 'report'] as const).map((tab) => {
+                    const isActive = activeTab === tab;
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        style={{
+                          padding: '8px 14px',
+                          border: 'none',
+                          borderBottom: `2px solid ${isActive ? 'var(--accent-gold)' : 'transparent'}`,
+                          background: 'transparent',
+                          color: isActive ? 'var(--accent-gold-bright)' : 'var(--text-secondary)',
+                          fontSize: '12px',
+                          fontWeight: isActive ? 700 : 500,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          textTransform: 'capitalize',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {tab === 'outcomes' && <CheckCircle2 size={13} />}
+                        {tab === 'tasks' && <Layers size={13} />}
+                        {tab === 'workforce' && <Users size={13} />}
+                        {tab === 'blackboard' && <Database size={13} />}
+                        {tab === 'artifacts' && <FileText size={13} />}
+                        {tab === 'report' && <ShieldCheck size={13} />}
+                        {tab}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Tab Content */}
                 {activeTab === 'overview' && (
-                  <div className="space-y-4 text-xs">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                        <span className="text-slate-500">Health</span>
-                        <div className="text-sm font-bold text-amber-300 mt-1">{selectedMission.health || 'HEALTHY'}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                    {/* Metrics Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                      <div style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Health</span>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-gold-bright)', marginTop: '4px' }}>
+                          {selectedMission.health || 'HEALTHY'}
+                        </div>
                       </div>
-                      <div className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                        <span className="text-slate-500">Progress</span>
-                        <div className="text-sm font-bold text-emerald-400 mt-1">{selectedMission.progress}%</div>
+                      <div style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Progress</span>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-teal)', marginTop: '4px' }}>
+                          {selectedMission.progress || 0}%
+                        </div>
                       </div>
-                      <div className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                        <span className="text-slate-500">Outcomes</span>
-                        <div className="text-sm font-bold text-slate-200 mt-1">{outcomes.length}</div>
+                      <div style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Outcomes</span>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                          {outcomes.length}
+                        </div>
                       </div>
-                      <div className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                        <span className="text-slate-500">Tasks</span>
-                        <div className="text-sm font-bold text-slate-200 mt-1">{tasks.length}</div>
+                      <div style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tasks</span>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                          {tasks.length}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Mission DAG Execution Graph */}
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '12px', color: 'var(--accent-gold-bright)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Activity size={14} color="var(--accent-teal)" />
+                          Live Mission Execution DAG & Agent Handoffs
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                          Topology: Multi-Tier Sovereign Pipeline
+                        </span>
+                      </div>
+
+                      <div style={{ padding: '14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', overflowX: 'auto' }}>
+                        {tasks.length > 0 ? (
+                          <div style={{ minWidth: '480px', display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 0' }}>
+                            {tasks.map((t, i, arr) => (
+                              <React.Fragment key={t.taskId || i}>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    padding: '10px 14px',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${
+                                      t.status === 'COMPLETED' || t.status === 'VERIFIED'
+                                        ? 'rgba(0, 196, 168, 0.4)'
+                                        : t.status === 'RUNNING' || t.status === 'EXECUTING'
+                                        ? 'var(--accent-gold)'
+                                        : 'var(--border-subtle)'
+                                    }`,
+                                    background:
+                                      t.status === 'COMPLETED' || t.status === 'VERIFIED'
+                                        ? 'rgba(0, 196, 168, 0.12)'
+                                        : t.status === 'RUNNING' || t.status === 'EXECUTING'
+                                        ? 'rgba(200, 146, 14, 0.15)'
+                                        : 'var(--bg-card)',
+                                    minWidth: '120px',
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  <span style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)', textTransform: 'capitalize' }}>
+                                    {t.assignedAgent || 'Specialist'}
+                                  </span>
+                                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '110px' }} title={t.title}>
+                                    {t.title}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '9.5px',
+                                      marginTop: '6px',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      fontWeight: 700,
+                                      background: t.status === 'COMPLETED' ? 'rgba(0, 196, 168, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                                      color: t.status === 'COMPLETED' ? 'var(--accent-teal)' : 'var(--text-muted)',
+                                    }}
+                                  >
+                                    {t.status}
+                                  </span>
+                                </div>
+                                {i < arr.length - 1 && (
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <div style={{ width: '20px', height: '2px', background: t.status === 'COMPLETED' ? 'var(--accent-teal)' : 'var(--border-color)' }} />
+                                    <ArrowRight size={14} color={t.status === 'COMPLETED' ? 'var(--accent-teal)' : 'var(--text-muted)'} style={{ marginLeft: '-4px' }} />
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                            No task nodes registered in mission graph yet. Decomposition will appear here once planned.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Timeline & Blackboard Feed */}
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '12px', color: 'var(--accent-gold-bright)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Clock size={14} color="var(--accent-gold)" />
+                          Live Event Timeline & Blackboard Telemetry
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Real-time telemetry</span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {blackboard.length > 0 ? (
+                          blackboard.map((b, idx) => (
+                            <div key={b.entryId || idx} style={{ padding: '10px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700 }}>
+                                    {b.createdAt ? new Date(b.createdAt).toLocaleTimeString() : 'Live'}
+                                  </span>
+                                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12px', textTransform: 'capitalize' }}>
+                                    {b.author || 'System'}
+                                  </span>
+                                </div>
+                                <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 700, background: 'rgba(0, 196, 168, 0.15)', color: 'var(--accent-teal)' }}>
+                                  {b.type || 'INFO'}
+                                </span>
+                              </div>
+                              <p style={{ margin: '4px 0 0', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '12px' }}>{b.title}</p>
+                              {b.content && <p style={{ margin: '2px 0 0', color: 'var(--text-muted)', fontSize: '11.5px' }}>{b.content}</p>}
+                            </div>
+                          ))
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                            No telemetry events recorded on blackboard yet. Active mission activity will stream here in real-time.
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Pending Human Approvals Alert */}
                     {tasks.some((t) => t.status === 'AWAITING_APPROVAL') && (
-                      <div className="p-4 bg-rose-950/40 border border-rose-500/40 rounded-lg">
-                        <div className="flex items-center gap-2 text-rose-400 font-bold mb-2">
-                          <AlertTriangle className="w-4 h-4" />
+                      <div style={{ padding: '16px', background: 'rgba(225, 29, 72, 0.15)', border: '1px solid var(--accent-rose)', borderRadius: 'var(--radius-sm)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FDA4AF', fontWeight: 700, fontSize: '13px', marginBottom: '10px' }}>
+                          <AlertTriangle size={16} />
                           Human Authority Approvals Required
                         </div>
-                        <div className="space-y-2">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {tasks
                             .filter((t) => t.status === 'AWAITING_APPROVAL')
                             .map((t) => (
-                              <div key={t.taskId} className="flex justify-between items-center bg-[#0b0f17] p-2.5 rounded border border-rose-900/50">
+                              <div key={t.taskId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '6px', border: '1px solid rgba(225, 29, 72, 0.3)' }}>
                                 <div>
-                                  <div className="font-semibold text-slate-200">{t.title}</div>
-                                  <div className="text-[11px] text-slate-400">Agent: {t.assignedAgent || 'Gāṇḍīva'} | Risk: HIGH</div>
+                                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12.5px' }}>{t.title}</div>
+                                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Agent: {t.assignedAgent || 'Manyu'} | Risk: High</div>
                                 </div>
                                 <button
                                   onClick={() => handleApproveTask(t.taskId)}
-                                  className="px-3 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-slate-950 font-bold text-xs rounded hover:brightness-110 shadow"
+                                  className="btn btn-primary"
+                                  style={{ padding: '6px 14px', fontSize: '11.5px', background: 'var(--accent-teal)', color: '#0A0602' }}
                                 >
                                   Approve & Continue
                                 </button>
@@ -424,48 +661,46 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {activeTab === 'outcomes' && (
-                  <div className="space-y-3">
-                    {outcomes.map((o) => (
-                      <div key={o.outcomeId} className="p-3 bg-[#0b0f17] border border-slate-800 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div className="font-semibold text-sm text-slate-200">{o.description}</div>
-                          <span className={`px-2 py-0.5 text-xs rounded font-medium ${
-                            o.status === 'VERIFIED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-300'
-                          }`}>
-                            {o.status} ({Math.round((o.confidence || 1) * 100)}% conf)
-                          </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {outcomes.length === 0 ? (
+                      <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12.5px' }}>No verified outcomes recorded for this mission yet.</div>
+                    ) : (
+                      outcomes.map((o) => (
+                        <div key={o.outcomeId} style={{ padding: '12px 16px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>{o.description}</div>
+                            <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, background: o.status === 'VERIFIED' ? 'rgba(0, 196, 168, 0.15)' : 'var(--bg-card)', color: o.status === 'VERIFIED' ? 'var(--accent-teal)' : 'var(--text-secondary)' }}>
+                              {o.status} ({Math.round((o.confidence || 1) * 100)}% conf)
+                            </span>
+                          </div>
+                          {o.acceptanceCriteria && o.acceptanceCriteria.length > 0 && (
+                            <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                              <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Criteria: </span>
+                              {o.acceptanceCriteria.join(' • ')}
+                            </div>
+                          )}
+                          {o.evidence && o.evidence.length > 0 && (
+                            <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(0, 196, 168, 0.08)', borderRadius: '4px', border: '1px solid rgba(0, 196, 168, 0.25)', fontSize: '11.5px', color: 'var(--accent-teal)' }}>
+                              <span style={{ fontWeight: 700 }}>Verified Evidence: </span>
+                              {o.evidence.join('; ')}
+                            </div>
+                          )}
                         </div>
-                        {o.acceptanceCriteria && o.acceptanceCriteria.length > 0 && (
-                          <div className="mt-2 text-xs text-slate-400">
-                            <span className="text-amber-400/80 font-medium">Acceptance Criteria:</span>
-                            <ul className="list-disc list-inside mt-1 space-y-0.5">
-                              {o.acceptanceCriteria.map((c: string, i: number) => (
-                                <li key={i}>{c}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {o.evidence && o.evidence.length > 0 && (
-                          <div className="mt-2 text-xs text-emerald-400/80 bg-emerald-950/20 p-2 rounded border border-emerald-900/40">
-                            <span className="font-medium text-emerald-300">Verified Evidence:</span>
-                            <div className="mt-0.5">{o.evidence.join('; ')}</div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 )}
 
                 {activeTab === 'tasks' && (
-                  <div className="space-y-2">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {tasks.map((t) => (
-                      <div key={t.taskId} className="p-3 bg-[#0b0f17] border border-slate-800 rounded flex justify-between items-center text-xs">
+                      <div key={t.taskId} style={{ padding: '12px 16px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px' }}>
                         <div>
-                          <div className="font-semibold text-slate-200">{t.title}</div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-3 mt-0.5">
-                            <span className="text-amber-400">Agent: {t.assignedAgent || 'Auto-Allocated'}</span>
-                            <span>Kind: {t.executionKind}</span>
-                            {t.retryCount > 0 && <span className="text-yellow-400">Retries: {t.retryCount}</span>}
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.title}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', gap: '12px', marginTop: '3px' }}>
+                            <span style={{ color: 'var(--accent-gold)' }}>Agent: {t.assignedAgent || 'Auto-Allocated'}</span>
+                            <span>Kind: {t.executionKind || 'Default'}</span>
+                            {t.retryCount > 0 && <span style={{ color: 'var(--accent-saffron)' }}>Retries: {t.retryCount}</span>}
                           </div>
                         </div>
                         <div>{getStatusBadge(t.status)}</div>
@@ -475,19 +710,17 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {activeTab === 'workforce' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
                     {capacities.map((c) => (
-                      <div key={c.agentName} className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-amber-300">{c.agentName}</span>
-                          <span className={`px-1.5 py-0.5 text-[10px] rounded ${
-                            c.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'
-                          }`}>
+                      <div key={c.agentName} style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--accent-gold-bright)', fontSize: '13px' }}>{c.agentName}</span>
+                          <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10.5px', fontWeight: 700, background: c.status === 'AVAILABLE' ? 'rgba(0, 196, 168, 0.15)' : 'rgba(200, 146, 14, 0.15)', color: c.status === 'AVAILABLE' ? 'var(--accent-teal)' : 'var(--accent-gold)' }}>
                             {c.status}
                           </span>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-1">{c.specialization}</div>
-                        <div className="flex justify-between text-[11px] text-slate-500 mt-2">
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>{c.specialization}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
                           <span>Active Tasks: {c.activeTasks}</span>
                           <span>Workload: {c.currentWorkloadScore}%</span>
                         </div>
@@ -497,17 +730,17 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {activeTab === 'blackboard' && (
-                  <div className="space-y-2 text-xs">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {blackboard.length === 0 ? (
-                      <div className="text-center py-6 text-slate-500">Blackboard is clear.</div>
+                      <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>Blackboard is clear.</div>
                     ) : (
                       blackboard.map((b) => (
-                        <div key={b.entryId} className="p-3 bg-[#0b0f17] border border-slate-800 rounded">
-                          <div className="flex justify-between items-center text-slate-400 text-[11px]">
-                            <span className="font-semibold text-amber-300">[{b.type}] {b.title}</span>
+                        <div key={b.entryId} style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--accent-gold-bright)' }}>[{b.type}] {b.title}</span>
                             <span>{b.author} • {new Date(b.createdAt).toLocaleTimeString()}</span>
                           </div>
-                          <div className="text-slate-300 mt-1">{b.content}</div>
+                          <div style={{ color: 'var(--text-primary)', marginTop: '4px', fontSize: '12px' }}>{b.content}</div>
                         </div>
                       ))
                     )}
@@ -515,17 +748,17 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {activeTab === 'artifacts' && (
-                  <div className="space-y-2 text-xs">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {artifacts.length === 0 ? (
-                      <div className="text-center py-6 text-slate-500">No artifacts registered yet.</div>
+                      <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>No artifacts registered yet.</div>
                     ) : (
                       artifacts.map((a) => (
-                        <div key={a.artifactId} className="p-3 bg-[#0b0f17] border border-slate-800 rounded flex justify-between items-center">
+                        <div key={a.artifactId} style={{ padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
-                            <div className="font-semibold text-slate-200">{a.name}</div>
-                            <div className="text-[11px] text-slate-400">{a.location} (Type: {a.type})</div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>{a.name}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{a.location} (Type: {a.type})</div>
                           </div>
-                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-xs">
+                          <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, background: 'rgba(0, 196, 168, 0.15)', color: 'var(--accent-teal)' }}>
                             {a.verificationState}
                           </span>
                         </div>
@@ -535,20 +768,30 @@ export const MissionControlView: React.FC = () => {
                 )}
 
                 {activeTab === 'report' && (
-                  <div className="text-xs">
+                  <div>
                     {report ? (
-                      <pre className="p-4 bg-[#0b0f17] border border-slate-800 rounded text-amber-100 overflow-x-auto">
+                      <pre style={{ padding: '16px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '11.5px', fontFamily: 'var(--font-mono)', overflowX: 'auto' }}>
                         {JSON.stringify(report, null, 2)}
                       </pre>
                     ) : (
-                      <div className="text-center py-6 text-slate-500">No report generated yet.</div>
+                      <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '12px' }}>No report generated yet.</div>
                     )}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-[#121824]/60 border border-slate-800 rounded-lg p-12 text-center text-slate-500 text-sm">
-                Select a mission from the queue or submit an objective to view real-time workforce orchestration.
+              <div
+                style={{
+                  background: 'var(--bg-glass)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: '13px',
+                }}
+              >
+                Select a mission from the queue or submit an objective above to view real-time workforce orchestration.
               </div>
             )}
           </div>

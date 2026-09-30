@@ -299,29 +299,29 @@ export const MCPView: React.FC = () => {
     switch (status) {
       case 'AUTHORIZED':
       case 'ACTIVE':
-        return <span className="badge badge-emerald"><CheckCircle2 size={12} style={{ marginRight: '4px' }} /> {status}</span>;
+        return <span className="badge badge-active"><CheckCircle2 size={12} style={{ marginRight: '4px' }} /> {status}</span>;
       case 'PENDING_APPROVAL':
-        return <span className="badge badge-amber"><ShieldAlert size={12} style={{ marginRight: '4px' }} /> PENDING APPROVAL</span>;
+        return <span className="badge badge-warning"><ShieldAlert size={12} style={{ marginRight: '4px' }} /> PENDING APPROVAL</span>;
       case 'DISABLED':
-        return <span className="badge badge-indigo"><Pause size={12} style={{ marginRight: '4px' }} /> DISABLED</span>;
+        return <span className="badge badge-muted"><Pause size={12} style={{ marginRight: '4px' }} /> DISABLED</span>;
       case 'REVOKED':
       case 'FAILED':
-        return <span className="badge badge-rose"><ShieldAlert size={12} style={{ marginRight: '4px' }} /> {status}</span>;
+        return <span className="badge badge-error"><ShieldAlert size={12} style={{ marginRight: '4px' }} /> {status}</span>;
       default:
-        return <span className="badge badge-cyan">{status}</span>;
+        return <span className="badge badge-operational">{status}</span>;
     }
   };
 
   const getTrustBadge = (trust: string) => {
     switch (trust) {
       case 'USER_APPROVED':
-        return <span className="badge badge-emerald"><ShieldCheck size={12} style={{ marginRight: '4px' }} /> USER APPROVED</span>;
+        return <span className="badge badge-active"><ShieldCheck size={12} style={{ marginRight: '4px' }} /> USER APPROVED</span>;
       case 'TRUSTED':
-        return <span className="badge badge-cyan"><Shield size={12} style={{ marginRight: '4px' }} /> TRUSTED</span>;
+        return <span className="badge badge-operational"><Shield size={12} style={{ marginRight: '4px' }} /> TRUSTED</span>;
       case 'REVIEWED':
-        return <span className="badge badge-amber">REVIEWED</span>;
+        return <span className="badge badge-gold">REVIEWED</span>;
       default:
-        return <span className="badge badge-rose">UNTRUSTED</span>;
+        return <span className="badge badge-error">UNTRUSTED</span>;
     }
   };
 
@@ -336,7 +336,7 @@ export const MCPView: React.FC = () => {
       <div className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 className="view-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Server size={22} color="var(--gold)" />
+            <Server size={22} color="var(--accent-gold)" />
             MCP & Dynamic Capability Ecosystem
           </h1>
           <p className="view-subtitle">
@@ -382,25 +382,25 @@ export const MCPView: React.FC = () => {
 
       {/* Overview Stat Strip */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '14px', background: 'var(--card-bg)' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Registered Servers</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--gold)', marginTop: '4px' }}>{servers.length}</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent-gold-bright)', marginTop: '4px' }}>{servers.length}</div>
         </div>
-        <div className="card" style={{ padding: '14px', background: 'var(--card-bg)' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active / Authorized</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--emerald)', marginTop: '4px' }}>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent-teal)', marginTop: '4px' }}>
             {servers.filter((s) => s.authorized && s.enabled).length}
           </div>
         </div>
-        <div className="card" style={{ padding: '14px', background: 'var(--card-bg)' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--amber)', marginTop: '4px' }}>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent-saffron-light)', marginTop: '4px' }}>
             {servers.filter((s) => s.status === 'PENDING_APPROVAL').length}
           </div>
         </div>
-        <div className="card" style={{ padding: '14px', background: 'var(--card-bg)' }}>
+        <div className="card" style={{ padding: '14px', background: 'var(--bg-card)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Capabilities</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--cyan)', marginTop: '4px' }}>{allCapabilities.length}</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent-teal)', marginTop: '4px' }}>{allCapabilities.length}</div>
         </div>
       </div>
 
@@ -467,10 +467,10 @@ export const MCPView: React.FC = () => {
                     justifyContent: 'space-between',
                     borderLeft: `3px solid ${
                       server.status === 'AUTHORIZED' || server.status === 'ACTIVE'
-                        ? 'var(--emerald)'
+                        ? 'var(--accent-teal)'
                         : server.status === 'PENDING_APPROVAL'
-                        ? 'var(--amber)'
-                        : 'var(--rose)'
+                        ? 'var(--accent-saffron-light)'
+                        : 'var(--accent-ruby)'
                     }`,
                   }}
                 >
@@ -493,17 +493,17 @@ export const MCPView: React.FC = () => {
 
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
                       {getTrustBadge(server.trustLevel)}
-                      <span className="badge badge-indigo">
+                      <span className="badge badge-muted">
                         <Terminal size={11} style={{ marginRight: '4px' }} />
                         {server.transport.toUpperCase()}
                       </span>
-                      <span className="badge badge-cyan">{server.source}</span>
+                      <span className="badge badge-operational">{server.source}</span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', marginTop: '8px' }}>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      Health: <span style={{ color: server.health === 'HEALTHY' ? 'var(--emerald)' : 'var(--amber)' }}>{server.health}</span>
+                      Health: <span style={{ color: server.health === 'HEALTHY' ? 'var(--accent-teal)' : 'var(--accent-saffron-light)' }}>{server.health}</span>
                     </div>
 
                     <div style={{ display: 'flex', gap: '6px' }}>
@@ -552,23 +552,23 @@ export const MCPView: React.FC = () => {
               <tbody>
                 {allCapabilities.map((cap) => (
                   <tr key={cap.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '10px 8px', fontWeight: 600, fontFamily: 'monospace', color: 'var(--gold)' }}>
+                    <td style={{ padding: '10px 8px', fontWeight: 600, fontFamily: 'monospace', color: 'var(--accent-gold)' }}>
                       {cap.id}
                     </td>
                     <td style={{ padding: '10px 8px' }}>{cap.provider}</td>
                     <td style={{ padding: '10px 8px' }}>
-                      <span className="badge badge-indigo">{cap.source?.toUpperCase()}</span>
+                      <span className="badge badge-muted">{cap.source?.toUpperCase()}</span>
                     </td>
                     <td style={{ padding: '10px 8px' }}>
-                      <span className={`badge ${cap.riskLevel === 'LOW' ? 'badge-emerald' : cap.riskLevel === 'MEDIUM' ? 'badge-cyan' : cap.riskLevel === 'HIGH' ? 'badge-amber' : 'badge-rose'}`}>
+                      <span className={`badge ${cap.riskLevel === 'LOW' ? 'badge-active' : cap.riskLevel === 'MEDIUM' ? 'badge-operational' : cap.riskLevel === 'HIGH' ? 'badge-warning' : 'badge-error'}`}>
                         {cap.riskLevel}
                       </span>
                     </td>
                     <td style={{ padding: '10px 8px' }}>
-                      {cap.enabled ? <span className="badge badge-emerald">ENABLED</span> : <span className="badge badge-rose">DISABLED</span>}
+                      {cap.enabled ? <span className="badge badge-active">ENABLED</span> : <span className="badge badge-error">DISABLED</span>}
                     </td>
                     <td style={{ padding: '10px 8px' }}>
-                      <span className="badge badge-cyan">{cap.securityStatus}</span>
+                      <span className="badge badge-operational">{cap.securityStatus}</span>
                     </td>
                   </tr>
                 ))}
@@ -590,9 +590,9 @@ export const MCPView: React.FC = () => {
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
               {getStatusBadge(selectedServer.status)}
               {getTrustBadge(selectedServer.trustLevel)}
-              <span className="badge badge-indigo">{selectedServer.transport.toUpperCase()}</span>
-              <span className="badge badge-cyan">{selectedServer.source}</span>
-              <span className="badge badge-amber">v{selectedServer.version}</span>
+              <span className="badge badge-muted">{selectedServer.transport.toUpperCase()}</span>
+              <span className="badge badge-operational">{selectedServer.source}</span>
+              <span className="badge badge-gold">v{selectedServer.version}</span>
             </div>
 
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -600,7 +600,7 @@ export const MCPView: React.FC = () => {
             </p>
 
             {/* Server Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'var(--surface-color)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'var(--bg-elevated)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '12px' }}>
               {selectedServer.command && (
                 <div>
                   <span style={{ color: 'var(--text-muted)' }}>Command:</span>{' '}

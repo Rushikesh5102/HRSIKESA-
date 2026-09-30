@@ -170,7 +170,6 @@ export const SkillsView: React.FC = () => {
 
       const res = await api.executeSkill(selectedSkill.id, parsedInputs);
       setExecutionResult(res.result || res);
-      // Refresh executions
       const execs = await api.getSkillExecutions(selectedSkill.id);
       if (execs && execs.executions) setExecutions(execs.executions);
       const stats = await api.getSkillStatistics(selectedSkill.id);
@@ -271,104 +270,256 @@ export const SkillsView: React.FC = () => {
   const categories = Array.from(new Set(skills.map((s) => s.category)));
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100 p-6 space-y-6">
+    <div
+      style={{
+        flex: 1,
+        overflowY: 'auto',
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+      }}
+    >
       {/* Top Banner */}
       <IndianFrame>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-slate-900/60 rounded-lg border border-amber-500/20">
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            padding: '20px',
+            background: 'var(--bg-glass)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+          }}
+        >
           <div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-amber-400 animate-pulse" />
-              <h1 className="text-2xl font-bold tracking-tight text-amber-200">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Zap style={{ width: '24px', height: '24px', color: 'var(--accent-gold)' }} />
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--accent-gold)' }}>
                 Procedural Intelligence — Skills Engine
               </h1>
             </div>
-            <p className="text-sm text-slate-400 mt-1">
+            <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
               Deterministic, versioned, DAG-based procedures orchestrating tools, capabilities, and verification.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               onClick={() => setShowMatcherModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded border border-amber-500/30 text-sm transition"
+              className="btn btn-secondary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                padding: '8px 14px',
+              }}
             >
-              <Search className="w-4 h-4" />
+              <Search size={14} />
               Test Matcher
             </button>
             <button
               onClick={() => setShowBuilder(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded text-sm transition"
+              className="btn btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                padding: '8px 14px',
+              }}
             >
-              <Plus className="w-4 h-4" />
+              <Plus size={14} />
               Build Skill
             </button>
             <button
               onClick={loadSkills}
-              className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 transition"
+              className="btn btn-secondary"
+              style={{ padding: '8px 10px' }}
               title="Refresh Skills"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </button>
           </div>
         </div>
       </IndianFrame>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-lg">
-          <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Skills</div>
-          <div className="text-2xl font-bold text-slate-100 mt-1">{skills.length}</div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+        }}
+      >
+        <div
+          style={{
+            padding: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '10px',
+          }}
+        >
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Total Skills
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+            {skills.length}
+          </div>
         </div>
-        <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-lg">
-          <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Active Procedures</div>
-          <div className="text-2xl font-bold text-emerald-400 mt-1">
+
+        <div
+          style={{
+            padding: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '10px',
+          }}
+        >
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Active Procedures
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--accent-teal)', marginTop: '4px' }}>
             {skills.filter((s) => s.status === 'ACTIVE').length}
           </div>
         </div>
-        <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-lg">
-          <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Categories</div>
-          <div className="text-2xl font-bold text-amber-300 mt-1">{categories.length}</div>
+
+        <div
+          style={{
+            padding: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '10px',
+          }}
+        >
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Categories
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '4px' }}>
+            {categories.length}
+          </div>
         </div>
-        <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-lg">
-          <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Authority Guard</div>
-          <div className="text-sm font-semibold text-sky-400 mt-2 flex items-center gap-1">
-            <Shield className="w-4 h-4" /> Rushikesh Pattiwar
+
+        <div
+          style={{
+            padding: '16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '10px',
+          }}
+        >
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Authority Guard
+          </div>
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#38bdf8',
+              marginTop: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Shield size={16} /> Rushikesh Pattiwar
           </div>
         </div>
       </div>
 
       {/* Main Layout: Skills List & Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Skill List */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Controls bar */}
-          <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '20px',
+          alignItems: 'start',
+        }}
+      >
+        {/* Left Column: Skills List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Controls Bar */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '12px',
+              background: 'var(--bg-card)',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <div style={{ position: 'relative', flex: '1 1 200px' }}>
+              <Search
+                size={14}
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--text-muted)',
+                }}
+              />
               <input
                 type="text"
                 placeholder="Search skills by name or keyword..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 pl-9 pr-3 py-1.5 text-sm rounded border border-slate-800 focus:outline-none focus:border-amber-500 text-slate-200"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  padding: '8px 12px 8px 34px',
+                  fontSize: '13px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                }}
               />
             </div>
 
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-slate-950 px-3 py-1.5 text-sm rounded border border-slate-800 text-slate-300 focus:outline-none focus:border-amber-500"
+              style={{
+                background: 'var(--bg-input)',
+                padding: '8px 12px',
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+              }}
             >
               <option value="ALL">All Categories</option>
               {categories.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 px-3 py-1.5 text-sm rounded border border-slate-800 text-slate-300 focus:outline-none focus:border-amber-500"
+              style={{
+                background: 'var(--bg-input)',
+                padding: '8px 12px',
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+              }}
             >
               <option value="ALL">All Statuses</option>
               <option value="ACTIVE">ACTIVE</option>
@@ -377,78 +528,157 @@ export const SkillsView: React.FC = () => {
             </select>
           </div>
 
-          {/* Skill Grid */}
-          <div className="space-y-3">
+          {/* Skill Items */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {filteredSkills.map((skill) => {
               const isSelected = selectedSkill?.id === skill.id;
               return (
                 <div
                   key={skill.id}
                   onClick={() => handleSelectSkill(skill)}
-                  className={`p-4 rounded-lg border transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                    isSelected
-                      ? 'bg-amber-950/20 border-amber-500/50 shadow-lg shadow-amber-950/30'
-                      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                  }`}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '10px',
+                    border: isSelected
+                      ? '1px solid var(--accent-gold)'
+                      : '1px solid var(--border-color)',
+                    background: isSelected
+                      ? 'rgba(212, 175, 55, 0.08)'
+                      : 'var(--bg-card)',
+                    boxShadow: isSelected ? '0 0 16px rgba(212, 175, 55, 0.15)' : 'none',
+                    transition: 'all 0.15s ease',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
                 >
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-100">{skill.displayName}</span>
-                      <span className="text-xs text-slate-500 font-mono">({skill.name})</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-amber-300 border border-slate-700">
+                  <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
+                        {skill.displayName}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                        ({skill.name})
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: 'rgba(212, 175, 55, 0.1)',
+                          color: 'var(--accent-gold)',
+                          fontFamily: 'monospace',
+                          border: '1px solid rgba(212, 175, 55, 0.25)',
+                        }}
+                      >
                         v{skill.version}
                       </span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          skill.status === 'ACTIVE'
-                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                            : 'bg-red-950 text-red-300 border border-red-800'
-                        }`}
+                        style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontWeight: 700,
+                          background: skill.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: skill.status === 'ACTIVE' ? '#34d399' : '#f87171',
+                          border: `1px solid ${skill.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                        }}
                       >
                         {skill.status}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-400 line-clamp-1">{skill.description}</p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '12px',
+                        color: 'var(--text-secondary)',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {skill.description}
+                    </p>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700/50">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-secondary)',
+                          border: '1px solid var(--border-color)',
+                        }}
+                      >
                         {skill.category}
                       </span>
-                      <span className="text-[11px] px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: 'rgba(99, 102, 241, 0.12)',
+                          color: '#818cf8',
+                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                        }}
+                      >
                         {skill.riskLevel}
                       </span>
-                      <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                        <Layers className="w-3 h-3" /> {skill.steps.length} steps
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Layers size={12} /> {skill.steps.length} steps
                       </span>
                       {skill.permissions.requiresHumanApproval && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-700/50">
-                          HITL Approval Required
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            color: 'var(--accent-saffron-light)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                          }}
+                        >
+                          HITL Required
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSelectSkill(skill);
                         setShowExecuteModal(true);
                       }}
-                      className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs rounded border border-amber-500/30 flex items-center gap-1"
+                      className="btn btn-secondary"
+                      style={{
+                        fontSize: '12px',
+                        padding: '6px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: 'var(--accent-gold)',
+                      }}
                     >
-                      <Play className="w-3 h-3" /> Execute
+                      <Play size={12} /> Execute
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleToggleStatus(skill);
                       }}
-                      className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-400 transition"
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 10px' }}
                       title={skill.status === 'ACTIVE' ? 'Disable Skill' : 'Enable Skill'}
                     >
-                      <Power className={`w-3.5 h-3.5 ${skill.status === 'ACTIVE' ? 'text-emerald-400' : 'text-slate-600'}`} />
+                      <Power
+                        size={14}
+                        style={{ color: skill.status === 'ACTIVE' ? '#34d399' : 'var(--text-muted)' }}
+                      />
                     </button>
                   </div>
                 </div>
@@ -456,77 +686,174 @@ export const SkillsView: React.FC = () => {
             })}
 
             {filteredSkills.length === 0 && (
-              <div className="p-8 text-center bg-slate-900/40 border border-slate-800 rounded-lg text-slate-500">
+              <div
+                style={{
+                  padding: '32px',
+                  textAlign: 'center',
+                  background: 'var(--bg-card)',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-muted)',
+                  fontSize: '13px',
+                }}
+              >
                 No procedural skills match your filter criteria.
               </div>
             )}
           </div>
         </div>
 
-        {/* Right 1 Col: Skill Inspector */}
-        <div className="space-y-4">
+        {/* Right Column: Skill Inspector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {selectedSkill ? (
-            <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-5 space-y-5">
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '12px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '18px',
+              }}
+            >
               <div>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-amber-200">{selectedSkill.displayName}</h3>
-                  <span className="text-xs px-2 py-0.5 rounded bg-slate-800 font-mono text-slate-300">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--accent-gold)' }}>
+                    {selectedSkill.displayName}
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'monospace',
+                    }}
+                  >
                     v{selectedSkill.version}
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 mt-1">{selectedSkill.description}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                  {selectedSkill.description}
+                </div>
               </div>
 
               {/* Execution Statistics */}
               {statistics && (
-                <div className="p-3 bg-slate-950/60 rounded border border-slate-800 space-y-2">
-                  <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-amber-400" /> Execution Metrics
+                <div
+                  style={{
+                    padding: '14px',
+                    background: 'var(--bg-elevated)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <TrendingUp size={14} style={{ color: 'var(--accent-gold)' }} /> Execution Metrics
                   </div>
-                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
                     <div>
-                      <div className="text-[10px] text-slate-500">Runs</div>
-                      <div className="text-sm font-bold text-slate-200">{statistics.totalExecutions}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Runs</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
+                        {statistics.totalExecutions}
+                      </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-500">Success Rate</div>
-                      <div className="text-sm font-bold text-emerald-400">
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Success Rate</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#34d399', marginTop: '2px' }}>
                         {Math.round(statistics.successRate * 100)}%
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-500">Avg Duration</div>
-                      <div className="text-sm font-bold text-slate-200">{statistics.averageDurationMs}ms</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Avg Duration</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
+                        {statistics.averageDurationMs}ms
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Procedure Steps DAG */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-amber-400" /> Procedure Pipeline ({selectedSkill.steps.length})
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Layers size={14} style={{ color: 'var(--accent-gold)' }} /> Procedure Pipeline ({selectedSkill.steps.length})
                 </div>
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
                   {selectedSkill.steps.map((step, idx) => (
                     <div
                       key={step.stepId}
-                      className="p-2.5 bg-slate-950/80 border border-slate-800/80 rounded text-xs space-y-1"
+                      style={{
+                        padding: '10px',
+                        background: 'var(--bg-elevated)',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-color)',
+                        fontSize: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                      }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-200">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                           {idx + 1}. {step.name}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono">
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            background: 'rgba(56, 189, 248, 0.1)',
+                            color: '#38bdf8',
+                            fontFamily: 'monospace',
+                          }}
+                        >
                           {step.stepType}
                         </span>
                       </div>
-                      {step.description && <p className="text-[11px] text-slate-400">{step.description}</p>}
-                      <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] text-slate-500">
-                        {step.tool && <span>Tool: <strong className="text-slate-400">{step.tool}</strong></span>}
-                        {step.capability && <span>Cap: <strong className="text-slate-400">{step.capability}</strong></span>}
+                      {step.description && (
+                        <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)' }}>{step.description}</p>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '10px', color: 'var(--text-muted)' }}>
+                        {step.tool && (
+                          <span>
+                            Tool: <strong style={{ color: 'var(--text-primary)' }}>{step.tool}</strong>
+                          </span>
+                        )}
+                        {step.capability && (
+                          <span>
+                            Cap: <strong style={{ color: 'var(--text-primary)' }}>{step.capability}</strong>
+                          </span>
+                        )}
                         {step.dependencies && step.dependencies.length > 0 && (
-                          <span>Depends on: <strong className="text-slate-400">{step.dependencies.join(', ')}</strong></span>
+                          <span>
+                            Depends on: <strong style={{ color: 'var(--text-primary)' }}>{step.dependencies.join(', ')}</strong>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -534,53 +861,107 @@ export const SkillsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Capabilities & Tools Required */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Required Capabilities</div>
-                <div className="flex flex-wrap gap-1.5">
+              {/* Required Capabilities */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                  Required Capabilities
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {selectedSkill.requiredCapabilities.map((cap) => (
-                    <span key={cap} className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">
+                    <span
+                      key={cap}
+                      style={{
+                        fontSize: '11px',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: 'rgba(212, 175, 55, 0.1)',
+                        color: 'var(--accent-gold)',
+                        border: '1px solid rgba(212, 175, 55, 0.25)',
+                      }}
+                    >
                       {cap}
                     </span>
                   ))}
                   {selectedSkill.requiredCapabilities.length === 0 && (
-                    <span className="text-xs text-slate-500">None required</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>None required</span>
                   )}
                 </div>
               </div>
 
               {/* Improvement Proposals */}
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
                     Self-Evolution ({improvements.length})
                   </div>
                   <button
                     onClick={() => setShowProposalModal(true)}
-                    className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--accent-gold)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 600,
+                    }}
                   >
-                    <Plus className="w-3 h-3" /> Propose
+                    <Plus size={12} /> Propose
                   </button>
                 </div>
                 {improvements.length > 0 ? (
-                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
                     {improvements.map((prop) => (
-                      <div key={prop.id} className="p-2 bg-slate-950/70 border border-slate-800 rounded text-xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-300 font-semibold">{prop.status}</span>
-                          <span className="text-[10px] text-slate-500 font-mono">v{prop.currentVersion}</span>
+                      <div
+                        key={prop.id}
+                        style={{
+                          padding: '8px',
+                          background: 'var(--bg-elevated)',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          fontSize: '11px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '3px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{prop.status}</span>
+                          <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>v{prop.currentVersion}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400">{prop.reason}</p>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{prop.reason}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500">No active improvement proposals for this skill.</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
+                    No active improvement proposals for this skill.
+                  </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="p-8 text-center bg-slate-900/40 border border-slate-800 rounded-lg text-slate-500 text-sm">
+            <div
+              style={{
+                padding: '32px',
+                textAlign: 'center',
+                background: 'var(--bg-card)',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-muted)',
+                fontSize: '13px',
+              }}
+            >
               Select a skill from the list to inspect its procedure pipeline, execution metrics, and evolution proposals.
             </div>
           )}
@@ -589,52 +970,106 @@ export const SkillsView: React.FC = () => {
 
       {/* Matcher Modal */}
       {showMatcherModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-xl w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                <Search className="w-5 h-5 text-amber-400" /> Skill Matcher Sandbox
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '14px',
+              padding: '24px',
+              maxWidth: '560px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Search size={18} /> Skill Matcher Sandbox
               </h2>
-              <button onClick={() => setShowMatcherModal(false)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setShowMatcherModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}
+              >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
               Test deterministic capability & intent recognition. Natural language queries resolve into versioned skills.
             </p>
 
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
                 placeholder="e.g. Inspect project code or investigate error..."
                 value={matchQuery}
                 onChange={(e) => setMatchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleRunMatch()}
-                className="flex-1 bg-slate-950 px-3 py-2 text-sm rounded border border-slate-800 focus:outline-none focus:border-amber-500 text-slate-100"
+                style={{
+                  flex: 1,
+                  background: 'var(--bg-input)',
+                  padding: '8px 12px',
+                  fontSize: '13px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                }}
               />
-              <button
-                onClick={handleRunMatch}
-                disabled={matching}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded text-sm transition"
-              >
+              <button onClick={handleRunMatch} disabled={matching} className="btn btn-primary" style={{ fontSize: '12px', padding: '8px 16px' }}>
                 {matching ? 'Matching...' : 'Match'}
               </button>
             </div>
 
-            <div className="space-y-2 max-h-72 overflow-y-auto">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
               {matchResults.map((cand) => (
-                <div key={cand.skill.id} className="p-3 bg-slate-950 rounded border border-slate-800 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-100">{cand.skill.displayName}</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono">
+                <div
+                  key={cand.skill.id}
+                  style={{
+                    padding: '12px',
+                    background: 'var(--bg-elevated)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    fontSize: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{cand.skill.displayName}</span>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: '#34d399',
+                        fontFamily: 'monospace',
+                        fontSize: '11px',
+                      }}
+                    >
                       {Math.round(cand.confidence * 100)}% match
                     </span>
                   </div>
-                  <p className="text-slate-400">{cand.reason}</p>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{cand.reason}</p>
                   {cand.isAmbiguous && (
-                    <span className="text-[10px] text-amber-400 flex items-center gap-1 font-semibold">
-                      <AlertTriangle className="w-3 h-3" /> Ambiguity detected with alternative candidate skills
+                    <span style={{ fontSize: '11px', color: 'var(--accent-saffron-light)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                      <AlertTriangle size={12} /> Ambiguity detected with alternative candidate skills
                     </span>
                   )}
                 </div>
@@ -646,49 +1081,98 @@ export const SkillsView: React.FC = () => {
 
       {/* Execute Modal */}
       {showExecuteModal && selectedSkill && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                <Play className="w-5 h-5 text-amber-400" /> Execute: {selectedSkill.displayName}
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '14px',
+              padding: '24px',
+              maxWidth: '520px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Play size={18} /> Execute: {selectedSkill.displayName}
               </h2>
-              <button onClick={() => setShowExecuteModal(false)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setShowExecuteModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}
+              >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400">Inputs (JSON format)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Inputs (JSON format)</label>
               <textarea
                 rows={4}
                 value={executeInputs}
                 onChange={(e) => setExecuteInputs(e.target.value)}
-                className="w-full bg-slate-950 p-2 text-xs font-mono rounded border border-slate-800 text-slate-200 focus:outline-none focus:border-amber-500"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  padding: '10px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                  resize: 'vertical',
+                }}
               />
             </div>
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowExecuteModal(false)}
-                className="px-3 py-1.5 bg-slate-800 text-slate-300 text-sm rounded hover:bg-slate-700"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={() => setShowExecuteModal(false)} className="btn btn-secondary" style={{ fontSize: '12px', padding: '6px 14px' }}>
                 Close
               </button>
               <button
                 onClick={handleExecuteSkill}
                 disabled={executing}
-                className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm rounded flex items-center gap-1.5"
+                className="btn btn-primary"
+                style={{ fontSize: '12px', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 {executing ? 'Executing...' : 'Run Procedure'}
               </button>
             </div>
 
             {executionResult && (
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded text-xs space-y-1 font-mono">
-                <div className="font-bold text-slate-300">
+              <div
+                style={{
+                  padding: '12px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                }}
+              >
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                   Status: {executionResult.status || (executionResult.success ? 'SUCCESS' : 'FAILED')}
                 </div>
-                <div className="text-slate-400 max-h-36 overflow-y-auto">
+                <div style={{ color: 'var(--text-secondary)', maxHeight: '120px', overflowY: 'auto' }}>
                   {JSON.stringify(executionResult, null, 2)}
                 </div>
               </div>
@@ -699,58 +1183,124 @@ export const SkillsView: React.FC = () => {
 
       {/* Builder Modal */}
       {showBuilder && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-2xl w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                <FileCode className="w-5 h-5 text-amber-400" /> Safe Skill Builder
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '14px',
+              padding: '24px',
+              maxWidth: '640px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileCode size={18} /> Safe Skill Builder
               </h2>
-              <button onClick={() => setShowBuilder(false)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setShowBuilder(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}
+              >
                 ✕
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
               <div>
-                <label className="text-xs font-semibold text-slate-400">Skill ID / Identifier</label>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Skill ID / Identifier</label>
                 <input
                   type="text"
                   placeholder="e.g. custom-analyze-code"
                   value={builderData.name}
                   onChange={(e) => setBuilderData({ ...builderData, name: e.target.value })}
-                  className="w-full bg-slate-950 px-3 py-1.5 text-xs rounded border border-slate-800 text-slate-200 mt-1"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    marginTop: '4px',
+                  }}
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400">Display Name</label>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Display Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Custom Code Analysis"
                   value={builderData.displayName}
                   onChange={(e) => setBuilderData({ ...builderData, displayName: e.target.value })}
-                  className="w-full bg-slate-950 px-3 py-1.5 text-xs rounded border border-slate-800 text-slate-200 mt-1"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    marginTop: '4px',
+                  }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-400">Description</label>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Description</label>
               <textarea
                 rows={2}
                 placeholder="What does this procedure accomplish?"
                 value={builderData.description}
                 onChange={(e) => setBuilderData({ ...builderData, description: e.target.value })}
-                className="w-full bg-slate-950 px-3 py-1.5 text-xs rounded border border-slate-800 text-slate-200 mt-1"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  padding: '8px 10px',
+                  fontSize: '12px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  marginTop: '4px',
+                }}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
               <div>
-                <label className="text-xs font-semibold text-slate-400">Category</label>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Category</label>
                 <select
                   value={builderData.category}
                   onChange={(e) => setBuilderData({ ...builderData, category: e.target.value })}
-                  className="w-full bg-slate-950 px-3 py-1.5 text-xs rounded border border-slate-800 text-slate-200 mt-1"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    marginTop: '4px',
+                  }}
                 >
                   <option value="SOFTWARE">SOFTWARE</option>
                   <option value="RESEARCH">RESEARCH</option>
@@ -761,11 +1311,20 @@ export const SkillsView: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400">Risk Level</label>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Risk Level</label>
                 <select
                   value={builderData.riskLevel}
                   onChange={(e) => setBuilderData({ ...builderData, riskLevel: e.target.value })}
-                  className="w-full bg-slate-950 px-3 py-1.5 text-xs rounded border border-slate-800 text-slate-200 mt-1"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    marginTop: '4px',
+                  }}
                 >
                   <option value="TIER_0">TIER_0 (Read-only)</option>
                   <option value="TIER_1">TIER_1 (Workspace-scoped write)</option>
@@ -777,34 +1336,47 @@ export const SkillsView: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-400">Procedure Steps (JSON Array)</label>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Procedure Steps (JSON Array)</label>
               <textarea
-                rows={6}
+                rows={5}
                 value={builderData.stepsJson}
                 onChange={(e) => setBuilderData({ ...builderData, stepsJson: e.target.value })}
-                className="w-full bg-slate-950 p-2 text-xs font-mono rounded border border-slate-800 text-slate-200 mt-1"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  padding: '8px 10px',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  marginTop: '4px',
+                }}
               />
             </div>
 
             {builderErrors.length > 0 && (
-              <div className="p-3 bg-red-950/50 border border-red-800 rounded text-xs text-red-300 space-y-1">
+              <div
+                style={{
+                  padding: '10px',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  color: '#f87171',
+                }}
+              >
                 {builderErrors.map((err, i) => (
                   <div key={i}>• {err}</div>
                 ))}
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setShowBuilder(false)}
-                className="px-3 py-1.5 bg-slate-800 text-slate-300 text-sm rounded hover:bg-slate-700"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '6px' }}>
+              <button onClick={() => setShowBuilder(false)} className="btn btn-secondary" style={{ fontSize: '12px', padding: '6px 14px' }}>
                 Cancel
               </button>
-              <button
-                onClick={handleSaveSkill}
-                className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm rounded"
-              >
+              <button onClick={handleSaveSkill} className="btn btn-primary" style={{ fontSize: '12px', padding: '6px 16px' }}>
                 Save & Validate Skill
               </button>
             </div>
@@ -814,10 +1386,37 @@ export const SkillsView: React.FC = () => {
 
       {/* Proposal Modal */}
       {showProposalModal && selectedSkill && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <h2 className="text-lg font-bold text-amber-300">Propose Skill Evolution</h2>
-            <p className="text-xs text-slate-400">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '14px',
+              padding: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--accent-gold)' }}>
+              Propose Skill Evolution
+            </h2>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
               HṚṢĪKEŚA does not automatically alter its skills without explicit human review. Enter the rationale for this proposed update.
             </p>
             <textarea
@@ -825,19 +1424,21 @@ export const SkillsView: React.FC = () => {
               placeholder="e.g. Add validation step before file deployment..."
               value={proposalReason}
               onChange={(e) => setProposalReason(e.target.value)}
-              className="w-full bg-slate-950 p-2 text-xs rounded border border-slate-800 text-slate-200"
+              style={{
+                width: '100%',
+                background: 'var(--bg-input)',
+                padding: '8px 10px',
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+              }}
             />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowProposalModal(false)}
-                className="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={() => setShowProposalModal(false)} className="btn btn-secondary" style={{ fontSize: '12px', padding: '6px 14px' }}>
                 Cancel
               </button>
-              <button
-                onClick={handleCreateProposal}
-                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded"
-              >
+              <button onClick={handleCreateProposal} className="btn btn-primary" style={{ fontSize: '12px', padding: '6px 16px' }}>
                 Submit Proposal
               </button>
             </div>

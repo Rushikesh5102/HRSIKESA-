@@ -10,7 +10,7 @@ import { MigrationManager } from '../src/persistence/migrations/migration.manage
 import { TaskRepository } from '../src/persistence/repositories/task.repository.js';
 import { MissionRepository } from '../src/persistence/repositories/mission.repository.js';
 import { AgentRegistry } from '../src/agents/registry/agent.registry.js';
-import { AJA, RAHU } from '../src/agents/roster/initial.agents.js';
+import { DHATA, MANYU } from '../src/agents/roster/initial.agents.js';
 import { AgentBlackboard } from '../src/agents/blackboard/blackboard.js';
 import { AgentDelegationManager } from '../src/agents/delegation/delegation.manager.js';
 import { AgentRuntime } from '../src/agents/runtime/agent.runtime.js';
@@ -114,8 +114,8 @@ test('Mission Orchestrator Subsystem', async (t) => {
   const modelRouter = new ModelRouter(modelRegistry);
 
   const agentRegistry = new AgentRegistry();
-  agentRegistry.register({ ...AJA });
-  agentRegistry.register({ ...RAHU });
+  agentRegistry.register({ ...DHATA });
+  agentRegistry.register({ ...MANYU });
 
   const taskRepo = new TaskRepository(db);
   const missionRepo = new MissionRepository(db);
@@ -162,7 +162,7 @@ test('Mission Orchestrator Subsystem', async (t) => {
 
     const result = await orchestrator.runMission({
       objective: 'Inspect src workspace structure',
-      rootAgentId: 'aja'
+      rootAgentId: 'dhata'
     });
 
     assert.equal(result.status, 'completed');

@@ -4,3 +4,5 @@
 
 export * from './interfaces/multilingual.types.js';
 export * from './services/language-detector.service.js';
+export * from './services/response-language.resolver.js';
+

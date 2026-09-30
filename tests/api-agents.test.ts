@@ -73,16 +73,16 @@ test('Agent HTTP API Gateway Subsystem', async (t) => {
   await t.test('GET /agents should return all registered agents with diagnostics', async () => {
     const res = await makeRequest('GET', '/agents');
     assert.equal(res.status, 200);
-    assert.equal(res.data.totalRegistered, 17);
-    assert.ok(res.data.agents.some((a: any) => a.id === 'gandiva'));
-    assert.ok(res.data.agents.some((a: any) => a.id === 'rahu'));
-    assert.ok(res.data.agents.some((a: any) => a.id === 'mrtyu'));
+    assert.equal(res.data.totalRegistered, 33);
+    assert.ok(res.data.agents.some((a: any) => a.id === 'manyu'));
+    assert.ok(res.data.agents.some((a: any) => a.id === 'indra'));
+    assert.ok(res.data.agents.some((a: any) => a.id === 'prajapati'));
   });
 
   await t.test('GET /agents/:id should return single agent or 404', async () => {
-    const res = await makeRequest('GET', '/agents/gandiva');
+    const res = await makeRequest('GET', '/agents/manyu');
     assert.equal(res.status, 200);
-    assert.equal(res.data.agent.id, 'gandiva');
+    assert.equal(res.data.agent.id, 'manyu');
     assert.equal(res.data.agent.role, 'software_engineering');
 
     const res404 = await makeRequest('GET', '/agents/non_existent_agent');
@@ -90,15 +90,15 @@ test('Agent HTTP API Gateway Subsystem', async (t) => {
   });
 
   await t.test('GET /agents/:id/status should return status snapshot', async () => {
-    const res = await makeRequest('GET', '/agents/aja/status');
+    const res = await makeRequest('GET', '/agents/dhata/status');
     assert.equal(res.status, 200);
-    assert.equal(res.data.id, 'aja');
+    assert.equal(res.data.id, 'dhata');
     assert.equal(res.data.status, 'idle');
   });
 
   await t.test('POST /tasks and GET /tasks should create and retrieve tasks', async () => {
     const postRes = await makeRequest('POST', '/tasks', {
-      agentId: 'gandiva',
+      agentId: 'ritadhvaja',
       objective: 'Verify TypeScript types'
     });
     assert.equal(postRes.status, 201);
@@ -118,7 +118,7 @@ test('Agent HTTP API Gateway Subsystem', async (t) => {
   await t.test('POST /missions and GET /missions should create and list missions', async () => {
     const postRes = await makeRequest('POST', '/missions', {
       objective: 'High-level architectural audit',
-      rootAgentId: 'aja',
+      rootAgentId: 'dhata',
       executeImmediately: false
     });
     assert.equal(postRes.status, 201);

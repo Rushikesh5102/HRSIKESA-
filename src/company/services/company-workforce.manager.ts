@@ -2,14 +2,14 @@
  * HṚṢĪKEŚA (हृषीकेश) — Company Workforce Capacity Manager
  *
  * Tracks operational capacity, task loads, availability, and specializations
- * for the authoritative 17-agent workforce across multi-company contexts.
- * Coordinates with KĀLA for temporal scheduling.
+ * for the canonical workforce across multi-company contexts.
  */
 
 import {
   IAgentWorkforceCapacity,
   AgentCapacityStatus
 } from '../interfaces/company-operations.types.js';
+import { INITIAL_AGENT_ROSTER } from '../../agents/roster/initial.agents.js';
 
 export interface WorkforceCapacityExtended extends IAgentWorkforceCapacity {
   activeTasksCount: number;
@@ -18,25 +18,12 @@ export interface WorkforceCapacityExtended extends IAgentWorkforceCapacity {
 export class CompanyWorkforceManager {
   private readonly capacities: Map<string, WorkforceCapacityExtended> = new Map();
 
-  private static readonly AGENT_MAPPINGS: Array<{ key: string; name: string; specs: string[] }> = [
-    { key: 'rahu', name: 'Rahu', specs: ['market_intelligence', 'web_research', 'competitor_analysis', 'research'] },
-    { key: 'aja', name: 'Aja', specs: ['strategy', 'business_planning', 'roadmap_design', 'plan'] },
-    { key: 'ritvan', name: 'Ritvan', specs: ['company_setup', 'organization_topology', 'role_architecture', 'org'] },
-    { key: 'tvas', name: 'Tvas', specs: ['customer_discovery', 'requirements_research', 'personas', 'discovery'] },
-    { key: 'spoota', name: 'Spoota', specs: ['product_design', 'api_specification', 'ui_ux_architecture', 'design'] },
-    { key: 'gandiva', name: 'Gāṇḍīva', specs: ['software_engineering', 'implementation', 'system_building', 'coding', 'code'] },
-    { key: 'vighna', name: 'Vighna', specs: ['qa_testing', 'risk_management', 'verification', 'qa', 'test', 'risk'] },
-    { key: 'raudra', name: 'Raudra', specs: ['marketing', 'sales_pipeline', 'lead_generation', 'sales'] },
-    { key: 'rutam', name: 'Rutam', specs: ['contracts', 'compliance', 'legal_governance', 'legal'] },
-    { key: 'arvan', name: 'Arvan', specs: ['fulfillment', 'deployment', 'release_delivery', 'deploy', 'fulfill'] },
-    { key: 'taraka', name: 'Tāraka', specs: ['customer_onboarding', 'support_tickets', 'user_success', 'support', 'onboard'] },
-    { key: 'kalki', name: 'Kalki', specs: ['billing', 'financial_accounting', 'invoicing', 'finance'] },
-    { key: 'garuda', name: 'Garuḍa', specs: ['sre_operations', 'infrastructure', 'incident_management', 'sre', 'ops'] },
-    { key: 'kali', name: 'Kali', specs: ['continuous_improvement', 'optimization', 'expansion', 'improvement'] },
-    { key: 'kala', name: 'KĀLA', specs: ['temporal_scheduling', 'resource_coordination', 'deadlines', 'schedule'] },
-    { key: 'yama', name: 'Yama', specs: ['backup_recovery', 'disaster_management', 'integrity_check', 'recovery'] },
-    { key: 'mrtyu', name: 'Mṛtyu', specs: ['retirement', 'decommissioning', 'archival', 'exit'] }
-  ];
+  public static readonly AGENT_MAPPINGS: Array<{ key: string; name: string; specs: string[] }> =
+    INITIAL_AGENT_ROSTER.map(a => ({
+      key: a.id,
+      name: a.displayName,
+      specs: [...a.capabilities, ...(a.responsibilities || [])]
+    }));
 
   constructor() {
     this.initDefaultCapacities();
@@ -66,6 +53,7 @@ export class CompanyWorkforceManager {
       this.capacities.set(item.name, cap);
       this.capacities.set(item.key, cap);
       this.capacities.set(this.normalizeKey(item.name), cap);
+      this.capacities.set(this.normalizeKey(item.key), cap);
     }
   }
 
@@ -161,7 +149,7 @@ export class CompanyWorkforceManager {
 
   public routeWork(capability: string, companyId = 'global'): { agentId: string; status: AgentCapacityStatus } {
     const bestAgent = this.findBestAgentForCapability(capability);
-    const agentName = bestAgent || 'Aja';
+    const agentName = bestAgent || 'Dhātā';
     const cap = this.getAgentCapacity(agentName, companyId);
     return { agentId: cap.agentId, status: cap.status };
   }

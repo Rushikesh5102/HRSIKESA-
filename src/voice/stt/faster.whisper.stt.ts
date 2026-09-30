@@ -48,6 +48,19 @@ export class FasterWhisperSTTProvider implements ISpeechToTextProvider {
   public async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    // Check if local whisper model weights exist
+    const localModelDir = path.resolve(process.cwd(), 'data', 'audio', 'whisper-tiny');
+    const hasLocalWeights = fs.existsSync(path.join(localModelDir, 'model.bin')) ||
+                            fs.existsSync(path.join(localModelDir, 'model.safetensors'));
+
+    if (!hasLocalWeights) {
+      this.useFallback = true;
+      this.logger?.info('Local Whisper weights not present in data/audio/whisper-tiny. Using native Windows Speech STT.');
+      await this.fallbackProvider.initialize();
+      this.initialized = true;
+      return;
+    }
+
     // Check if uv is available
     const uvBin = this.getUvExecutable();
     try {

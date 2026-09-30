@@ -1,11 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), basicSsl()],
   base: './',
   server: {
     port: 5173,
+    headers: {
+      'Permissions-Policy': 'microphone=(self "*")',
+      'Access-Control-Allow-Origin': '*',
+    },
     proxy: {
       '/api': 'http://127.0.0.1:4200',
       '/evolution': 'http://127.0.0.1:4200',

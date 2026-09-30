@@ -14,6 +14,7 @@ import {
 } from '../types/index.js';
 import { AssumptionEngine } from './assumption.engine.js';
 import { TemplateRegistry } from './template.registry.js';
+import { INITIAL_AGENT_ROSTER } from '../../agents/roster/initial.agents.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export interface MissionCompileRequest {
@@ -143,19 +144,19 @@ export class MissionCompiler {
       const phases = [
         {
           title: 'Understand & Scope Objective',
-          agent: 'Aja',
+          agent: 'Dhātā',
           kind: 'AGENT_DIRECT' as const,
           criteria: ['Objective requirements understood and documented'],
         },
         {
           title: 'Execute Technical Engineering',
-          agent: 'Gāṇḍīva',
+          agent: 'Manyu',
           kind: 'ENGINEERING' as const,
           criteria: ['Core deliverable implementation complete and passing tests'],
         },
         {
           title: 'Verify & Finalize Outcomes',
-          agent: 'Vighna',
+          agent: 'Ṛtadhvaja',
           kind: 'AGENT_DIRECT' as const,
           criteria: ['All acceptance criteria independently verified'],
         },
@@ -280,7 +281,7 @@ export class MissionCompiler {
       missionId,
       planVersionNumber: 1,
       reason: 'Initial autonomous plan compilation',
-      author: 'Aja',
+      author: 'Dhātā',
       outcomesSnapshot: outcomes,
       tasksSnapshot: tasks,
       timestamp: now,
@@ -376,25 +377,7 @@ export class MissionCompiler {
   }
 
   private resolveAgentDisplayName(agentId: string): string {
-    const map: Record<string, string> = {
-      rahu: 'Rahu',
-      aja: 'Aja',
-      ritvan: 'Ritvan',
-      tvas: 'Tvas',
-      spoota: 'Spoota',
-      gandiva: 'Gāṇḍīva',
-      vighna: 'Vighna',
-      raudra: 'Raudra',
-      rutam: 'Rutam',
-      arvan: 'Arvan',
-      taraka: 'Tāraka',
-      kalki: 'Kalki',
-      garuda: 'Garuḍa',
-      kali: 'Kali',
-      kala: 'KĀLA',
-      yama: 'Yama',
-      mrtyu: 'Mṛtyu',
-    };
-    return map[agentId.toLowerCase()] || agentId;
+    const agent = INITIAL_AGENT_ROSTER.find((a) => a.id === agentId.toLowerCase());
+    return agent ? agent.displayName : agentId;
   }
 }

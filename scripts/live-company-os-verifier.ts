@@ -147,20 +147,20 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
       throw new Error(`Expected at least 9 standard departments, got ${deptRes.data.departments.length}`);
     }
     const engineeringDept = deptRes.data.departments.find((d: any) => d.slug === 'engineering');
-    if (!engineeringDept || engineeringDept.leadAgentId !== 'gandiva') {
-      throw new Error('Engineering department lead invariant failed (expected gandiva)');
+    if (!engineeringDept || engineeringDept.leadAgentId !== 'manyu') {
+      throw new Error('Engineering department lead invariant failed (expected manyu)');
     }
     console.log(`  -> Department verified: [Engineering] Lead=[${engineeringDept.leadAgentId}] Capabilities=[${engineeringDept.capabilities.join(', ')}]\n`);
 
     // -------------------------------------------------------------------------
-    // STEP 4 — Workforce Assignment & Authoritative 17-Agent Integrity
+    // STEP 4 — Workforce Assignment & Authoritative 33-Agent Integrity
     // -------------------------------------------------------------------------
-    console.log('[STEP 4] Testing Workforce Assignment & 17-Agent Invariant...');
+    console.log('[STEP 4] Testing Workforce Assignment & 33-Agent Invariant...');
     const workforceRes = await makeGet(`/companies/${companyId}/workforce`);
     console.log(`  -> Company Workforce Count: ${workforceRes.data.workforce.length}`);
 
     // Verify key specialists are assignable
-    const requiredAssigned = ['rahu', 'aja', 'ritvan', 'spoota', 'gandiva', 'vighna', 'garuda', 'kaala', 'yama', 'mrtyu'];
+    const requiredAssigned = ['indra', 'prajapati', 'dhata', 'tvasta', 'manyu', 'ritadhvaja', 'varuna', 'bhaga', 'prabhasa', 'siva'];
     for (const agentId of requiredAssigned) {
       const assignment = workforceRes.data.workforce.find((w: any) => w.agentId === agentId);
       if (!assignment) {
@@ -172,12 +172,12 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
     }
     console.log(`  -> Verified key specialists assigned with distinct assignment IDs: ${requiredAssigned.join(', ')}`);
 
-    // Verify exactly 17 global agents remain registered in the global registry
+    // Verify exactly 33 global agents remain registered in the global registry
     const globalAgentsRes = await makeGet('/agents');
-    if (globalAgentsRes.data.totalRegistered !== 17) {
-      throw new Error(`Authoritative workforce corrupted! Expected 17 agents, got ${globalAgentsRes.data.totalRegistered}`);
+    if (globalAgentsRes.data.totalRegistered !== 33) {
+      throw new Error(`Authoritative workforce corrupted! Expected 33 agents, got ${globalAgentsRes.data.totalRegistered}`);
     }
-    console.log(`  -> Global Agent Registry unchanged: exactly 17 immutable agents.\n`);
+    console.log(`  -> Global Agent Registry unchanged: exactly 33 immutable agents.\n`);
 
     // -------------------------------------------------------------------------
     // STEP 5 — Product Catalog & Lifecycle Transitions
@@ -244,7 +244,7 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
       description: 'Selection of persistence engine for multi-agent operating system',
       decision: 'Adopt SQLite WAL mode with foreign keys enabled',
       reasoning: 'Single-file zero maintenance persistence with sub-millisecond query latency',
-      madeBy: 'ritvan'
+      madeBy: 'dhata'
     });
     if (decisionRes.status !== 201) throw new Error('Decision creation failed');
     const decision = decisionRes.data.decision;
@@ -264,17 +264,17 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
       productId: productId,
       departmentId: engineeringDept.id,
       objective: 'Perform deterministic local directory inspection and write verification artifact',
-      rootAgentId: 'gandiva'
+      rootAgentId: 'manyu'
     });
     if (missionRes.status !== 201) throw new Error('Scoped mission creation failed');
     const mission = missionRes.data.mission;
     const missionId = mission.id;
     console.log(`  -> Mission created: ID=[${missionId}] Company=[${mission.companyId}] Project=[${mission.projectId}]`);
 
-    // Create safe deterministic task for Gāṇḍīva (Software Engineering)
+    // Create safe deterministic task for Manyu (Software Engineering)
     const taskRes = await makePost('/tasks', {
       missionId: missionId,
-      agentId: 'gandiva',
+      agentId: 'manyu',
       objective: `Write verification file to ${testArtifactPath}`
     });
     const task = taskRes.data.task;
@@ -284,10 +284,10 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
     const writeResult = await kernel.toolBus.execute(
       'filesystem.write',
       { path: testArtifactPath, content: `VERIFIED_PHASE_14_COMPANY_OS_${companyId}_${scopedProjectId}` },
-      { agentId: 'gandiva', dangerTier: DangerTier.TIER_1 }
+      { agentId: 'manyu', dangerTier: DangerTier.TIER_1 }
     );
     if (!writeResult.success) throw new Error(`Tool execution failed: ${writeResult.error}`);
-    console.log(`  -> File write tool executed successfully by Gāṇḍīva.`);
+    console.log(`  -> File write tool executed successfully by Manyu.`);
 
     // Persist artifact with full provenance
     const artifact = kernel.artifactRepo.create({
@@ -299,7 +299,7 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
       type: 'file',
       location: testArtifactPath,
       name: 'Company OS Verification File',
-      metadata: { generatedBy: 'gandiva', verified: true },
+      metadata: { generatedBy: 'manyu', verified: true },
       verified: true,
       createdAt: new Date().toISOString()
     });
@@ -335,21 +335,21 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
     }
 
     const expectedMappings: Record<string, string[]> = {
-      'market_need': ['rahu', 'tvas'],
-      'strategy_planning': ['aja'],
-      'organization_setup': ['ritvan'],
-      'customer_research': ['tvas'],
-      'product_design': ['spoota'],
-      'development': ['gandiva'],
-      'quality_assurance': ['vighna'],
-      'marketing_sales': ['raudra'],
-      'contract_order': ['rutam'],
-      'fulfillment_delivery': ['arvan'],
-      'customer_onboarding': ['taraka'],
-      'billing_payment': ['kalki'],
-      'operations_monitoring': ['garuda'],
-      'continuous_improvement': ['kali'],
-      'business_exit': ['mrtyu']
+      'market_need': ['bhaga', 'mitra'],
+      'strategy_planning': ['dhata', 'visnu'],
+      'organization_setup': ['aryaman', 'prajapati'],
+      'customer_research': ['bhaga', 'mitra'],
+      'product_design': ['tvasta', 'vamadeva'],
+      'development': ['manyu', 'manu', 'mahinasa', 'mahan', 'anala'],
+      'quality_assurance': ['ritadhvaja', 'dhruva'],
+      'marketing_sales': ['vivasvan', 'savita'],
+      'contract_order': ['varuna', 'mitra'],
+      'fulfillment_delivery': ['pusa'],
+      'customer_onboarding': ['mitra', 'soma'],
+      'billing_payment': ['amsa'],
+      'operations_monitoring': ['prabhasa', 'parjanya', 'kala_rudra', 'anila'],
+      'continuous_improvement': ['siva', 'bhava'],
+      'business_exit': ['ugrareta', 'dhara']
     };
 
     for (const stage of stagesRes.data.stages) {
@@ -468,7 +468,7 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
     }
 
     const reloadedDecisions = restartKernel.decisionRepo.listByCompany(companyId);
-    if (reloadedDecisions.length !== 1 || reloadedDecisions[0].madeBy !== 'ritvan') {
+    if (reloadedDecisions.length !== 1 || reloadedDecisions[0].madeBy !== 'dhata') {
       throw new Error('Decisions failed to survive kernel restart');
     }
 
@@ -483,11 +483,11 @@ export async function runLiveCompanyOsVerification(): Promise<boolean> {
       throw new Error('Artifact company/project provenance failed to survive restart');
     }
 
-    if (restartKernel.agentRegistry.getAll().length !== 17) {
+    if (restartKernel.agentRegistry.getAll().length !== 33) {
       throw new Error('Agent registry count corrupted across restart');
     }
 
-    console.log('  -> Cold restart persistence 100% verified across all entities, foreign keys, and 17 agents.');
+    console.log('  -> Cold restart persistence 100% verified across all entities, foreign keys, and 33 agents.');
     await restartKernel.shutdown();
     console.log('  -> Restart kernel cleanly shut down.\n');
 

@@ -50,13 +50,6 @@ export interface GoalPlannerResult {
   readonly planningMode: 'deterministic' | 'llm_validated';
 }
 
-// Known approved agent IDs — from the 17-agent roster
-const VALID_AGENT_IDS = new Set([
-  'rahu', 'aja', 'ritvan', 'tvas', 'spoota', 'gandiva',
-  'vighna', 'raudra', 'rutam', 'arvan', 'taraka', 'kalki',
-  'garuda', 'kali', 'kala', 'yama', 'mrtyu'
-]);
-
 // Approval-triggering keywords in objective
 const APPROVAL_REQUIRED_KEYWORDS = [
   'deploy', 'production', 'publish', 'send email', 'send message',
@@ -137,8 +130,8 @@ export class GoalPlanner {
       title: `Execute: ${request.objective.slice(0, 60)}`,
       description: `Bounded execution for objective: ${request.objective}`,
       sequence: 1,
-      requiredAgentIds: ['gandiva', 'vighna'],
-      requiredCapabilities: ['code_generation', 'verification'],
+      requiredAgentIds: ['manyu', 'ritadhvaja'],
+      requiredCapabilities: ['software_engineering', 'verification'],
       successCriteria: ['Task executed successfully', 'Evidence artifact produced'],
       verificationCriteria: ['custom'],
       missionObjective: request.objective,
@@ -179,7 +172,7 @@ export class GoalPlanner {
         title: 'Generate Verification Report',
         description: 'Execute a bounded local task to generate and verify a report artifact.',
         sequence: 1,
-        requiredAgentIds: ['gandiva'],
+        requiredAgentIds: ['manyu'],
         requiredCapabilities: ['file_operations', 'reporting'],
         successCriteria: ['Report file exists', 'Report contains required content'],
         verificationCriteria: ['file_exists', 'file_contains'],
@@ -219,7 +212,7 @@ export class GoalPlanner {
         title: 'Requirements & Architecture Specification',
         description: 'Define technical architecture, domain data models, and service boundaries.',
         sequence: 1,
-        requiredAgentIds: ['rahu', 'aja'],
+        requiredAgentIds: ['bhaga', 'dhata'],
         requiredCapabilities: ['strategic_planning', 'market_analysis'],
         successCriteria: ['Architecture documented', 'Requirements validated'],
         verificationCriteria: ['custom'],
@@ -232,7 +225,7 @@ export class GoalPlanner {
         title: 'Core Implementation & Integration',
         description: 'Implement backend services, domain logic, and client interfaces.',
         sequence: 2,
-        requiredAgentIds: ['gandiva', 'ritvan'],
+        requiredAgentIds: ['manyu', 'aryaman'],
         requiredCapabilities: ['code_generation', 'system_integration'],
         successCriteria: ['Core features implemented', 'Linting passes'],
         verificationCriteria: ['command_exit_code'],
@@ -245,7 +238,7 @@ export class GoalPlanner {
         title: 'Quality Verification & Operational Readiness',
         description: 'Run automated verification tests, validate invariants, and check readiness.',
         sequence: 3,
-        requiredAgentIds: ['vighna', 'garuda'],
+        requiredAgentIds: ['ritadhvaja', 'prabhasa'],
         requiredCapabilities: ['verification', 'quality_assurance'],
         successCriteria: ['Automated verification tests pass', 'Readiness report created'],
         verificationCriteria: ['file_exists', 'command_exit_code'],
@@ -503,11 +496,6 @@ Rules:
       const validatedAgentIds: string[] = [];
       for (const agentId of agentIds) {
         if (typeof agentId !== 'string') continue;
-        if (!VALID_AGENT_IDS.has(agentId)) {
-          this.logger?.warn(`GoalPlanner: Unknown agent '${agentId}' in milestone '${m['title']}'. Removing.`);
-          continue; // Strip unknown agents rather than hard-fail to be resilient
-        }
-        // Also verify it's actually registered at runtime
         const registeredAgent = this.agentRegistry.get(agentId);
         if (!registeredAgent) {
           this.logger?.warn(`GoalPlanner: Agent '${agentId}' not in registry at runtime. Removing.`);
@@ -518,9 +506,9 @@ Rules:
 
       // Require at least one valid agent
       if (validatedAgentIds.length === 0) {
-        // Fall back to a general-purpose agent
-        validatedAgentIds.push('gandiva');
-        this.logger?.warn(`GoalPlanner: Milestone[${i}] had no valid agents. Defaulted to 'gandiva'.`);
+        const defaultAgent = this.agentRegistry.getAll()[0]?.id || 'manyu';
+        validatedAgentIds.push(defaultAgent);
+        this.logger?.warn(`GoalPlanner: Milestone[${i}] had no valid agents. Defaulted to '${defaultAgent}'.`);
       }
 
       // Validate verification criteria types

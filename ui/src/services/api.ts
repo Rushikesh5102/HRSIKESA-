@@ -469,11 +469,19 @@ export const api = {
 
   // Voice & Pronunciation Subsystems
   getVoiceStatus: () => fetchJson<VoiceStatusResponse>(`${API_BASE}/voice/status`),
-  synthesizeSpeech: (text: string) =>
-    fetchJson<{ success: boolean; audioBase64?: string; audioFilePath?: string; durationMs?: number }>(`${API_BASE}/voice/synthesize`, {
+  synthesizeSpeech: (text: string, language = 'en', emotion = 'neutral') =>
+    fetchJson<{ success: boolean; audioBase64?: string; audioFilePath?: string; audioUrl?: string; durationMs?: number }>(`${API_BASE}/voice/synthesize`, {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, language, emotion }),
     }),
+  transcribeAudio: (audioBase64: string, format = 'wav', mimeType?: string) =>
+    fetchJson<{ success: boolean; text: string; language?: string; confidence?: number; durationMs?: number }>(
+      `${API_BASE}/voice/transcribe`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ audioBase64, format, mimeType }),
+      }
+    ),
   getPronunciations: (search?: string) =>
     fetchJson<{ success: boolean; total: number; entries: any[] }>(
       `${API_BASE}/voice/pronunciations${search ? `?q=${encodeURIComponent(search)}` : ''}`
@@ -516,6 +524,48 @@ export const api = {
     fetchJson<{ success: boolean; message: string }>(`${API_BASE}/voice/interrupt`, {
       method: 'POST',
     }),
+  previewVoiceAudio: (payload: {
+    text?: string;
+    language?: string;
+    speaker?: string;
+    emotion?: string;
+    intensity?: number;
+    rate?: number;
+    pitch?: string;
+    expressiveness?: string;
+    reverberation?: string;
+    quality?: string;
+    play?: boolean;
+  }) =>
+    fetchJson<{
+      success: boolean;
+      text: string;
+      language: string;
+      speaker: string;
+      emotion: string;
+      caption?: string;
+      audioFilePath: string;
+      audioUrl?: string;
+      durationMs: number;
+      latencyMs: number;
+      providerUsed: string;
+      modelUsed?: string;
+      fallbackUsed: boolean;
+      fallbackReason?: string;
+      error?: string;
+    }>(`${API_BASE}/voice/preview`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  unloadVoiceWorker: () =>
+    fetchJson<{ success: boolean; message: string; status: any }>(`${API_BASE}/voice/worker/unload`, {
+      method: 'POST',
+    }),
+  preloadVoiceWorker: () =>
+    fetchJson<{ success: boolean; message?: string; status: any }>(`${API_BASE}/voice/worker/preload`, {
+      method: 'POST',
+    }),
+
 
   // Phase 15: Goals
   getGoals: (filters?: { companyId?: string; projectId?: string; status?: string }) => {
@@ -1414,3 +1464,4 @@ export const api = {
     };
   },
 };
+

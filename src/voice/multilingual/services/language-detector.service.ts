@@ -8,6 +8,8 @@
 
 import {
   DetectedLanguage,
+  DetailedLanguageDetection,
+  LanguageAlternative,
   ILanguageDetector,
   LanguageProfile,
   ScriptType,
@@ -144,6 +146,16 @@ const HINDI_MARKERS = new Set([
   'है', 'नहीं', 'क्या', 'हम', 'करेंगे', 'में', 'था', 'करना',
   'पर', 'का', 'की', 'के', 'नमस्ते', 'आप', 'कैसे', 'हैं', 'हो',
   'रहा', 'रही', 'करो', 'मुझे', 'उसका', 'उनकी', 'होगा'
+]);
+
+const LATIN_HINGLISH_MARKERS = new Set([
+  'kya', 'hai', 'nahi', 'nahin', 'kaise', 'karo', 'kripya', 'dhanyavaad', 'shukriya',
+  'batao', 'samjhao', 'aap', 'tum', 'mera', 'tera', 'accha', 'theek', 'karna', 'hoga'
+]);
+
+const LATIN_MARATHI_MARKERS = new Set([
+  'aahe', 'nahi', 'kay', 'kasa', 'kashi', 'aahat', 'kora', 'sang', 'sanga', 'namaskar',
+  'dhanyavad', 'aapan', 'karuya', 'chhan', 'ho', 'nakko', 'karan'
 ]);
 
 export class LanguageDetector implements ILanguageDetector {
@@ -293,7 +305,44 @@ export class LanguageDetector implements ILanguageDetector {
       };
     }
 
-    // Otherwise Latin / English with possible Indic terms
+    // Check for Latin-script Indic transliteration (Hinglish or Latin Marathi)
+    const lowerWords = trimmed.toLowerCase().split(/[\s,!?.:;"'()]+/);
+    let hinglishScore = 0;
+    let marathiLatinScore = 0;
+    for (const w of lowerWords) {
+      if (LATIN_HINGLISH_MARKERS.has(w)) hinglishScore++;
+      if (LATIN_MARATHI_MARKERS.has(w)) marathiLatinScore++;
+    }
+
+    if (hinglishScore > 0 && hinglishScore >= marathiLatinScore) {
+      const prop = Math.min(1.0, hinglishScore / Math.max(1, lowerWords.length));
+      return {
+        code: 'hi',
+        name: 'Hindi',
+        confidence: Math.min(0.92, 0.65 + prop * 0.3),
+        script: 'Latin',
+        isIndic: true,
+        isCodeSwitched: true,
+        secondaryLanguage: 'en',
+        primaryProportion: prop,
+      };
+    }
+
+    if (marathiLatinScore > 0) {
+      const prop = Math.min(1.0, marathiLatinScore / Math.max(1, lowerWords.length));
+      return {
+        code: 'mr',
+        name: 'Marathi',
+        confidence: Math.min(0.92, 0.65 + prop * 0.3),
+        script: 'Latin',
+        isIndic: true,
+        isCodeSwitched: true,
+        secondaryLanguage: 'en',
+        primaryProportion: prop,
+      };
+    }
+
+    // Otherwise Latin / English
     return {
       code: 'en',
       name: 'English',
@@ -302,6 +351,55 @@ export class LanguageDetector implements ILanguageDetector {
       isIndic: false,
       isCodeSwitched: false,
       primaryProportion: 1.0,
+    };
+  }
+
+  /**
+   * Detailed multi-signal language detection with ranked alternatives and confidence scores.
+   */
+  public detectDetailed(text: string): DetailedLanguageDetection {
+    const base = this.detect(text);
+    const alternatives: LanguageAlternative[] = [];
+
+    if (base.code === 'en') {
+      alternatives.push({ language: 'en', confidence: base.confidence });
+      alternatives.push({ language: 'hi', confidence: +(1.0 - base.confidence).toFixed(2) });
+      alternatives.push({ language: 'mr', confidence: 0.05 });
+    } else if (base.code === 'hi') {
+      alternatives.push({ language: 'hi', confidence: base.confidence });
+      alternatives.push({ language: 'mr', confidence: 0.20 });
+      alternatives.push({ language: 'sa', confidence: 0.15 });
+      alternatives.push({ language: 'en', confidence: +(1.0 - base.confidence).toFixed(2) });
+    } else if (base.code === 'mr') {
+      alternatives.push({ language: 'mr', confidence: base.confidence });
+      alternatives.push({ language: 'hi', confidence: 0.25 });
+      alternatives.push({ language: 'en', confidence: +(1.0 - base.confidence).toFixed(2) });
+      alternatives.push({ language: 'sa', confidence: 0.10 });
+    } else if (base.code === 'sa') {
+      alternatives.push({ language: 'sa', confidence: base.confidence });
+      alternatives.push({ language: 'hi', confidence: 0.30 });
+      alternatives.push({ language: 'mr', confidence: 0.15 });
+      alternatives.push({ language: 'en', confidence: 0.05 });
+    } else {
+      alternatives.push({ language: base.code, confidence: base.confidence });
+      alternatives.push({ language: 'en', confidence: +(1.0 - base.confidence).toFixed(2) });
+    }
+
+    // Segment identification
+    const segments = text.split(/([।॥.!?\n]+)/).filter(s => s.trim().length > 0).map(seg => {
+      const segDetected = this.detect(seg);
+      return {
+        text: seg.trim(),
+        language: segDetected.code,
+        confidence: segDetected.confidence,
+      };
+    });
+
+    return {
+      ...base,
+      alternatives,
+      codeSwitchRatio: base.isCodeSwitched ? (1.0 - base.primaryProportion) : 0,
+      segments,
     };
   }
 

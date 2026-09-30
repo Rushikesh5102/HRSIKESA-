@@ -207,9 +207,6 @@ export const EnvironmentView: React.FC<EnvironmentViewProps> = ({ envStatus }) =
               <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                 System Monitoring
               </h1>
-              <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                प्रणाली निगरानी
-              </span>
             </div>
             <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
               Real-time resource governor, sovereign host telemetry, process supervision & environment fabric.

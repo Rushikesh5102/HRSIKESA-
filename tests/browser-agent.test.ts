@@ -22,7 +22,7 @@ import {
 } from '../src/tools/builtin/browser/browser.tools.js';
 import { AgentRegistry } from '../src/agents/registry/agent.registry.js';
 import { AgentRuntime } from '../src/agents/runtime/agent.runtime.js';
-import { RAHU } from '../src/agents/roster/initial.agents.js';
+import { BHAGA } from '../src/agents/roster/initial.agents.js';
 import { EventBus } from '../src/core/events/event-bus.js';
 import { Logger } from '../src/core/logging/logger.js';
 import { ModelRegistry } from '../src/models/registry/model.registry.js';
@@ -149,7 +149,7 @@ describe('Agent Browser Automation Integration Subsystem', () => {
     if (fs.existsSync(testScreenshotDir)) fs.rmSync(testScreenshotDir, { recursive: true, force: true });
   });
 
-  test('Rahu agent should autonomously navigate, inspect web page, and return synthesis', async () => {
+  test('Bhaga agent should autonomously navigate, inspect web page, and return synthesis', async () => {
     const eventBus = new EventBus();
     const logger = new Logger('Test', 'error');
     const toolRegistry = new ToolRegistry(eventBus, logger);
@@ -163,7 +163,7 @@ describe('Agent Browser Automation Integration Subsystem', () => {
     toolRegistry.register(new BrowserSessionCloseTool(adapter));
 
     const agentRegistry = new AgentRegistry(eventBus, logger);
-    agentRegistry.register({ ...RAHU });
+    agentRegistry.register({ ...BHAGA });
 
     const modelRegistry = new ModelRegistry(eventBus, logger);
     const mockProvider = new MockBrowserModelProvider(serverUrl);
@@ -182,8 +182,8 @@ describe('Agent Browser Automation Integration Subsystem', () => {
     );
 
     const task = {
-      id: 'task_rahu_browse_1',
-      agentId: 'rahu',
+      id: 'task_bhaga_browse_1',
+      agentId: 'bhaga',
       objective: `Browse ${serverUrl}/research and report the research findings.`,
       context: {},
       priority: 1 as const,
@@ -194,9 +194,9 @@ describe('Agent Browser Automation Integration Subsystem', () => {
     const result = await agentRuntime.execute(task);
 
     assert.strictEqual(result.status, 'completed');
-    assert.strictEqual(result.agentId, 'rahu');
+    assert.strictEqual(result.agentId, 'bhaga');
     assert.strictEqual(result.toolCalls.length, 1);
     assert.strictEqual(result.toolCalls[0].tool, 'browser.navigate');
-    assert.ok(result.summary.includes('Rahu Intelligence Portal'));
+    assert.ok(result.summary.includes('Intelligence Portal'));
   });
 });

@@ -12,92 +12,54 @@ interface AgentTownMapProps {
 
 export const VEDIC_ENCLAVES = [
   {
-    id: 'sabha',
-    name: 'Sabha',
-    sanskrit: 'सभा',
-    role: 'Strategy & Governance',
-    description: 'Supreme planning council, roadmap decomposition & leadership alignment.',
+    id: 'indra_command',
+    name: 'Indra Command HQ',
+    role: 'Supreme Operations & Dispatch',
+    description: 'Supreme operational mission command & cross-squad execution loop.',
     icon: <Compass size={17} />,
     color: '#F5C842',
-    agentIds: ['aja', 'ritvan'],
-    position: { top: '15%', left: '16%' },
+    agentIds: ['indra'],
+    position: { top: '10%', left: '50%', transform: 'translateX(-50%)' },
   },
   {
-    id: 'karmashala',
-    name: 'Karmashala',
-    sanskrit: 'कर्मशाला',
-    role: 'Engineering & Building',
-    description: 'Autonomous coding, refactoring, compilers & feature construction.',
+    id: 'prajapati_lab',
+    name: 'Prajāpati Workforce Lab',
+    role: 'Workforce Progenitor & Dynamic Spawning',
+    description: 'Dynamic agent spawning (dyn_*), metacognition & system self-evolution.',
+    icon: <Radio size={17} />,
+    color: '#00c4a8',
+    agentIds: ['prajapati'],
+    position: { top: '10%', right: '10%' },
+  },
+  {
+    id: 'aditya_district',
+    name: 'Āditya District',
+    role: 'Vision, Strategy, Market & Governance (12)',
+    description: 'Executive roadmap strategy, market intelligence, compliance & UX design contracts.',
+    icon: <Compass size={17} />,
+    color: '#FFD700',
+    agentIds: ['dhata', 'mitra', 'aryaman', 'varuna', 'amsa', 'bhaga', 'vivasvan', 'pusa', 'tvasta', 'savita', 'parjanya', 'visnu'],
+    position: { top: '40%', left: '10%' },
+  },
+  {
+    id: 'rudra_district',
+    name: 'Rudra District',
+    role: 'Engineering, Transformation, Security & QA (11)',
+    description: 'Core algorithmic coding, refactoring, quality gates, CVE defense & failure recovery.',
     icon: <Hammer size={17} />,
     color: '#00E5FF',
-    agentIds: ['gandiva', 'spoota', 'tvas'],
-    position: { top: '15%', right: '16%' },
+    agentIds: ['manyu', 'manu', 'mahinasa', 'mahan', 'siva', 'ritadhvaja', 'ugrareta', 'bhava', 'kala_rudra', 'vamadeva', 'dhritavrata'],
+    position: { top: '40%', right: '10%' },
   },
   {
-    id: 'granthalaya',
-    name: 'Granthalaya',
-    sanskrit: 'ग्रन्थालय',
-    role: 'Research & Knowledge',
-    description: 'Web intelligence, academic synthesis, literature & knowledge graph.',
-    icon: <BookOpen size={17} />,
-    color: '#4DD0E1',
-    agentIds: ['rahu', 'rutam'],
-    position: { top: '42%', left: '10%' },
-  },
-  {
-    id: 'vyavahara',
-    name: 'Vyavahara',
-    sanskrit: 'व्यवहार',
-    role: 'Operations & Execution',
-    description: 'Continuous task execution, runtime delivery & autonomous agent coordination.',
+    id: 'vasu_district',
+    name: 'Vasu District',
+    role: 'Infrastructure, Host Storage, Compute & Memory (8)',
+    description: 'Filesystem storage, terminal execution, network channels, SQLite DB WAL & vector memory.',
     icon: <Zap size={17} />,
-    color: '#FFD700',
-    agentIds: ['arvan', 'garuda'],
-    position: { top: '38%', left: '50%', transform: 'translateX(-50%)' },
-  },
-  {
-    id: 'arthashala',
-    name: 'Arthashala',
-    sanskrit: 'अर्थशाला',
-    role: 'Finance & Optimization',
-    description: 'Commercial efficiency, compute quota, cost tracking & monetization.',
-    icon: <TrendingUp size={17} />,
-    color: '#F59E0B',
-    agentIds: ['taraka'],
-    position: { top: '42%', right: '10%' },
-  },
-  {
-    id: 'raksha',
-    name: 'Raksha',
-    sanskrit: 'रक्षा',
-    role: 'Verification & Security',
-    description: 'Security guardrails, sandbox testing, quality assurance & defect immunity.',
-    icon: <Shield size={17} />,
-    color: '#10B981',
-    agentIds: ['vighna', 'raudra', 'kali'],
-    position: { top: '68%', left: '20%' },
-  },
-  {
-    id: 'parivartana',
-    name: 'Parivartana',
-    sanskrit: 'परिवर्तन',
-    role: 'Improvement & Scaling',
-    description: 'Self-healing, prompt optimization, runtime benchmarks & code evolution.',
-    icon: <Layers size={17} />,
-    color: '#A855F7',
-    agentIds: ['kalki'],
-    position: { top: '68%', left: '50%', transform: 'translateX(-50%)' },
-  },
-  {
-    id: 'dootalaya',
-    name: 'Dootalaya',
-    sanskrit: 'दूतालय',
-    role: 'Communication & Scheduling',
-    description: 'Timers, inter-agent messaging, persistent continuity & external bridges.',
-    icon: <Radio size={17} />,
-    color: '#EC4899',
-    agentIds: ['kaala', 'yama', 'mrtyu'],
-    position: { top: '68%', right: '20%' },
+    color: '#38BDF8',
+    agentIds: ['dhara', 'anala', 'anila', 'apa', 'pratyusa', 'prabhasa', 'soma', 'dhruva'],
+    position: { top: '72%', left: '50%', transform: 'translateX(-50%)' },
   },
 ];
 
@@ -107,7 +69,7 @@ export const AgentTownMap: React.FC<AgentTownMapProps> = ({
   onSelectAgent,
   height = 460,
 }) => {
-  const totalAgents = agents.length || 17;
+  const totalAgents = agents.length || 33;
   const activeCount = agents.filter(a => ['running', 'working', 'executing', 'busy'].includes((a.status || '').toLowerCase())).length;
   const idleCount = totalAgents - activeCount;
 
@@ -173,7 +135,7 @@ export const AgentTownMap: React.FC<AgentTownMapProps> = ({
         <ellipse cx="500" cy="460" rx="280" ry="25" fill="rgba(245, 200, 66, 0.05)" />
       </svg>
 
-      {/* Top Banner (Panel 2): "HṚṢĪKEŚA / Agent Town / कार्यबल नगर" + dynamic Active | Idle */}
+      {/* Top Banner: "HṚṢĪKEŚA / Agent Town" + dynamic Active | Idle */}
       <div
         style={{
           position: 'absolute',
@@ -198,9 +160,6 @@ export const AgentTownMap: React.FC<AgentTownMapProps> = ({
           <div>
             <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
               Agent Town
-            </span>
-            <span style={{ fontSize: '11px', color: 'var(--accent-gold)', marginLeft: '8px', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              कार्यबल नगर
             </span>
           </div>
         </div>
@@ -270,9 +229,6 @@ export const AgentTownMap: React.FC<AgentTownMapProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                     {enclave.name}
-                  </span>
-                  <span style={{ fontSize: '10px', color: 'var(--accent-gold)', fontFamily: 'var(--font-devanagari)' }}>
-                    {enclave.sanskrit}
                   </span>
                 </div>
                 <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>

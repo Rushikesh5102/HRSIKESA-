@@ -210,9 +210,9 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
 
     const wf = service.listCompanyWorkforce(comp.id);
     assert.ok(wf.length >= 15);
-    assert.ok(wf.some((w) => w.agentId === 'gandiva'));
-    assert.ok(wf.some((w) => w.agentId === 'vighna'));
-    assert.ok(wf.some((w) => w.agentId === 'ritvan'));
+    assert.ok(wf.some((w) => w.agentId === 'manyu'));
+    assert.ok(wf.some((w) => w.agentId === 'ritadhvaja'));
+    assert.ok(wf.some((w) => w.agentId === 'dhata'));
   });
 
   // 6. Product & Service Catalog
@@ -329,28 +329,28 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
   });
 
   // 11. Deterministic Lifecycle Engine
-  test('11. 15-stage business lifecycle maps accurately to the 17 agents', () => {
+  test('11. 15-stage business lifecycle maps accurately to the 33 agents', () => {
     const allStages = LifecycleEngine.getAllStages();
     assert.equal(allStages.length, 15);
 
     // Verify key stage-agent mappings
     const market = LifecycleEngine.getStage('market_need');
-    assert.deepEqual(market?.responsibleAgentIds, ['rahu', 'tvas']);
+    assert.deepEqual(market?.responsibleAgentIds, ['bhaga', 'tvasta']);
 
     const strategy = LifecycleEngine.getStage('strategy_planning');
-    assert.deepEqual(strategy?.responsibleAgentIds, ['aja']);
+    assert.deepEqual(strategy?.responsibleAgentIds, ['dhata']);
 
     const org = LifecycleEngine.getStage('organization_setup');
-    assert.deepEqual(org?.responsibleAgentIds, ['ritvan']);
+    assert.deepEqual(org?.responsibleAgentIds, ['aryaman']);
 
     const dev = LifecycleEngine.getStage('development');
-    assert.deepEqual(dev?.responsibleAgentIds, ['gandiva']);
+    assert.deepEqual(dev?.responsibleAgentIds, ['manyu', 'bhava']);
 
     const qa = LifecycleEngine.getStage('quality_assurance');
-    assert.deepEqual(qa?.responsibleAgentIds, ['vighna']);
+    assert.deepEqual(qa?.responsibleAgentIds, ['ritadhvaja', 'siva']);
 
     const exit = LifecycleEngine.getStage('business_exit');
-    assert.deepEqual(exit?.responsibleAgentIds, ['mrtyu']);
+    assert.deepEqual(exit?.responsibleAgentIds, ['dhritavrata']);
 
     // Transitions
     const validTrans = LifecycleEngine.validateTransition('market_need', 'strategy_planning');
@@ -546,13 +546,14 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
     }
   });
 
-  // 15. Authoritative 17 Workforce Invariant Preserved
-  test('15. Global 17-agent workforce is immutable and distinct from company assignments', () => {
-    assert.equal(INITIAL_AGENT_ROSTER.length, 17);
+  // 15. Authoritative 33 Workforce Invariant Preserved
+  test('15. Global 33-agent workforce is immutable and distinct from company assignments', () => {
+    assert.equal(INITIAL_AGENT_ROSTER.length, 33);
     const expectedIds = [
-      'rahu', 'aja', 'ritvan', 'tvas', 'spoota', 'gandiva',
-      'vighna', 'raudra', 'rutam', 'arvan', 'taraka', 'kalki',
-      'garuda', 'kali', 'kaala', 'yama', 'mrtyu'
+      'indra', 'prajapati',
+      'dhata', 'mitra', 'aryaman', 'varuna', 'amsa', 'bhaga', 'vivasvan', 'pusa', 'tvasta', 'savita', 'parjanya', 'visnu',
+      'manyu', 'manu', 'mahinasa', 'mahan', 'siva', 'ritadhvaja', 'ugrareta', 'bhava', 'kala_rudra', 'vamadeva', 'dhritavrata',
+      'dhara', 'anala', 'anila', 'apa', 'pratyusa', 'prabhasa', 'soma', 'dhruva'
     ];
     for (const id of expectedIds) {
       assert.ok(INITIAL_AGENT_ROSTER.some((a) => a.id === id), `Missing agent: ${id}`);
@@ -576,7 +577,7 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
       const data = (await res.json()) as { success: boolean; stages: Array<{ stage: string; responsibleAgentIds: string[] }> };
       assert.equal(data.success, true);
       assert.equal(data.stages.length, 15);
-      assert.ok(data.stages.some((s) => s.stage === 'market_need' && s.responsibleAgentIds.includes('rahu')));
+      assert.ok(data.stages.some((s) => s.stage === 'market_need' && s.responsibleAgentIds.includes('bhaga')));
     } finally {
       await kernel.shutdown();
     }
@@ -676,7 +677,7 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
           projectId: projId,
           title: 'ADR-017 Engine Selection',
           decision: 'Use deterministic state machine',
-          madeBy: 'ritvan'
+          madeBy: 'dhata'
         })
       });
       assert.equal(createDecRes.status, 201);
@@ -687,7 +688,7 @@ describe('PHASE 14 — HṚṢĪKEŚA Company & Project Operating System', () =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           objective: 'Implement scoped router',
-          rootAgentId: 'gandiva',
+          rootAgentId: 'manyu',
           companyId: compId,
           projectId: projId
         })

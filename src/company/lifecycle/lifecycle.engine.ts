@@ -2,7 +2,7 @@
  * HṚṢĪKEŚA (हृषीकेश) — Company & Product Lifecycle Engine
  *
  * Deterministic business lifecycle state machine mapping business stages
- * to the authoritative 17-agent workforce. Supports stage transitions, validation,
+ * to the canonical workforce specialists. Supports stage transitions, validation,
  * skipping irrelevant stages, and responsible agent resolution.
  */
 
@@ -14,105 +14,105 @@ export class LifecycleEngine {
       stage: 'market_need',
       displayName: 'Market Need Identification',
       description: 'Identify unserved market demand, competitor blind spots, and opportunities.',
-      responsibleAgentIds: ['rahu', 'tvas'],
+      responsibleAgentIds: ['bhaga', 'tvasta'],
       defaultNextStage: 'strategy_planning'
     },
     strategy_planning: {
       stage: 'strategy_planning',
       displayName: 'Strategy & Business Planning',
       description: 'Define business model, competitive strategy, value proposition, and roadmaps.',
-      responsibleAgentIds: ['aja'],
+      responsibleAgentIds: ['dhata'],
       defaultNextStage: 'organization_setup'
     },
     organization_setup: {
       stage: 'organization_setup',
       displayName: 'Company & Team Setup',
       description: 'Structure departments, establish workforce topologies, and configure roles.',
-      responsibleAgentIds: ['ritvan'],
+      responsibleAgentIds: ['aryaman'],
       defaultNextStage: 'customer_research'
     },
     customer_research: {
       stage: 'customer_research',
       displayName: 'Customer & Requirements Research',
       description: 'Deep-dive user needs, user personas, friction points, and feature specifications.',
-      responsibleAgentIds: ['tvas'],
+      responsibleAgentIds: ['tvasta'],
       defaultNextStage: 'product_design'
     },
     product_design: {
       stage: 'product_design',
       displayName: 'Product & Service Design',
       description: 'System architecture, API contracts, UI/UX specification, and design blueprints.',
-      responsibleAgentIds: ['spoota'],
+      responsibleAgentIds: ['tvasta', 'savita'],
       defaultNextStage: 'development'
     },
     development: {
       stage: 'development',
       displayName: 'Development & Production',
       description: 'Full-stack software engineering, build automation, and system implementation.',
-      responsibleAgentIds: ['gandiva'],
+      responsibleAgentIds: ['manyu', 'bhava'],
       defaultNextStage: 'quality_assurance'
     },
     quality_assurance: {
       stage: 'quality_assurance',
       displayName: 'Quality Assurance & Verification',
       description: 'Comprehensive testing, edge-case analysis, defect verification, and gate validation.',
-      responsibleAgentIds: ['vighna'],
+      responsibleAgentIds: ['ritadhvaja', 'siva'],
       defaultNextStage: 'marketing_sales'
     },
     marketing_sales: {
       stage: 'marketing_sales',
       displayName: 'Marketing & Sales Orchestration',
       description: 'Go-to-market distribution, audience targeting, and outreach positioning.',
-      responsibleAgentIds: ['raudra'],
+      responsibleAgentIds: ['vivasvan'],
       defaultNextStage: 'contract_order'
     },
     contract_order: {
       stage: 'contract_order',
       displayName: 'Contracts & Compliance Verification',
       description: 'Legal terms, regulatory compliance check, terms of service, and order validation.',
-      responsibleAgentIds: ['rutam'],
+      responsibleAgentIds: ['varuna'],
       defaultNextStage: 'fulfillment_delivery'
     },
     fulfillment_delivery: {
       stage: 'fulfillment_delivery',
       displayName: 'Fulfillment & Delivery',
       description: 'Release engineering, automated delivery pipeline, packaging, and dispatch.',
-      responsibleAgentIds: ['arvan'],
+      responsibleAgentIds: ['pusa'],
       defaultNextStage: 'customer_onboarding'
     },
     customer_onboarding: {
       stage: 'customer_onboarding',
       displayName: 'Customer Onboarding & Success',
       description: 'User enablement, documentation walkthroughs, support triage, and issue resolution.',
-      responsibleAgentIds: ['taraka'],
+      responsibleAgentIds: ['mitra'],
       defaultNextStage: 'billing_payment'
     },
     billing_payment: {
       stage: 'billing_payment',
       displayName: 'Billing & Financial Accounting',
       description: 'Pricing models, invoicing schedules, cost accounting, and financial reporting.',
-      responsibleAgentIds: ['kalki'],
+      responsibleAgentIds: ['amsa'],
       defaultNextStage: 'operations_monitoring'
     },
     operations_monitoring: {
       stage: 'operations_monitoring',
       displayName: 'Operations & SRE Monitoring',
       description: 'Runtime telemetry, infrastructure health, uptime monitoring, and SLA tracking.',
-      responsibleAgentIds: ['garuda'],
+      responsibleAgentIds: ['prabhasa'],
       defaultNextStage: 'continuous_improvement'
     },
     continuous_improvement: {
       stage: 'continuous_improvement',
       displayName: 'Continuous Improvement & Evolution',
       description: 'Self-correcting feedback loops, architectural refactoring, and performance tuning.',
-      responsibleAgentIds: ['kali'],
+      responsibleAgentIds: ['mahinasa', 'mahan', 'prajapati'],
       defaultNextStage: 'business_exit'
     },
     business_exit: {
       stage: 'business_exit',
       displayName: 'Product Retirement & Business Exit',
       description: 'Safe decommission, data archival, graceful deprecation, and lifecycle teardown.',
-      responsibleAgentIds: ['mrtyu']
+      responsibleAgentIds: ['dhritavrata']
     }
   };
 

@@ -94,6 +94,7 @@ import { FasterWhisperSTTProvider } from '../voice/stt/faster.whisper.stt.js';
 import { WindowsSpeechSTTProvider } from '../voice/stt/windows.speech.stt.js';
 import { PiperTTSProvider } from '../voice/tts/piper.tts.js';
 import { WindowsSapiTTSProvider } from '../voice/tts/windows.sapi.tts.js';
+import { IndicParlerTTSProvider } from '../voice/tts/indic-parler.tts.js';
 import { WindowsAudioRecorder } from '../voice/audio/windows.audio.recorder.js';
 import { WindowsAudioPlayer } from '../voice/audio/windows.audio.player.js';
 import { VoicePipeline } from '../voice/pipeline/voice.pipeline.js';
@@ -754,10 +755,14 @@ export class HrisekesaKernel {
     this.tts = customAdapters.ttsProvider ||
       (config.voice.ttsProvider === 'sapi'
         ? new WindowsSapiTTSProvider({ artifactDir: config.voice.artifactDir, voiceName: config.voice.ttsVoice }, this.logger)
-        : new PiperTTSProvider({ 
-            artifactDir: config.voice.artifactDir,
-            modelPath: 'data/audio/en-us-lessac-low.onnx'
-          }, this.logger));
+        : config.voice.ttsProvider === 'piper'
+          ? new PiperTTSProvider({ 
+              artifactDir: config.voice.artifactDir,
+              modelPath: 'data/audio/en-us-lessac-low.onnx'
+            }, this.logger)
+          : new IndicParlerTTSProvider({
+              artifactDir: config.voice.artifactDir,
+            }, this.logger));
 
     this.audioRecorder = customAdapters.audioRecorder ||
       new WindowsAudioRecorder({ artifactDir: config.voice.artifactDir, sampleRate: config.voice.sampleRate }, this.logger);

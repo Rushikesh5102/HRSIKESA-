@@ -42,7 +42,6 @@ export interface ScriptureNavbarProps {
 interface NavItemDef {
   id: NavTab;
   label: string;
-  sanskrit: string;
   icon: React.ReactNode;
   badge?: number;
 }
@@ -59,65 +58,61 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
   const [openGranthaMenu, setOpenGranthaMenu] = useState<string | null>(null);
   const activeWorkTotal = activeGoalsCount + activeMissionsCount;
 
-  // Primary Scripture Scroll Tabs
+  // Primary Workspace Tabs
   const primaryTabs: NavItemDef[] = [
-    { id: 'home', label: 'Home', sanskrit: 'पीठ', icon: <Home size={15} /> },
-    { id: 'chat', label: 'Chat', sanskrit: 'संवाद', icon: <MessageSquare size={15} /> },
-    { id: 'council-chat', label: 'Council', sanskrit: 'परिषद', icon: <Users size={15} /> },
-    { id: 'work', label: 'Work', sanskrit: 'कर्म', icon: <Briefcase size={15} />, badge: activeWorkTotal > 0 ? activeWorkTotal : undefined },
-    { id: 'agents', label: 'Agents', sanskrit: 'दूत', icon: <Network size={15} />, badge: activeAgentsCount > 0 ? activeAgentsCount : undefined },
-    { id: 'agent-town', label: 'Town', sanskrit: 'नगर', icon: <Building2 size={15} /> },
-    { id: 'knowledge', label: 'Knowledge', sanskrit: 'ज्ञान', icon: <Share2 size={15} /> },
-    { id: 'memory', label: 'Memory', sanskrit: 'स्मृति', icon: <Database size={15} /> },
-    { id: 'research', label: 'Research', sanskrit: 'शोध', icon: <Compass size={15} /> },
-    { id: 'computer', label: 'Operator', sanskrit: 'यन्त्र', icon: <Monitor size={15} /> },
-    { id: 'settings', label: 'Settings', sanskrit: 'व्यवस्था', icon: <Settings size={15} /> },
+    { id: 'home', label: 'Home', icon: <Home size={15} /> },
+    { id: 'chat', label: 'Chat', icon: <MessageSquare size={15} /> },
+    { id: 'council-chat', label: 'Council', icon: <Users size={15} /> },
+    { id: 'work', label: 'Work', icon: <Briefcase size={15} />, badge: activeWorkTotal > 0 ? activeWorkTotal : undefined },
+    { id: 'agents', label: 'Agents', icon: <Network size={15} />, badge: activeAgentsCount > 0 ? activeAgentsCount : undefined },
+    { id: 'agent-town', label: 'Town', icon: <Building2 size={15} /> },
+    { id: 'knowledge', label: 'Knowledge', icon: <Share2 size={15} /> },
+    { id: 'memory', label: 'Memory', icon: <Database size={15} /> },
+    { id: 'research', label: 'Research', icon: <Compass size={15} /> },
+    { id: 'computer', label: 'Operator', icon: <Monitor size={15} /> },
+    { id: 'settings', label: 'Settings', icon: <Settings size={15} /> },
   ];
 
-  // Grantha (Chapters / Extended Shastras)
+  // Extended Navigation Clusters
   const granthaGroups: {
     id: string;
     title: string;
-    sanskrit: string;
     icon: React.ReactNode;
     items: NavItemDef[];
   }[] = [
     {
       id: 'missions-tasks',
       title: 'Operations & Execution',
-      sanskrit: 'अभियान एवं कार्य',
       icon: <Target size={14} />,
       items: [
-        { id: 'missions', label: 'Missions', sanskrit: 'अभियान', icon: <Target size={14} />, badge: activeMissionsCount > 0 ? activeMissionsCount : undefined },
-        { id: 'goals', label: 'Goals & Milestones', sanskrit: 'लक्ष्य', icon: <Target size={14} />, badge: activeGoalsCount > 0 ? activeGoalsCount : undefined },
-        { id: 'tasks', label: 'Task Pipeline', sanskrit: 'कार्य', icon: <CheckSquare size={14} /> },
-        { id: 'tools', label: 'Tool Registry', sanskrit: 'उपकरण', icon: <Wrench size={14} /> },
-        { id: 'approvals', label: 'Security Approvals', sanskrit: 'अनुमति', icon: <ShieldAlert size={14} />, badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined },
+        { id: 'missions', label: 'Missions', icon: <Target size={14} />, badge: activeMissionsCount > 0 ? activeMissionsCount : undefined },
+        { id: 'goals', label: 'Goals & Milestones', icon: <Target size={14} />, badge: activeGoalsCount > 0 ? activeGoalsCount : undefined },
+        { id: 'tasks', label: 'Task Pipeline', icon: <CheckSquare size={14} /> },
+        { id: 'tools', label: 'Tool Registry', icon: <Wrench size={14} /> },
+        { id: 'approvals', label: 'Security Approvals', icon: <ShieldAlert size={14} />, badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined },
       ],
     },
     {
       id: 'intelligence-shastra',
       title: 'Intelligence & Models',
-      sanskrit: 'बुद्धि एवं शास्त्र',
       icon: <Cpu size={14} />,
       items: [
-        { id: 'models', label: 'AI Models & Router', sanskrit: 'प्ररूप', icon: <Cpu size={14} /> },
-        { id: 'skills', label: 'Procedural Skills', sanskrit: 'विद्या', icon: <Zap size={14} /> },
-        { id: 'mcp', label: 'MCP Ecosystem', sanskrit: 'प्रणाली', icon: <Server size={14} /> },
-        { id: 'multimodal', label: 'Vision & Audio', sanskrit: 'दृष्टि-ध्वनि', icon: <Sparkles size={14} /> },
-        { id: 'self-improvement', label: 'Self-Evolution', sanskrit: 'आत्म-सुधार', icon: <RefreshCw size={14} /> },
+        { id: 'models', label: 'AI Models & Router', icon: <Cpu size={14} /> },
+        { id: 'skills', label: 'Procedural Skills', icon: <Zap size={14} /> },
+        { id: 'mcp', label: 'MCP Ecosystem', icon: <Server size={14} /> },
+        { id: 'multimodal', label: 'Vision & Audio', icon: <Sparkles size={14} /> },
+        { id: 'self-improvement', label: 'Self-Evolution', icon: <RefreshCw size={14} /> },
       ],
     },
     {
       id: 'governance-ecosystem',
       title: 'Enterprise & Diagnostics',
-      sanskrit: 'संगठन एवं परीक्षण',
       icon: <Building2 size={14} />,
       items: [
-        { id: 'companies', label: 'Autonomous Companies', sanskrit: 'उद्यम', icon: <Building2 size={14} /> },
-        { id: 'integrations', label: 'Service Integrations', sanskrit: 'संयोजन', icon: <Key size={14} /> },
-        { id: 'audit', label: 'Security Audit Ledger', sanskrit: 'लेखा', icon: <Activity size={14} /> },
-        { id: 'environment', label: 'Hardware Matrix', sanskrit: 'वातावरण', icon: <Layers size={14} /> },
+        { id: 'companies', label: 'Autonomous Companies', icon: <Building2 size={14} /> },
+        { id: 'integrations', label: 'Service Integrations', icon: <Key size={14} /> },
+        { id: 'audit', label: 'Security Audit Ledger', icon: <Activity size={14} /> },
+        { id: 'environment', label: 'Hardware Matrix', icon: <Layers size={14} /> },
       ],
     },
   ];
@@ -176,13 +171,13 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                 justifyContent: 'center',
                 color: '#120E0A',
                 fontWeight: 900,
-                fontSize: '18px',
-                fontFamily: 'var(--font-devanagari)',
+                fontSize: '14px',
+                fontFamily: 'var(--font-cinzel)',
                 boxShadow: '0 0 14px rgba(212, 175, 55, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
                 flexShrink: 0,
               }}
             >
-              ॐ
+              HK
             </div>
 
             <div>
@@ -201,22 +196,21 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                 </span>
                 <span
                   style={{
-                    fontSize: '11.5px',
+                    fontSize: '11px',
                     color: '#FAF5EB',
                     background: 'rgba(212, 175, 55, 0.16)',
                     border: '1px solid rgba(212, 175, 55, 0.35)',
                     padding: '1px 8px',
                     borderRadius: '4px',
-                    fontFamily: 'var(--font-devanagari)',
                     fontWeight: 600,
                     letterSpacing: '0.5px',
                   }}
                 >
-                  हृषीकेश • सार्वभौम शासन
+                  SOVEREIGN RUNTIME
                 </span>
               </div>
               <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', letterSpacing: '0.8px', marginTop: '1px' }}>
-                ॥ स्वायत्त बुद्धि सर्वशास्त्र पारंगत ॥ Sovereign Autonomous Workspace
+                Autonomous Intelligence & Multi-Agent Execution Fabric
               </div>
             </div>
           </div>
@@ -240,7 +234,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
             }}
           >
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
-            <span>सक्रिय • Kernel Online</span>
+            <span>Kernel Online</span>
           </div>
 
           {/* Pending Approvals Alert Badge if Any */}
@@ -308,7 +302,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                 letterSpacing: '0.5px',
               }}
             >
-              स्वामी • MASTER
+              LEAD ARCHITECT
             </span>
           </div>
         </div>
@@ -328,12 +322,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
           background: 'linear-gradient(90deg, rgba(30, 22, 14, 0.9) 0%, rgba(42, 30, 20, 0.95) 50%, rgba(30, 22, 14, 0.9) 100%)',
         }}
       >
-        {/* Decorative Traditional Knot Glyph Left */}
-        <span style={{ color: 'var(--text-gold)', fontSize: '14px', opacity: 0.6, userSelect: 'none', paddingLeft: '4px' }}>
-          ࿓
-        </span>
-
-        {/* Primary Scripture Manuscript Tabs */}
+        {/* Primary Workspace Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap' }}>
           {primaryTabs.map((tab) => {
             const isActive = currentTab === tab.id || (tab.id === 'home' && currentTab === 'command-center');
@@ -368,21 +357,9 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                   {tab.icon}
                 </span>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
-                  <span style={{ fontSize: '12.5px', fontWeight: isActive ? 700 : 500 }}>
-                    {tab.label}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '9.5px',
-                      color: isActive ? 'var(--accent-gold-bright)' : 'var(--text-muted)',
-                      fontFamily: 'var(--font-devanagari)',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {tab.sanskrit}
-                  </span>
-                </div>
+                <span style={{ fontSize: '12.5px', fontWeight: isActive ? 700 : 500 }}>
+                  {tab.label}
+                </span>
 
                 {tab.badge !== undefined && (
                   <span
@@ -408,7 +385,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
         {/* Traditional Gold Vertical Filigree Separator */}
         <div style={{ width: '1px', height: '26px', background: 'rgba(212, 175, 55, 0.3)', margin: '0 4px', flexShrink: 0 }} />
 
-        {/* Scripture Chapters (Granthas) Dropdown Clusters */}
+        {/* Extended Navigation Clusters */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
           {granthaGroups.map((group) => {
             const isGroupActive = group.items.some((it) => it.id === currentTab);
@@ -442,12 +419,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                   <span style={{ color: 'var(--text-gold)', display: 'flex', alignItems: 'center' }}>
                     {group.icon}
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
-                    <span style={{ fontWeight: 600 }}>{group.title}</span>
-                    <span style={{ fontSize: '9px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)' }}>
-                      {group.sanskrit}
-                    </span>
-                  </div>
+                  <span style={{ fontWeight: 600 }}>{group.title}</span>
                   <ChevronDown size={12} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
                 </button>
 
@@ -477,7 +449,6 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                       style={{
                         fontSize: '10px',
                         color: 'var(--text-gold)',
-                        fontFamily: 'var(--font-devanagari)',
                         fontWeight: 700,
                         padding: '4px 8px 6px 8px',
                         borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
@@ -487,8 +458,8 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span>॥ {group.sanskrit} ॥</span>
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{group.items.length} Shastras</span>
+                      <span>{group.title.toUpperCase()}</span>
+                      <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{group.items.length} Modules</span>
                     </div>
 
                     {group.items.map((it) => {
@@ -514,12 +485,7 @@ export const ScriptureNavbar: React.FC<ScriptureNavbarProps> = ({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ color: isItemActive ? 'var(--text-gold)' : 'var(--text-muted)' }}>{it.icon}</span>
-                            <div>
-                              <div style={{ fontWeight: isItemActive ? 700 : 500 }}>{it.label}</div>
-                              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-devanagari)' }}>
-                                {it.sanskrit}
-                              </div>
-                            </div>
+                            <div style={{ fontWeight: isItemActive ? 700 : 500 }}>{it.label}</div>
                           </div>
 
                           {it.badge !== undefined && (

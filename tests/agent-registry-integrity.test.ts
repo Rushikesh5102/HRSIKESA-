@@ -27,75 +27,89 @@ test('Phase 13.6 — Agent Registry Integrity', async (t) => {
     planner = new MissionPlanner(agentRegistry, modelRouter);
   };
 
-  await t.test('should contain exactly the 17 authoritative workforce agents in initial roster', () => {
+  await t.test('should contain exactly the 33 authoritative canonical workforce agents in initial roster', () => {
     setup();
     const agents = agentRegistry.getAll();
-    assert.strictEqual(agents.length, 17);
+    assert.strictEqual(agents.length, 33);
 
     const agentIds = agents.map((a) => a.id).sort();
     assert.deepStrictEqual(agentIds, [
-      'aja',
-      'arvan',
-      'gandiva',
-      'garuda',
-      'kaala',
-      'kali',
-      'kalki',
-      'mrtyu',
-      'rahu',
-      'raudra',
-      'ritvan',
-      'rutam',
-      'spoota',
-      'taraka',
-      'tvas',
-      'vighna',
-      'yama'
+      'amsa',
+      'anala',
+      'anila',
+      'apa',
+      'aryaman',
+      'bhaga',
+      'bhava',
+      'dhara',
+      'dhata',
+      'dhritavrata',
+      'dhruva',
+      'indra',
+      'kala_rudra',
+      'mahan',
+      'mahinasa',
+      'manu',
+      'manyu',
+      'mitra',
+      'parjanya',
+      'prabhasa',
+      'prajapati',
+      'pratyusa',
+      'pusa',
+      'ritadhvaja',
+      'savita',
+      'siva',
+      'soma',
+      'tvasta',
+      'ugrareta',
+      'vamadeva',
+      'varuna',
+      'visnu',
+      'vivasvan'
     ]);
   });
 
   await t.test('should verify key authoritative agents have designated role and danger limits', () => {
     setup();
-    const gandiva = agentRegistry.get('gandiva')!;
-    assert.strictEqual(gandiva.displayName, 'Gāṇḍīva');
-    assert.strictEqual(gandiva.sanskritName, 'Gāṇḍīva (गाण्डीव)');
-    assert.strictEqual(gandiva.role, 'software_engineering');
-    assert.strictEqual(gandiva.dangerTierLimit, DangerTier.TIER_1);
-    assert.ok(gandiva.capabilities.includes('software_engineering'));
-    assert.ok(gandiva.capabilities.includes('coding'));
+    const manyu = agentRegistry.get('manyu')!;
+    assert.strictEqual(manyu.displayName, 'Manyu');
+    assert.strictEqual(manyu.sanskritName, 'Manyu (मन्यु)');
+    assert.strictEqual(manyu.role, 'software_engineering');
+    assert.strictEqual(manyu.dangerTierLimit, DangerTier.TIER_1);
+    assert.ok(manyu.capabilities.includes('software_engineering'));
+    assert.ok(manyu.capabilities.includes('coding'));
 
-    const rahu = agentRegistry.get('rahu')!;
-    assert.strictEqual(rahu.displayName, 'Rahu');
-    assert.strictEqual(rahu.role, 'market_intelligence');
-    assert.ok(rahu.capabilities.includes('market_research'));
+    const indra = agentRegistry.get('indra')!;
+    assert.strictEqual(indra.displayName, 'Indra');
+    assert.strictEqual(indra.role, 'mission_field_command');
+    assert.ok(indra.capabilities.includes('mission_orchestration'));
 
-    const aja = agentRegistry.get('aja')!;
-    assert.strictEqual(aja.displayName, 'Aja');
-    assert.strictEqual(aja.role, 'strategy_planning');
-    assert.ok(aja.capabilities.includes('strategy'));
+    const prajapati = agentRegistry.get('prajapati')!;
+    assert.strictEqual(prajapati.displayName, 'Prajāpati');
+    assert.strictEqual(prajapati.role, 'workforce_progenitor');
+    assert.ok(prajapati.capabilities.includes('agent_spawning'));
 
-    const vighna = agentRegistry.get('vighna')!;
-    assert.strictEqual(vighna.displayName, 'Vighna');
-    assert.strictEqual(vighna.role, 'qa_verification');
-    assert.ok(vighna.capabilities.includes('testing'));
-    assert.ok(vighna.capabilities.includes('verification'));
+    const dhata = agentRegistry.get('dhata')!;
+    assert.strictEqual(dhata.displayName, 'Dhātā');
+    assert.strictEqual(dhata.role, 'strategy_architecture');
+    assert.ok(dhata.capabilities.includes('strategy'));
 
-    const yama = agentRegistry.get('yama')!;
-    assert.strictEqual(yama.displayName, 'Yama');
-    assert.strictEqual(yama.role, 'recovery_disaster');
-    assert.ok(yama.capabilities.includes('recovery'));
-    assert.ok(yama.capabilities.includes('rollback'));
+    const ritadhvaja = agentRegistry.get('ritadhvaja')!;
+    assert.strictEqual(ritadhvaja.displayName, 'Ṛtadhvaja');
+    assert.strictEqual(ritadhvaja.role, 'qa_verification');
+    assert.ok(ritadhvaja.capabilities.includes('testing'));
+    assert.ok(ritadhvaja.capabilities.includes('verification'));
 
-    const mrtyu = agentRegistry.get('mrtyu')!;
-    assert.strictEqual(mrtyu.displayName, 'Mṛtyu');
-    assert.strictEqual(mrtyu.role, 'decommissioning_exit');
-    assert.ok(mrtyu.capabilities.includes('retirement'));
-    assert.ok(mrtyu.capabilities.includes('decommissioning'));
+    const varuna = agentRegistry.get('varuna')!;
+    assert.strictEqual(varuna.displayName, 'Varuṇa');
+    assert.strictEqual(varuna.role, 'governance_compliance');
+    assert.ok(varuna.capabilities.includes('compliance'));
 
-    const kaala = agentRegistry.get('kaala')!;
-    assert.strictEqual(kaala.displayName, 'KĀLA');
-    assert.strictEqual(kaala.role, 'resource_coordination');
-    assert.ok(kaala.capabilities.includes('scheduling'));
+    const siva = agentRegistry.get('siva')!;
+    assert.strictEqual(siva.displayName, 'Śiva');
+    assert.strictEqual(siva.role, 'integrity_verification');
+    assert.ok(siva.capabilities.includes('defect_elimination'));
   });
 
   await t.test('should not contain duplicate agent IDs', () => {
@@ -119,7 +133,7 @@ test('Phase 13.6 — Agent Registry Integrity', async (t) => {
           id: 'task_1',
           title: 'Code review',
           objective: 'Inspect typescript code',
-          agentId: 'gandiva',
+          agentId: 'manyu',
           dependencies: [],
           requiredCapabilities: ['coding'],
           expectedOutputs: ['Report'],
@@ -163,7 +177,7 @@ test('Phase 13.6 — Agent Registry Integrity', async (t) => {
 
     assert.strictEqual(plan.tasks.length, 1);
     assert.strictEqual(plan.estimatedModelCalls, 0);
-    assert.strictEqual(plan.tasks[0].agentId, 'garuda');
+    assert.strictEqual(plan.tasks[0].agentId, 'prabhasa');
     assert.strictEqual(plan.tasks[0].deterministicToolAction?.tool, 'filesystem.read');
     assert.strictEqual(plan.tasks[0].verificationStrategy?.type, 'file_exists');
     assert.strictEqual(plan.tasks[0].verificationStrategy?.target, 'package.json');

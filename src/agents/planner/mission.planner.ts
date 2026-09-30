@@ -263,29 +263,16 @@ export class MissionPlanner {
     registeredAgents: readonly any[] = [],
     budget: MissionBudget = DEFAULT_MISSION_BUDGET
   ): Promise<MissionPlan> {
-    const validAgentIds = registeredAgents.map(a => `"${a.id}"`).join(' | ') || '"rahu" | "aja" | "ritvan" | "tvas" | "spoota" | "gandiva" | "vighna" | "raudra" | "rutam" | "arvan" | "taraka" | "kalki" | "garuda" | "kali" | "kaala" | "yama" | "mrtyu"';
+    const validAgentIds = registeredAgents.map(a => `"${a.id}"`).join(' | ') || '"manyu" | "dhata" | "bhaga" | "indra" | "ritadhvaja"';
 
     const systemPrompt = `You are HṚṢĪKEŚA's strategic mission planning director. Your master is Rushikesh Pattiwar.
-Your job is to break down a high-level user objective into a structured, executable task graph (DAG) assigning tasks to the 17 specialized workforce agents.
+Your job is to break down a high-level user objective into a structured, executable task graph (DAG) assigning tasks to the canonical 33-agent workforce (12 Ādityas, 11 Rudras, 8 Vasus, Indra, Prajāpati).
 
-WORKFORCE AGENTS & LIFECYCLE ROLES:
-- rahu: Market Intelligence (market research, gaps, competitors, trends, threats)
-- aja: Strategy & Business Planning (business models, strategic roadmaps, feasibility)
-- ritvan: Company & Team Setup (organizational structure, team architecture, roles)
-- tvas: Customer & Requirements Research (customer discovery, user needs, problem analysis)
-- spoota: Product / Service Design (UX, specifications, architecture blueprints, prototypes)
-- gandiva: Software Engineering / Development (coding, implementation, debugging, Git)
-- vighna: QA / Risk / Verification (testing, validation, blockers, failure detection)
-- raudra: Marketing & Sales (campaigns, positioning, lead generation, sales workflows)
-- rutam: Governance / Compliance / Contracts (policy validation, contracts, legal gates)
-- arvan: Fulfillment & Delivery (deployment, distribution, logistics, delivery tracking)
-- taraka: Customer Onboarding & Support (documentation, onboarding, user troubleshooting)
-- kalki: Billing / Commercial Operations (invoices, subscriptions, payments, reconciliation)
-- garuda: Operations / Infrastructure / Monitoring (system health, processes, observability)
-- kali: Improvement / Transformation / Expansion (optimization, scaling, restructuring)
-- kaala: Time / Scheduling / Resource Coordination (deadlines, queues, workload balancing)
-- yama: Backup / Recovery / Disaster Management (backups, safe rollbacks, failure containment)
-- mrtyu: Retirement / Decommissioning / Exit (product sunsetting, service shutdown, archival)
+CANONICAL WORKFORCE TIERS & SPECIALISTS:
+- 12 Ādityas (Vision/Strategy/Gov): dhata (Strategy), mitra (Success), aryaman (Org), varuna (Gov/Compliance), amsa (Billing), bhaga (Market Intel), vivasvan (Marketing), pusa (Fulfillment), tvasta (Product/UX Specs), savita (Prototyping), parjanya (Telemetry), visnu (Sovereign Coherence)
+- 11 Rudras (Engineering/QA/Security): manyu (Lead Software Eng), manu (Code Standards), mahinasa (Optimization), mahan (Refactoring), siva (Flaw Exterminator), ritadhvaja (QA/Verification), ugrareta (Security Defense), bhava (Builds/CI-CD), kala_rudra (Circuit Breaker), vamadeva (Recovery), dhritavrata (Decommissioning)
+- 8 Vasus (Infrastructure/Foundations): dhara (Storage/FS), anala (Shell/Terminal), anila (Network/Events), apa (Database/Persistence), pratyusa (Scheduling/Time), prabhasa (SRE/Observability), soma (Memory/Knowledge), dhruva (Audit/Ledger)
+- Operational Leaders: indra (Supreme Field Commander), prajapati (Workforce Progenitor & Evolution)
 
 RULES:
 1. Output ONLY valid JSON conforming to the schema below. No conversational prose.
@@ -373,7 +360,7 @@ Generate the structured JSON mission plan.`;
         id: String(t.id),
         title: String(t.title || t.id),
         objective: String(t.objective || ''),
-        agentId: String(t.agentId || 'gandiva'),
+        agentId: String(t.agentId || 'manyu'),
         dependencies: Array.isArray(t.dependencies) ? t.dependencies.map(String) : [],
         requiredCapabilities: Array.isArray(t.requiredCapabilities) ? t.requiredCapabilities : [],
         expectedOutputs: Array.isArray(t.expectedOutputs) ? t.expectedOutputs : [],
@@ -396,11 +383,11 @@ Generate the structured JSON mission plan.`;
   public generateSimplePlan(options: CreatePlanOptions, registeredAgents: readonly any[]): MissionPlan {
     const objective = options.objective;
 
-    // Specialists from the 17-agent workforce
-    const gandivaAgent = registeredAgents.find(a => a.id === 'gandiva');
-    const garudaAgent = registeredAgents.find(a => a.id === 'garuda');
-    const tvasAgent = registeredAgents.find(a => a.id === 'tvas');
-    const rahuAgent = registeredAgents.find(a => a.id === 'rahu');
+    // Resolve canonical specialists from registry
+    const manyuAgent = registeredAgents.find(a => a.id === 'manyu');
+    const prabhasaAgent = registeredAgents.find(a => a.id === 'prabhasa');
+    const tvastaAgent = registeredAgents.find(a => a.id === 'tvasta');
+    const bhagaAgent = registeredAgents.find(a => a.id === 'bhaga');
     const fallbackAgent = registeredAgents[0];
 
     const tasks: PlannedTask[] = [];
@@ -415,15 +402,15 @@ Generate the structured JSON mission plan.`;
     if (fileCreateMatch) {
       const filePath = fileCreateMatch[1];
       const content = fileCreateMatch[2];
-      const writeAgent = gandivaAgent?.allowedTools.includes('filesystem.write')
-        ? gandivaAgent
+      const writeAgent = manyuAgent?.allowedTools.includes('filesystem.write')
+        ? manyuAgent
         : (registeredAgents.find(a => a.allowedTools.includes('filesystem.write')) || fallbackAgent);
 
       tasks.push({
         id: 'task_1',
         title: `Create ${filePath}`,
         objective: `Create ${filePath} containing '${content}'`,
-        agentId: writeAgent?.id || 'gandiva',
+        agentId: writeAgent?.id || 'manyu',
         dependencies: [],
         requiredCapabilities: writeAgent?.capabilities || ['coding', 'software_engineering'],
         expectedOutputs: [`Created ${filePath}`],
@@ -440,15 +427,15 @@ Generate the structured JSON mission plan.`;
       });
     } else if (fileCheckMatch) {
       const filePath = fileCheckMatch[1];
-      const readAgent = garudaAgent?.allowedTools.includes('filesystem.read')
-        ? garudaAgent
-        : (tvasAgent || rahuAgent || registeredAgents.find(a => a.allowedTools.includes('filesystem.read')) || fallbackAgent);
+      const readAgent = prabhasaAgent?.allowedTools.includes('filesystem.read')
+        ? prabhasaAgent
+        : (tvastaAgent || bhagaAgent || registeredAgents.find(a => a.allowedTools.includes('filesystem.read')) || fallbackAgent);
 
       tasks.push({
         id: 'task_1',
         title: `Verify ${filePath} Exists`,
         objective: `Check whether ${filePath} exists in the workspace.`,
-        agentId: readAgent?.id || 'garuda',
+        agentId: readAgent?.id || 'prabhasa',
         dependencies: [],
         requiredCapabilities: readAgent?.capabilities || ['operations', 'monitoring'],
         expectedOutputs: [`Verification that ${filePath} exists`],
@@ -463,12 +450,12 @@ Generate the structured JSON mission plan.`;
         dangerLevel: 0
       });
     } else {
-      const inspectionAgent = garudaAgent || gandivaAgent || fallbackAgent;
+      const inspectionAgent = prabhasaAgent || manyuAgent || fallbackAgent;
       tasks.push({
         id: 'task_1',
         title: 'Execute Deterministic Inspection',
         objective: options.objective,
-        agentId: inspectionAgent?.id || 'garuda',
+        agentId: inspectionAgent?.id || 'prabhasa',
         dependencies: [],
         requiredCapabilities: inspectionAgent?.capabilities || ['operations'],
         expectedOutputs: ['Execution verified'],
@@ -494,24 +481,23 @@ Generate the structured JSON mission plan.`;
   private generateFallbackPlan(options: CreatePlanOptions, registeredAgents: readonly any[]): MissionPlan {
     const objectiveLower = options.objective.toLowerCase();
 
-    // Workforce specialist resolvers
-    const gandiva = registeredAgents.find(a => a.id === 'gandiva')?.id || 'gandiva';
-    const vighna = registeredAgents.find(a => a.id === 'vighna')?.id || 'vighna';
-    const rahu = registeredAgents.find(a => a.id === 'rahu')?.id || 'rahu';
-    const aja = registeredAgents.find(a => a.id === 'aja')?.id || 'aja';
-    const ritvan = registeredAgents.find(a => a.id === 'ritvan')?.id || 'ritvan';
-    const tvas = registeredAgents.find(a => a.id === 'tvas')?.id || 'tvas';
-    const spoota = registeredAgents.find(a => a.id === 'spoota')?.id || 'spoota';
-    const raudra = registeredAgents.find(a => a.id === 'raudra')?.id || 'raudra';
-    const rutam = registeredAgents.find(a => a.id === 'rutam')?.id || 'rutam';
-    const arvan = registeredAgents.find(a => a.id === 'arvan')?.id || 'arvan';
-    const taraka = registeredAgents.find(a => a.id === 'taraka')?.id || 'taraka';
-    const kalki = registeredAgents.find(a => a.id === 'kalki')?.id || 'kalki';
-    const garuda = registeredAgents.find(a => a.id === 'garuda')?.id || 'garuda';
-    const kali = registeredAgents.find(a => a.id === 'kali')?.id || 'kali';
-    const kaala = registeredAgents.find(a => a.id === 'kaala')?.id || 'kaala';
-    const yama = registeredAgents.find(a => a.id === 'yama')?.id || 'yama';
-    const mrtyu = registeredAgents.find(a => a.id === 'mrtyu')?.id || 'mrtyu';
+    // Canonical 33-agent workforce resolvers
+    const resolve = (id: string, fallback = 'manyu') => registeredAgents.find(a => a.id === id)?.id || fallback;
+
+    const manyu = resolve('manyu');
+    const ritadhvaja = resolve('ritadhvaja');
+    const bhaga = resolve('bhaga');
+    const dhata = resolve('dhata');
+    const aryaman = resolve('aryaman');
+    const tvasta = resolve('tvasta');
+    const vivasvan = resolve('vivasvan');
+    const varuna = resolve('varuna');
+    const pusa = resolve('pusa');
+    const mitra = resolve('mitra');
+    const prabhasa = resolve('prabhasa');
+    const mahinasa = resolve('mahinasa');
+    const vamadeva = resolve('vamadeva');
+    const dhritavrata = resolve('dhritavrata');
 
     const tasks: PlannedTask[] = [];
 
@@ -521,7 +507,7 @@ Generate the structured JSON mission plan.`;
         id: 'task_1',
         title: 'Market & Competitive Research',
         objective: `Analyze market dynamics, gaps, and competitors for: ${options.objective}`,
-        agentId: rahu,
+        agentId: bhaga,
         dependencies: [],
         requiredCapabilities: ['market_research', 'competitive_analysis'],
         expectedOutputs: ['Market research intelligence report'],
@@ -531,7 +517,7 @@ Generate the structured JSON mission plan.`;
         id: 'task_2',
         title: 'Customer Requirements Synthesis',
         objective: `Discover user needs and synthesize requirement boundaries for: ${options.objective}`,
-        agentId: tvas,
+        agentId: tvasta,
         dependencies: ['task_1'],
         requiredCapabilities: ['customer_research', 'requirements_analysis'],
         expectedOutputs: ['Customer requirements analysis'],
@@ -544,7 +530,7 @@ Generate the structured JSON mission plan.`;
         id: 'task_1',
         title: 'Formulate Business Strategy & Model',
         objective: `Formulate business objectives, models, and feasibility for: ${options.objective}`,
-        agentId: aja,
+        agentId: dhata,
         dependencies: [],
         requiredCapabilities: ['strategy', 'business_planning'],
         expectedOutputs: ['Strategic business plan'],
@@ -554,20 +540,20 @@ Generate the structured JSON mission plan.`;
         id: 'task_2',
         title: 'Workforce & Organization Architecture',
         objective: `Define team topology and role boundaries for: ${options.objective}`,
-        agentId: ritvan,
+        agentId: aryaman,
         dependencies: ['task_1'],
         requiredCapabilities: ['organization_design', 'team_architecture'],
         expectedOutputs: ['Organization architecture design'],
         dangerLevel: 0
       });
     }
-    // 3. Backup / Disaster Recovery / Rollback (YAMA)
+    // 3. Backup / Disaster Recovery / Rollback (VAMADEVA)
     else if (objectiveLower.includes('recover') || objectiveLower.includes('backup') || objectiveLower.includes('restore') || objectiveLower.includes('rollback')) {
       tasks.push({
         id: 'task_1',
         title: 'Execute State Containment & Safe Rollback',
         objective: `Safely contain failure, execute rollback and restore state for: ${options.objective}`,
-        agentId: yama,
+        agentId: vamadeva,
         dependencies: [],
         requiredCapabilities: ['backup', 'recovery', 'rollback'],
         expectedOutputs: ['System recovery report'],
@@ -577,20 +563,20 @@ Generate the structured JSON mission plan.`;
         id: 'task_2',
         title: 'Verify System Health Post-Recovery',
         objective: `Verify operational stability and monitoring metrics post-recovery for: ${options.objective}`,
-        agentId: garuda,
+        agentId: prabhasa,
         dependencies: ['task_1'],
         requiredCapabilities: ['operations', 'service_health'],
         expectedOutputs: ['Post-recovery health report'],
         dangerLevel: 0
       });
     }
-    // 4. Retirement / Decommissioning / Exit (MRTYU)
+    // 4. Retirement / Decommissioning / Exit (DHRITAVRATA)
     else if (objectiveLower.includes('retire') || objectiveLower.includes('decommission') || objectiveLower.includes('sunset') || objectiveLower.includes('shutdown')) {
       tasks.push({
         id: 'task_1',
         title: 'Compliance & Legal Decommissioning Check',
         objective: `Verify compliance, contractual, and policy rules for retirement of: ${options.objective}`,
-        agentId: rutam,
+        agentId: varuna,
         dependencies: [],
         requiredCapabilities: ['compliance', 'governance'],
         expectedOutputs: ['Retirement compliance clearance'],
@@ -600,20 +586,20 @@ Generate the structured JSON mission plan.`;
         id: 'task_2',
         title: 'Execute Decommissioning & Safe Archival',
         objective: `Decommission services, archive data, and cleanly sunset components for: ${options.objective}`,
-        agentId: mrtyu,
+        agentId: dhritavrata,
         dependencies: ['task_1'],
         requiredCapabilities: ['retirement', 'decommissioning', 'archival'],
         expectedOutputs: ['Decommissioning and archival summary'],
         dangerLevel: 0
       });
     }
-    // 5. Improvement / Optimization / Scaling (KALI)
+    // 5. Improvement / Optimization / Scaling (MAHINASA)
     else if (objectiveLower.includes('improve') || objectiveLower.includes('optimize') || objectiveLower.includes('scale') || objectiveLower.includes('restructure')) {
       tasks.push({
         id: 'task_1',
         title: 'Analyze Friction & Obsolete Bottlenecks',
         objective: `Identify optimization targets and refactoring opportunities for: ${options.objective}`,
-        agentId: kali,
+        agentId: mahinasa,
         dependencies: [],
         requiredCapabilities: ['optimization', 'continuous_improvement'],
         expectedOutputs: ['Transformation architecture plan'],
@@ -623,7 +609,7 @@ Generate the structured JSON mission plan.`;
         id: 'task_2',
         title: 'Implement Optimized Architecture',
         objective: `Implement optimizations and code refactorings for: ${options.objective}`,
-        agentId: gandiva,
+        agentId: manyu,
         dependencies: ['task_1'],
         requiredCapabilities: ['software_engineering', 'implementation'],
         expectedOutputs: ['Optimized implementation'],
@@ -633,135 +619,76 @@ Generate the structured JSON mission plan.`;
         id: 'task_3',
         title: 'Verify Performance & Quality Gates',
         objective: `Verify that optimizations meet regression and QA benchmarks for: ${options.objective}`,
-        agentId: vighna,
+        agentId: ritadhvaja,
         dependencies: ['task_2'],
         requiredCapabilities: ['testing', 'verification'],
         expectedOutputs: ['Verification benchmarks'],
         dangerLevel: 0
       });
     }
-    // 6. Marketing, Launch & Commercial Lifecycle (RAUDRA, RUTAM, ARVAN, TARAKA)
+    // 6. Marketing, Launch & Commercial Lifecycle (VIVASVAN, VARUNA, PUSA, MITRA)
     else if (objectiveLower.includes('launch') || objectiveLower.includes('market') || objectiveLower.includes('sales') || objectiveLower.includes('campaign')) {
       tasks.push({
         id: 'task_1',
         title: 'Formulate Go-To-Market & Campaign Positioning',
         objective: `Formulate marketing positioning, campaign messaging, and sales outreach for: ${options.objective}`,
-        agentId: raudra,
+        agentId: vivasvan,
         dependencies: [],
-        requiredCapabilities: ['marketing', 'sales'],
-        expectedOutputs: ['GTM campaign roadmap'],
+        requiredCapabilities: ['marketing', 'campaigns'],
+        expectedOutputs: ['Marketing campaign plan'],
         dangerLevel: 0
       });
       tasks.push({
         id: 'task_2',
-        title: 'Verify Contractual & Compliance Clearance',
-        objective: `Validate compliance rules, legal terms, and governance policies for: ${options.objective}`,
-        agentId: rutam,
+        title: 'Compliance & Governance Clearance',
+        objective: `Verify regulatory and policy terms for: ${options.objective}`,
+        agentId: varuna,
         dependencies: ['task_1'],
-        requiredCapabilities: ['compliance', 'governance'],
+        requiredCapabilities: ['governance', 'compliance'],
         expectedOutputs: ['Compliance clearance report'],
         dangerLevel: 0
       });
       tasks.push({
         id: 'task_3',
-        title: 'Execute Release Delivery & Distribution',
-        objective: `Deploy artifacts and manage fulfillment logistics for: ${options.objective}`,
-        agentId: arvan,
+        title: 'Execute Delivery & Release Packaging',
+        objective: `Package and dispatch deliverables for: ${options.objective}`,
+        agentId: pusa,
         dependencies: ['task_2'],
         requiredCapabilities: ['fulfillment', 'deployment'],
-        expectedOutputs: ['Deployment and fulfillment record'],
+        expectedOutputs: ['Fulfillment and release summary'],
         dangerLevel: 0
       });
       tasks.push({
         id: 'task_4',
-        title: 'Prepare Onboarding & Customer Support Runbooks',
-        objective: `Prepare customer documentation, guides, and support workflows for: ${options.objective}`,
-        agentId: taraka,
+        title: 'Customer Onboarding & Support Readiness',
+        objective: `Prepare user enablement materials and support workflows for: ${options.objective}`,
+        agentId: mitra,
         dependencies: ['task_3'],
-        requiredCapabilities: ['customer_support', 'onboarding'],
-        expectedOutputs: ['Customer onboarding runbook'],
+        requiredCapabilities: ['customer_onboarding', 'documentation'],
+        expectedOutputs: ['Customer success documentation'],
         dangerLevel: 0
       });
     }
-    // 7. Billing, Invoicing & Payments (KALKI)
-    else if (objectiveLower.includes('bill') || objectiveLower.includes('payment') || objectiveLower.includes('invoice') || objectiveLower.includes('subscription')) {
-      tasks.push({
-        id: 'task_1',
-        title: 'Process Commercial Billing & Reconciliation',
-        objective: `Execute invoice generation, subscription reconciliation, and commercial tracking for: ${options.objective}`,
-        agentId: kalki,
-        dependencies: [],
-        requiredCapabilities: ['billing', 'payments'],
-        expectedOutputs: ['Commercial reconciliation summary'],
-        dangerLevel: 0
-      });
-    }
-    // 8. Scheduling, Timelines & Resource Coordination (KAALA)
-    else if (objectiveLower.includes('schedule') || objectiveLower.includes('deadline') || objectiveLower.includes('timeline') || objectiveLower.includes('workload')) {
-      tasks.push({
-        id: 'task_1',
-        title: 'Coordinate Resource Windows & Timelines',
-        objective: `Construct execution timelines, balance workload queues, and coordinate scheduling for: ${options.objective}`,
-        agentId: kaala,
-        dependencies: [],
-        requiredCapabilities: ['scheduling', 'resource_management'],
-        expectedOutputs: ['Resource scheduling plan'],
-        dangerLevel: 0
-      });
-    }
-    // 9. Default Creation / Engineering Flow: Spoota -> Gandiva -> Vighna
-    else if (objectiveLower.includes('create') || objectiveLower.includes('write') || objectiveLower.includes('build') || objectiveLower.includes('develop')) {
-      tasks.push({
-        id: 'task_1',
-        title: 'Design & Specification Blueprint',
-        objective: `Design specifications and blueprint for: ${options.objective}`,
-        agentId: spoota,
-        dependencies: [],
-        requiredCapabilities: ['product_design', 'specifications'],
-        expectedOutputs: ['Design specifications'],
-        dangerLevel: 0
-      });
-      tasks.push({
-        id: 'task_2',
-        title: 'Software Engineering Implementation',
-        objective: `Implement and code required artifacts for: ${options.objective}`,
-        agentId: gandiva,
-        dependencies: ['task_1'],
-        requiredCapabilities: ['software_engineering', 'coding'],
-        expectedOutputs: ['Implemented files and code'],
-        dangerLevel: 0
-      });
-      tasks.push({
-        id: 'task_3',
-        title: 'QA & Programmatic Verification',
-        objective: `Verify implementation against quality gates and unit tests for: ${options.objective}`,
-        agentId: vighna,
-        dependencies: ['task_2'],
-        requiredCapabilities: ['testing', 'verification'],
-        expectedOutputs: ['QA verification report'],
-        dangerLevel: 0
-      });
-    }
-    // 10. General Inspection / Operations: Garuda -> Gandiva -> Vighna
+    // Default Engineering & QA Workflow (MANYU, RITADHVAJA)
     else {
       tasks.push({
         id: 'task_1',
-        title: 'Inspect Environment & Workspace',
-        objective: `Inspect workspace files and environment telemetry for: ${options.objective}`,
-        agentId: garuda,
+        title: 'Decompose & Implement Objective',
+        objective: `Plan and implement the technical execution for: ${options.objective}`,
+        agentId: manyu,
         dependencies: [],
-        requiredCapabilities: ['operations', 'monitoring'],
-        expectedOutputs: ['Operational inspection telemetry'],
+        requiredCapabilities: ['software_engineering', 'implementation'],
+        expectedOutputs: ['Execution artifacts'],
         dangerLevel: 0
       });
       tasks.push({
         id: 'task_2',
-        title: 'Synthesize Findings & Technical Report',
-        objective: `Synthesize operational observations and produce comprehensive report for: ${options.objective}`,
-        agentId: gandiva,
+        title: 'Verify Results & Validate Quality Gates',
+        objective: `Execute testing and verify that ${options.objective} meets quality criteria.`,
+        agentId: ritadhvaja,
         dependencies: ['task_1'],
-        requiredCapabilities: ['software_engineering', 'typescript'],
-        expectedOutputs: ['Final technical report'],
+        requiredCapabilities: ['testing', 'verification'],
+        expectedOutputs: ['Verification report'],
         dangerLevel: 0
       });
     }
@@ -769,7 +696,7 @@ Generate the structured JSON mission plan.`;
     return {
       objective: options.objective,
       constraints: options.constraints ? [...options.constraints] : [],
-      successCriteria: ['Tasks executed and verified across specialized lifecycle stages'],
+      successCriteria: [`Execution and quality verification completed for: ${options.objective}`],
       tasks,
       riskLevel: 'low',
       estimatedModelCalls: tasks.length,

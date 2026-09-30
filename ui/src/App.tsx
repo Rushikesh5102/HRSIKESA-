@@ -3,6 +3,7 @@ import { Sidebar, NavTab } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { BottomBar } from './components/BottomBar';
 import { CommandCenter } from './views/CommandCenter';
+import { HomeView } from './views/HomeView';
 import { AnimationService } from './services/animation.service';
 import { ChatView } from './views/ChatView';
 import { WorkView } from './views/WorkView';
@@ -43,6 +44,11 @@ import { CreationStudioView } from './views/CreationStudioView';
 import { PersistentOperationsView } from './views/PersistentOperationsView';
 import { EvolutionMonitorView } from './views/EvolutionMonitorView';
 import { VirtualOfficeView } from './views/VirtualOfficeView';
+import { OrganizationView } from './views/OrganizationView';
+import { DecisionsView } from './views/DecisionsView';
+import { AttentionView } from './views/AttentionView';
+import { ActivityView } from './views/ActivityView';
+import { AutomationsView } from './views/AutomationsView';
 
 import {
   HealthResponse,
@@ -63,9 +69,9 @@ import {
 import { api } from './services/api';
 
 const VALID_TABS: NavTab[] = [
-  'home', 'command-center', 'chat', 'council-chat', 'work', 'goals', 'missions', 'research', 'knowledge',
-  'agent-town', 'agents', 'office', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
-  'environment', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'ecosystem', 'creation', 'persistent-ops', 'evolution'
+  'home', 'command-center', 'chat', 'council-chat', 'work', 'goals', 'projects', 'missions', 'attention', 'research', 'knowledge',
+  'agent-town', 'agents', 'organization', 'decisions', 'activity', 'automations', 'office', 'tasks', 'tools', 'approvals', 'memory', 'computer', 'multimodal',
+  'environment', 'system-health', 'security', 'models', 'integrations', 'capabilities', 'audit', 'settings', 'companies', 'skills', 'mcp', 'self-improvement', 'workers', 'github', 'ide', 'engineering', 'workflows', 'accounts', 'workspaces', 'files', 'ecosystem', 'creation', 'persistent-ops', 'evolution'
 ];
 
 export const App: React.FC = () => {
@@ -97,7 +103,34 @@ export const App: React.FC = () => {
 
   const [systemOnline, setSystemOnline] = useState<boolean>(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('hrisekesa_sidebar_collapsed') === 'true';
+  });
   const [degradedSubsystems, setDegradedSubsystems] = useState<string[]>([]);
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('hrisekesa_sidebar_collapsed', String(next));
+      return next;
+    });
+  }, []);
+
+  // Global Ctrl+B / Cmd+B keyboard shortcut to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return; // Allow native bolding in text inputs
+        }
+        e.preventDefault();
+        toggleSidebarCollapsed();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleSidebarCollapsed]);
 
   // Theme State: 'cosmic' | 'mahabharata' | 'shiva' | 'surya' | 'light'
   const [theme, setTheme] = useState<string>(() => {
@@ -424,6 +457,8 @@ export const App: React.FC = () => {
         knowledgeCount={knowledgeCount}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsed}
       />
 
       <div className="main-wrapper">
@@ -438,10 +473,21 @@ export const App: React.FC = () => {
           onSearchPrompt={handleStartPromptFromHome}
           mobileNavOpen={mobileSidebarOpen}
           onToggleMobileNav={() => setMobileSidebarOpen((prev) => !prev)}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebarCollapse={toggleSidebarCollapsed}
         />
 
         <main ref={contentAreaRef} className="content-area">
-          {(currentTab === 'home' || currentTab === 'command-center') && (
+          {currentTab === 'home' && (
+            <HomeView
+              health={health}
+              status={status}
+              agents={agents}
+              onNavigate={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'command-center' && (
             <CommandCenter
               health={health}
               status={status}
@@ -493,6 +539,26 @@ export const App: React.FC = () => {
             />
           )}
 
+          {currentTab === 'organization' && (
+            <OrganizationView agents={agents} onNavigate={setCurrentTab} />
+          )}
+
+          {currentTab === 'decisions' && (
+            <DecisionsView onNavigate={setCurrentTab} />
+          )}
+
+          {(currentTab === 'attention' || currentTab === 'approvals') && (
+            <AttentionView approvals={approvals} onRefresh={loadAllData} onNavigate={setCurrentTab} />
+          )}
+
+          {(currentTab === 'activity' || currentTab === 'audit') && (
+            <ActivityView auditLogs={auditLogs} onNavigate={setCurrentTab} />
+          )}
+
+          {(currentTab === 'automations' || currentTab === 'schedules') && (
+            <AutomationsView onNavigate={setCurrentTab} />
+          )}
+
           {currentTab === 'office' && <VirtualOfficeView />}
 
           {currentTab === 'agent-town' && <AgentTown agents={agents} onNavigate={setCurrentTab} />}
@@ -500,6 +566,7 @@ export const App: React.FC = () => {
           {currentTab === 'memory' && <MemoryView memoryItems={memoryItems} />}
 
           {currentTab === 'goals' && <GoalsView onRefresh={loadAllData} />}
+          {currentTab === 'projects' && <MissionsView missions={missions} onRefresh={loadAllData} />}
 
           {currentTab === 'missions' && <MissionControlView />}
 
@@ -507,17 +574,11 @@ export const App: React.FC = () => {
 
           {currentTab === 'tools' && <ToolsView tools={tools} />}
 
-          {currentTab === 'approvals' && (
-            <ApprovalsView approvals={approvals} onRefresh={loadAllData} />
-          )}
-
-          {currentTab === 'environment' && <EnvironmentView envStatus={envStatus} />}
+          {(currentTab === 'environment' || currentTab === 'system-health') && <EnvironmentView envStatus={envStatus} />}
 
           {currentTab === 'models' && <ModelsView providers={models} />}
           {currentTab === 'integrations' && <IntegrationsView />}
-          {currentTab === 'capabilities' && <CapabilityCenter />}
-
-          {currentTab === 'audit' && <AuditView auditLogs={auditLogs} />}
+          {(currentTab === 'capabilities' || currentTab === 'security') && <CapabilityCenter />}
 
           {currentTab === 'companies' && <CompaniesView />}
           {currentTab === 'research' && <ResearchView />}
@@ -532,7 +593,9 @@ export const App: React.FC = () => {
           {currentTab === 'engineering' && <AutonomousEngineeringView />}
           {currentTab === 'workflows' && <WorkflowEngineView />}
           {currentTab === 'accounts' && <AccountsView />}
-          {currentTab === 'workspaces' && <DigitalWorkspaceView />}
+          {(currentTab === 'workspaces' || currentTab === 'files') && (
+            <DigitalWorkspaceView initialTab={currentTab === 'files' ? 'files' : 'workspaces'} />
+          )}
           {currentTab === 'ecosystem' && <EcosystemView />}
           {currentTab === 'creation' && <CreationStudioView />}
           {currentTab === 'persistent-ops' && <PersistentOperationsView />}

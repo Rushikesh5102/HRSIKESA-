@@ -2,32 +2,19 @@
  * HṚṢĪKEŚA (हृषीकेश) — Workforce Capacity Tracker
  *
  * FP-14: Tracks runtime capacity, active tasks, queued tasks,
- * and workload metrics across the 17 specialized agents.
+ * and workload metrics across the canonical workforce agents.
  */
 
 import { AgentWorkforceCapacity } from '../types/workforce.types.js';
 import { MissionRepository } from '../repository/mission.repository.js';
+import { INITIAL_AGENT_ROSTER } from '../../agents/roster/initial.agents.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
-export const INITIAL_17_AGENT_IDS = [
-  'rahu',
-  'aja',
-  'ritvan',
-  'tvas',
-  'spoota',
-  'gandiva',
-  'vighna',
-  'raudra',
-  'rutam',
-  'arvan',
-  'taraka',
-  'kalki',
-  'garuda',
-  'kali',
-  'kala',
-  'yama',
-  'mrtyu',
-];
+/** Canonical initial agent IDs dynamically derived from the authoritative workforce roster. */
+export const INITIAL_AGENT_IDS: readonly string[] = INITIAL_AGENT_ROSTER.map(a => a.id);
+
+/** Backward-compatible alias for existing imports. */
+export const INITIAL_17_AGENT_IDS = INITIAL_AGENT_IDS;
 
 export class WorkforceCapacityTracker {
   private inMemoryCapacity: Map<string, AgentWorkforceCapacity> = new Map();
@@ -38,7 +25,7 @@ export class WorkforceCapacityTracker {
   ) {
     this.initializeRoster();
     if (this.logger) {
-      this.logger.debug('WorkforceCapacityTracker initialized with 17 agents');
+      this.logger.debug(`WorkforceCapacityTracker initialized with ${this.inMemoryCapacity.size} agents`);
     }
   }
 
@@ -134,34 +121,13 @@ export class WorkforceCapacityTracker {
   }
 
   private initializeRoster(): void {
-    const specs: Record<string, { role: string; spec: string; name: string }> = {
-      rahu: { role: 'Chief Intelligence Officer', spec: 'Market Research & Competitive Intelligence', name: 'Rahu' },
-      aja: { role: 'Chief Strategy Officer', spec: 'Strategy & Business Planning', name: 'Aja' },
-      ritvan: { role: 'Chief Organization Architect', spec: 'Company & Team Setup', name: 'Ritvan' },
-      tvas: { role: 'Chief User Researcher', spec: 'Customer & Requirements Research', name: 'Tvas' },
-      spoota: { role: 'Chief Product Officer', spec: 'Product & Service Design', name: 'Spoota' },
-      gandiva: { role: 'Chief Engineering Officer', spec: 'Software Engineering & Autonomous Coding', name: 'Gāṇḍīva' },
-      vighna: { role: 'Chief Risk & Verification Officer', spec: 'QA, Risk & Independent Verification', name: 'Vighna' },
-      raudra: { role: 'Chief Growth Officer', spec: 'Marketing & Sales', name: 'Raudra' },
-      rutam: { role: 'Chief Governance Officer', spec: 'Contracts, Orders & Compliance', name: 'Rutam' },
-      arvan: { role: 'Chief Fulfillment Officer', spec: 'Fulfillment & Production Deployment', name: 'Arvan' },
-      taraka: { role: 'Chief Customer Success Officer', spec: 'Customer Onboarding & Support', name: 'Tāraka' },
-      kalki: { role: 'Chief Commercial Officer', spec: 'Billing & Financial Operations', name: 'Kalki' },
-      garuda: { role: 'Chief Operations Officer', spec: 'Operations & Infrastructure Monitoring', name: 'Garuḍa' },
-      kali: { role: 'Chief Transformation Officer', spec: 'Improvement & System Expansion', name: 'Kali' },
-      kala: { role: 'Master Coordinator', spec: 'Time, Scheduling & Resource Governance', name: 'KĀLA' },
-      yama: { role: 'Chief Resilience Officer', spec: 'Backup & Disaster Recovery', name: 'Yama' },
-      mrtyu: { role: 'System Lifecycle Officer', spec: 'Deprecation & Teardown', name: 'Mṛtyu' },
-    };
-
     const now = new Date().toISOString();
-    for (const agentId of INITIAL_17_AGENT_IDS) {
-      const info = specs[agentId] || { role: 'Specialist Agent', spec: 'Operations', name: agentId };
-      this.inMemoryCapacity.set(agentId, {
-        agentId,
-        name: info.name,
-        role: info.role,
-        primarySpecialization: info.spec,
+    for (const agent of INITIAL_AGENT_ROSTER) {
+      this.inMemoryCapacity.set(agent.id, {
+        agentId: agent.id,
+        name: agent.displayName,
+        role: agent.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        primarySpecialization: agent.description,
         status: 'AVAILABLE',
         activeTaskIds: [],
         queuedTaskIds: [],

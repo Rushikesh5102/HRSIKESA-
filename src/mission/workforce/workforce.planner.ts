@@ -1,8 +1,8 @@
 /**
  * HṚṢĪKEŚA (हृषीकेश) — Workforce Planner
  *
- * FP-14: Computes multi-factor dynamic agent assignment scores across the 17-agent
- * roster, ensuring specializations are preferred without becoming rigid silos.
+ * FP-14: Computes multi-factor dynamic agent assignment scores across the canonical
+ * workforce roster, ensuring specializations are preferred without becoming rigid silos.
  */
 
 import {
@@ -10,7 +10,7 @@ import {
 } from '../types/workforce.types.js';
 import { MissionTask } from '../types/task.types.js';
 import { MissionDescriptor } from '../types/mission.types.js';
-import { WorkforceCapacityTracker, INITIAL_17_AGENT_IDS } from './workforce.capacity.tracker.js';
+import { WorkforceCapacityTracker, INITIAL_AGENT_IDS } from './workforce.capacity.tracker.js';
 import { ILogger } from '../../core/logging/logger.types.js';
 
 export class WorkforcePlanner {
@@ -34,37 +34,50 @@ export class WorkforcePlanner {
 
     const results: Array<{ agentName: string; score: number; availabilityState: string }> = [];
 
-    for (const agentId of INITIAL_17_AGENT_IDS) {
+    for (const agentId of INITIAL_AGENT_IDS) {
       const cap = this.capacityTracker.getCapacity(agentId);
       let score = 50;
 
-      // Specialization matching
-      if (caps.includes('CODE_GENERATION') || titleLower.includes('code') || titleLower.includes('backend') || titleLower.includes('typescript') || titleLower.includes('software')) {
-        if (agentId === 'gandiva') score += 45;
-        else if (agentId === 'vighna' || agentId === 'arvan') score += 15;
+      // Specialization matching across 33-agent domains
+      if (caps.includes('CODE_GENERATION') || caps.includes('software_engineering') || titleLower.includes('code') || titleLower.includes('backend') || titleLower.includes('typescript') || titleLower.includes('software')) {
+        if (agentId === 'manyu') score += 45;
+        else if (agentId === 'bhava' || agentId === 'mahan' || agentId === 'manu') score += 20;
       }
-      if (caps.includes('VERIFICATION') || titleLower.includes('verify') || titleLower.includes('qa') || titleLower.includes('test') || titleLower.includes('audit')) {
-        if (agentId === 'vighna') score += 45;
-        else if (agentId === 'gandiva' || agentId === 'rutam') score += 15;
+      if (caps.includes('VERIFICATION') || caps.includes('testing') || titleLower.includes('verify') || titleLower.includes('qa') || titleLower.includes('test') || titleLower.includes('audit')) {
+        if (agentId === 'ritadhvaja') score += 45;
+        else if (agentId === 'siva') score += 30;
+        else if (agentId === 'manyu' || agentId === 'varuna' || agentId === 'dhruva') score += 20;
       }
-      if (caps.includes('RESEARCH') || titleLower.includes('research') || titleLower.includes('market') || descLower.includes('competitor') || titleLower.includes('pricing')) {
-        if (agentId === 'rahu') score += 45;
-        else if (agentId === 'tvas' || agentId === 'aja') score += 15;
+      if (caps.includes('RESEARCH') || caps.includes('market_research') || titleLower.includes('research') || titleLower.includes('market') || descLower.includes('competitor') || titleLower.includes('pricing')) {
+        if (agentId === 'bhaga') score += 45;
+        else if (agentId === 'tvasta' || agentId === 'dhata') score += 20;
       }
       if (titleLower.includes('strategy') || titleLower.includes('business') || titleLower.includes('plan')) {
-        if (agentId === 'aja') score += 45;
+        if (agentId === 'dhata') score += 45;
       }
       if (titleLower.includes('company') || titleLower.includes('team') || titleLower.includes('org')) {
-        if (agentId === 'ritvan') score += 45;
+        if (agentId === 'aryaman') score += 45;
       }
       if (titleLower.includes('deploy') || titleLower.includes('fulfillment') || titleLower.includes('release')) {
-        if (agentId === 'arvan') score += 45;
+        if (agentId === 'pusa') score += 45;
       }
-      if (titleLower.includes('ops') || titleLower.includes('infrastructure') || titleLower.includes('monitor')) {
-        if (agentId === 'garuda') score += 45;
+      if (titleLower.includes('ops') || titleLower.includes('infrastructure') || titleLower.includes('monitor') || titleLower.includes('sre')) {
+        if (agentId === 'prabhasa') score += 45;
       }
       if (titleLower.includes('design') || titleLower.includes('ui') || titleLower.includes('ux') || titleLower.includes('product')) {
-        if (agentId === 'spoota') score += 45;
+        if (agentId === 'tvasta' || agentId === 'savita') score += 45;
+      }
+      if (titleLower.includes('security') || titleLower.includes('vulnerability') || titleLower.includes('guard')) {
+        if (agentId === 'ugrareta') score += 45;
+      }
+      if (titleLower.includes('recover') || titleLower.includes('restore') || titleLower.includes('rollback')) {
+        if (agentId === 'vamadeva') score += 45;
+      }
+      if (titleLower.includes('retire') || titleLower.includes('decommission') || titleLower.includes('sunset')) {
+        if (agentId === 'dhritavrata') score += 45;
+      }
+      if (titleLower.includes('command') || titleLower.includes('mission') || titleLower.includes('dispatch')) {
+        if (agentId === 'indra') score += 45;
       }
 
       // Workload penalties
@@ -88,7 +101,7 @@ export class WorkforcePlanner {
   ): AgentAssignmentScore[] {
     const scores: AgentAssignmentScore[] = [];
 
-    for (const agentId of INITIAL_17_AGENT_IDS) {
+    for (const agentId of INITIAL_AGENT_IDS) {
       const cap = this.capacityTracker.getCapacity(agentId);
       const isPrimary = (task.assignedAgent || '').toLowerCase() === agentId;
 
@@ -108,7 +121,7 @@ export class WorkforcePlanner {
       const historicalFitScore = Math.round(cap.historicalSuccessRate * 100);
 
       let privacyFitScore = 100;
-      if (mission.privacyLevel === 'SOVEREIGN_LOCAL' && agentId === 'raudra') {
+      if (mission.privacyLevel === 'SOVEREIGN_LOCAL' && (agentId === 'vivasvan' || agentId === 'parjanya')) {
         privacyFitScore = 70;
       }
 
@@ -146,16 +159,22 @@ export class WorkforcePlanner {
     const lower = (title || '').toLowerCase();
     const k = (kind || '').toUpperCase();
     switch (agentId) {
-      case 'gandiva':
+      case 'manyu':
+      case 'bhava':
         return k === 'ENGINEERING' || k === 'ENGINEERING_FIX' || lower.includes('code') || lower.includes('fix') || lower.includes('build');
-      case 'vighna':
+      case 'ritadhvaja':
+      case 'siva':
         return lower.includes('verify') || lower.includes('test') || lower.includes('qa') || lower.includes('audit');
-      case 'arvan':
+      case 'pusa':
         return lower.includes('deploy') || lower.includes('release') || lower.includes('deliver');
-      case 'rahu':
+      case 'bhaga':
         return lower.includes('research') || lower.includes('intel') || lower.includes('market');
-      case 'garuda':
+      case 'prabhasa':
         return lower.includes('ops') || lower.includes('infrastructure') || lower.includes('monitor');
+      case 'indra':
+        return lower.includes('command') || lower.includes('orchestrate') || lower.includes('dispatch');
+      case 'prajapati':
+        return lower.includes('spawn') || lower.includes('evolve') || lower.includes('optimize');
       default:
         return false;
     }

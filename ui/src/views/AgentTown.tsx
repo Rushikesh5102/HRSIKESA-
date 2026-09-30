@@ -54,9 +54,6 @@ export const AgentTown: React.FC<AgentTownProps> = ({ agents, onNavigate }) => {
             <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Agent Town 3D
             </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              परिषद
-            </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Interactive Vedic mandala with physical quadrants for all {agents.length} specialized agents. Click any pavilion or roster card to inspect.

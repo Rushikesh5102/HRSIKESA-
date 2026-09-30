@@ -217,9 +217,6 @@ export const KnowledgeView: React.FC = () => {
               <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                 Knowledge & Memory
               </h1>
-              <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                ज्ञान एवं स्मृति
-              </span>
             </div>
             <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
               Vedic knowledge graph with provenance tracking, entity resolution, and temporal reasoning.

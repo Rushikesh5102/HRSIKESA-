@@ -92,7 +92,7 @@ class MockDesktopModelProvider implements IModelProvider {
 }
 
 describe('Computer Agent Reasoning Subsystem', () => {
-  it('Agent Gāṇḍīva should execute multi-turn desktop task via ToolExecutionBus', async () => {
+  it('Agent Indra should execute multi-turn desktop task via ToolExecutionBus', async () => {
     const logger = new Logger('Test', 'error');
     const bus = new EventBus();
     const db = new DatabaseManager(':memory:', logger);
@@ -121,8 +121,8 @@ describe('Computer Agent Reasoning Subsystem', () => {
     const runtime = new AgentRuntime(agentRegistry, toolRegistry, executionBus, router, bus, logger);
 
     const task = {
-      id: 'task_desktop_gandiva_1',
-      agentId: 'gandiva',
+      id: 'task_desktop_indra_1',
+      agentId: 'indra',
       missionId: 'mission_desktop_1',
       title: 'Open Notepad and Type Message',
       objective: 'Open Notepad and type Hello from Arjuna desktop control!',

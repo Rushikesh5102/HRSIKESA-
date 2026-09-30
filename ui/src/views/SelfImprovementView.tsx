@@ -110,9 +110,6 @@ export const SelfImprovementView: React.FC = () => {
               <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-cinzel)' }}>
                 Self-Improvement & Evolution Engine
               </h1>
-              <span style={{ fontSize: '18px', color: 'var(--accent-gold-bright)', fontFamily: 'var(--font-devanagari)', fontWeight: 700 }}>
-                स्व-विकास एवं उत्परिवर्तन
-              </span>
             </div>
             <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: '12.5px' }}>
               Autonomous Kaizen loop with isolated worktrees: Observation → Code Synthesis → Sandbox Benchmarking → 1-Click Sovereign Promotion.

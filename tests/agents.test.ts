@@ -6,38 +6,54 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AgentRegistry } from '../src/agents/registry/agent.registry.js';
-import { INITIAL_AGENT_ROSTER, GANDIVA, AJA, RAHU, VIGHNA } from '../src/agents/roster/initial.agents.js';
+import { INITIAL_AGENT_ROSTER, MANYU, INDRA, PRAJAPATI, RITADHVAJA } from '../src/agents/roster/initial.agents.js';
 import { DangerTier } from '../src/tools/interfaces/danger.types.js';
 
 test('Agent Registry Subsystem', async (t) => {
-  await t.test('should validate and register all 17 initial agents', () => {
+  await t.test('should validate and register all 33 initial canonical agents', () => {
     const registry = new AgentRegistry();
     for (const agent of INITIAL_AGENT_ROSTER) {
       registry.register({ ...agent });
     }
 
     const all = registry.getAll();
-    assert.equal(all.length, 17);
+    assert.equal(all.length, 33);
 
     const ids = all.map(a => a.id).sort();
     assert.deepEqual(ids, [
-      'aja',
-      'arvan',
-      'gandiva',
-      'garuda',
-      'kaala',
-      'kali',
-      'kalki',
-      'mrtyu',
-      'rahu',
-      'raudra',
-      'ritvan',
-      'rutam',
-      'spoota',
-      'taraka',
-      'tvas',
-      'vighna',
-      'yama'
+      'amsa',
+      'anala',
+      'anila',
+      'apa',
+      'aryaman',
+      'bhaga',
+      'bhava',
+      'dhara',
+      'dhata',
+      'dhritavrata',
+      'dhruva',
+      'indra',
+      'kala_rudra',
+      'mahan',
+      'mahinasa',
+      'manu',
+      'manyu',
+      'mitra',
+      'parjanya',
+      'prabhasa',
+      'prajapati',
+      'pratyusa',
+      'pusa',
+      'ritadhvaja',
+      'savita',
+      'siva',
+      'soma',
+      'tvasta',
+      'ugrareta',
+      'vamadeva',
+      'varuna',
+      'visnu',
+      'vivasvan'
     ]);
   });
 
@@ -59,10 +75,10 @@ test('Agent Registry Subsystem', async (t) => {
 
   await t.test('should reject duplicate agent registration', () => {
     const registry = new AgentRegistry();
-    registry.register({ ...GANDIVA });
+    registry.register({ ...MANYU });
 
     assert.throws(() => {
-      registry.register({ ...GANDIVA });
+      registry.register({ ...MANYU });
     }, /already registered/);
   });
 
@@ -97,20 +113,20 @@ test('Agent Registry Subsystem', async (t) => {
 
     const coders = registry.findByRole('software_engineering');
     assert.equal(coders.length, 1);
-    assert.equal(coders[0].id, 'gandiva');
+    assert.equal(coders[0].id, 'manyu');
 
     const marketIntelligence = registry.findByCapability('market_research');
     assert.equal(marketIntelligence.length, 1);
-    assert.equal(marketIntelligence[0].id, 'rahu');
+    assert.equal(marketIntelligence[0].id, 'bhaga');
   });
 
   await t.test('should update agent status and reflect in diagnostics', () => {
     const registry = new AgentRegistry();
-    registry.register({ ...GANDIVA });
+    registry.register({ ...MANYU });
 
-    assert.equal(registry.get('gandiva')?.status, 'idle');
-    registry.updateStatus('gandiva', 'working');
-    assert.equal(registry.get('gandiva')?.status, 'working');
+    assert.equal(registry.get('manyu')?.status, 'idle');
+    registry.updateStatus('manyu', 'working');
+    assert.equal(registry.get('manyu')?.status, 'working');
 
     const diag = registry.getDiagnostics();
     assert.equal(diag.totalRegistered, 1);

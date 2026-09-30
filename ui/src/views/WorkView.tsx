@@ -212,9 +212,6 @@ export const WorkView: React.FC<WorkViewProps> = ({
             <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Living Workspaces
             </h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontFamily: 'var(--font-devanagari)', fontWeight: 600 }}>
-              कर्म
-            </span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Active goals, autonomous builds, and verified milestones orchestrated by HṚṢĪKEŚA.
